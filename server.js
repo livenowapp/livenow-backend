@@ -1,41 +1,15 @@
 import express from "express";
 import cors from "cors";
+import Anthropic from "@anthropic-ai/sdk";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const actionsPool = [
-  {
-    icon: "wind",
-    label: "take 3 slow breaths"
-  },
-  {
-    icon: "figure.walk",
-    label: "take a short walk"
-  },
-  {
-    icon: "bubble.left.and.bubble.right",
-    label: "talk to someone"
-  },
-  {
-    icon: "pencil",
-    label: "write it down"
-  },
-  {
-    icon: "leaf",
-    label: "focus on your surroundings"
-  },
-  {
-    icon: "music.note",
-    label: "listen to calming music"
-  }
-];
-
-function getRandomActions(arr, n) {
-  return [...arr].sort(() => 0.5 - Math.random()).slice(0, n);
-}
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 app.post("/analyze", async (req, res) => {
   const thought = req.body.thought || "";
@@ -47,42 +21,100 @@ app.post("/analyze", async (req, res) => {
   }
 
   try {
-    res.json({
-      analysis: [
+    const prompt = `
+User thought: "${thought}"
+
+You are a calm mental clarity assistant for an app called LiveNow.
+
+Your job:
+- help the user question an anxious or overthinking thought
+- do not diagnose
+- do not sound clinical
+- keep everything short, warm, and practical
+- choose the 4 most relevant actions based on the user's specific thought
+
+Return ONLY valid JSON.
+Do not include markdown.
+Do not include explanation outside JSON.
+
+Use this exact structure:
+
+{
+  "analysis": [
+    { "label": "...", "sub": "..." },
+    { "label": "...", "sub": "..." }
+  ],
+  "evidence": [
+    { "q": "...", "a": "..." },
+    { "q": "...", "a": "..." }
+  ],
+  "reframes": ["...", "...", "..."],
+  "actions": [
+    { "icon": "...", "label": "..." },
+    { "icon": "...", "label": "..." },
+    { "icon": "...", "label": "..." },
+    { "icon": "...", "label": "..." }
+  ],
+  "insight": "..."
+}
+
+Action icon rules:
+Use ONLY these SF Symbol icon names:
+- wind
+- figure.walk
+- bubble.left.and.bubble.right
+- pencil
+- leaf
+- music.note
+
+Return exactly 4 actions.
+Choose the actions that best match the user's thought.
+
+Action meaning:
+- wind = breathing / calming body
+- figure.walk = movement / walk / physical reset
+- bubble.left.and.bubble.right = talking to someone / connection
+- pencil = journaling / writing down
+- leaf = grounding / noticing surroundings
+- music.note = calming music / sensory reset
+
+Keep action labels short.
+Good examples:
+- "take 3 slow breaths"
+- "step outside for 2 minutes"
+- "text someone you trust"
+- "write the thought down"
+- "notice 5 things around you"
+- "play one calming song"
+`;
+
+    const msg = await anthropic.messages.create({
+      model: "claude-3-haiku-20240307",
+      max_tokens: 700,
+      messages: [
         {
-          label: "possible distortion",
-          sub: "This thought may be assuming the worst without full evidence."
-        },
-        {
-          label: "what your mind is doing",
-          sub: "Your brain is trying to protect you, but it may be overpredicting danger."
+          role: "user",
+          content: prompt
         }
-      ],
-      evidence: [
-        {
-          q: "Do you have clear proof this is true?",
-          a: "Not necessarily"
-        },
-        {
-          q: "Could there be another explanation?",
-          a: "Yes, there usually is"
-        }
-      ],
-      reframes: [
-        "This is a thought, not a fact.",
-        "I do not have enough evidence to assume the worst.",
-        "I can pause before believing this story."
-      ],
-      actions: getRandomActions(actionsPool, 4),
-      insight: "You may be treating uncertainty like danger."
+      ]
     });
+
+    const text = msg.content[0].text;
+
+    const parsed = JSON.parse(text);
+
+    res.json(parsed);
+
   } catch (err) {
+    console.error("AI ERROR:", err);
     res.status(500).json({
       error: "AI error"
     });
   }
 });
 
-app.listen(3001, () => {
-  console.log("Server running on port 3001");
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

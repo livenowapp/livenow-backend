@@ -7,15 +7,13 @@
 
 import Foundation
 
-
 // MARK: - API
 
 final class AIService {
     static let shared = AIService()
 
-    // Če boš kasneje testiral na pravem telefonu, localhost ne bo delal.
-    // Takrat se tukaj zamenja URL z IP naslovom tvojega računalnika ali deployed backend URL.
-    private let endpoint = "http://127.0.0.1:3001/analyze"
+    // ✅ LIVE BACKEND
+    private let endpoint = "https://livenow-backend.onrender.com/analyze"
 
     func analyzeThought(thought: String) async throws -> AIResponse {
         guard let url = URL(string: endpoint) else {
@@ -29,13 +27,28 @@ final class AIService {
         let body = ["thought": thought]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
-            throw URLError(.badServerResponse)
+            guard let http = response as? HTTPURLResponse else {
+                throw URLError(.badServerResponse)
+            }
+
+            // 🔍 Debug (zelo uporabno)
+            print("Status:", http.statusCode)
+
+            guard 200..<300 ~= http.statusCode else {
+                let errorString = String(data: data, encoding: .utf8)
+                print("Server error:", errorString ?? "")
+                throw URLError(.badServerResponse)
+            }
+
+            let decoded = try JSONDecoder().decode(AIResponse.self, from: data)
+            return decoded
+
+        } catch {
+            print("Network error:", error.localizedDescription)
+            throw error
         }
-
-        let decoded = try JSONDecoder().decode(AIResponse.self, from: data)
-        return decoded
     }
 }
