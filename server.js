@@ -89,15 +89,15 @@ Good examples:
 `;
 
     const msg = await anthropic.messages.create({
-      model: "claude-3-haiku-20240307",
-      max_tokens: 700,
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ]
-    });
+  model: "claude-3-5-haiku-20241022",
+  max_tokens: 700,
+  messages: [
+    {
+      role: "user",
+      content: prompt
+    }
+  ]
+});
 
     const text = msg.content[0].text;
 
