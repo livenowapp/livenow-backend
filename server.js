@@ -16,7 +16,7 @@ app.post("/analyze", async (req, res) => {
 
   if (!thought.trim()) {
     return res.status(400).json({
-      error: "No thought provided"
+      error: "No thought provided",
     });
   }
 
@@ -31,7 +31,7 @@ Your job:
 - do not diagnose
 - do not sound clinical
 - keep everything short, warm, and practical
-- choose the 4 most relevant actions based on the user's specific thought
+- choose the 6 most relevant actions based on the user's specific thought
 
 Return ONLY valid JSON.
 Do not include markdown.
@@ -53,6 +53,8 @@ Use this exact structure:
     { "icon": "...", "label": "..." },
     { "icon": "...", "label": "..." },
     { "icon": "...", "label": "..." },
+    { "icon": "...", "label": "..." },
+    { "icon": "...", "label": "..." },
     { "icon": "...", "label": "..." }
   ],
   "insight": "..."
@@ -67,58 +69,42 @@ Use ONLY these SF Symbol icon names:
 - leaf
 - music.note
 
-Return exactly 4 actions.
-Choose the actions that best match the user's thought.
-
-Action meaning:
-- wind = breathing / calming body
-- figure.walk = movement / walk / physical reset
-- bubble.left.and.bubble.right = talking to someone / connection
-- pencil = journaling / writing down
-- leaf = grounding / noticing surroundings
-- music.note = calming music / sensory reset
+Return exactly 6 actions.
 
 Keep action labels short.
-Good examples:
-- "take 3 slow breaths"
-- "step outside for 2 minutes"
-- "text someone you trust"
-- "write the thought down"
-- "notice 5 things around you"
-- "play one calming song"
 `;
 
-   const msg = await anthropic.messages.create({
-  model: "claude-opus-4-7",
-  max_tokens: 700,
-  messages: [
-    {
-      role: "user",
-      content: prompt
+    const msg = await anthropic.messages.create({
+      model: "claude-opus-4-7",
+      max_tokens: 900,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const text = msg.content?.[0]?.text || "";
+
+    console.log("CLAUDE RAW:", text);
+
+    const jsonStart = text.indexOf("{");
+    const jsonEnd = text.lastIndexOf("}");
+
+    if (jsonStart === -1 || jsonEnd === -1) {
+      throw new Error("No JSON found in Claude response");
     }
-  ]
-});
 
-const text = msg.content?.[0]?.text || "";
+    const jsonText = text.slice(jsonStart, jsonEnd + 1);
+    const parsed = JSON.parse(jsonText);
 
-try {
-  const parsed = JSON.parse(text);
-  res.json(parsed);
-} catch (e) {
-  console.error("JSON PARSE ERROR:", text);
-
-  res.json({
-    analysis: [{ label: "something went wrong", sub: "try again" }],
-    evidence: [],
-    reframes: ["This is just a temporary error."],
-    actions: [],
-    insight: "AI response could not be parsed"
-  });
-}
+    return res.json(parsed);
   } catch (err) {
     console.error("AI ERROR:", err);
-    res.status(500).json({
-      error: "AI error"
+
+    return res.status(500).json({
+      error: "AI error",
     });
   }
 });
@@ -127,4 +113,4 @@ const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-});...kar celega popravi
+});
