@@ -11,6 +11,13 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+function cleanClaudeJson(text) {
+  return text
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+}
+
 app.post("/analyze", async (req, res) => {
   const thought = req.body.thought || "";
 
@@ -35,6 +42,8 @@ Your job:
 
 Return ONLY valid JSON.
 Do not include markdown.
+Do not wrap the JSON in code fences.
+Do not use \`\`\`json.
 Do not include explanation outside JSON.
 
 Use this exact structure:
@@ -70,34 +79,35 @@ Use ONLY these SF Symbol icon names:
 - music.note
 
 Return exactly 6 actions.
-
+Keep all text short.
 Keep action labels short.
 `;
 
     const msg = await anthropic.messages.create({
-  model: "claude-haiku-4-5-20251001",
-  max_tokens: 500,
-  temperature: 0.4,
-  messages: [
-    {
-      role: "user",
-      content: prompt
-    }
-  ]
-});
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 500,
+      temperature: 0.3,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
 
-    const text = msg.content?.[0]?.text || "";
+    const rawText = msg.content?.[0]?.text || "";
+    const cleanedText = cleanClaudeJson(rawText);
 
-    console.log("CLAUDE RAW:", text);
+    console.log("CLAUDE CLEAN:", cleanedText);
 
-    const jsonStart = text.indexOf("{");
-    const jsonEnd = text.lastIndexOf("}");
+    const jsonStart = cleanedText.indexOf("{");
+    const jsonEnd = cleanedText.lastIndexOf("}");
 
     if (jsonStart === -1 || jsonEnd === -1) {
       throw new Error("No JSON found in Claude response");
     }
 
-    const jsonText = text.slice(jsonStart, jsonEnd + 1);
+    const jsonText = cleanedText.slice(jsonStart, jsonEnd + 1);
     const parsed = JSON.parse(jsonText);
 
     return res.json(parsed);
