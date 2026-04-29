@@ -99,11 +99,22 @@ Good examples:
   ]
 });
 
-    const text = msg.content[0].text;
+    const text = msg.content?.[0]?.text || "";
 
-    const parsed = JSON.parse(text);
+try {
+  const parsed = JSON.parse(text);
+  res.json(parsed);
+} catch (e) {
+  console.error("JSON PARSE ERROR:", text);
 
-    res.json(parsed);
+  res.json({
+    analysis: [{ label: "something went wrong", sub: "try again" }],
+    evidence: [],
+    reframes: ["This is just a temporary error."],
+    actions: [],
+    insight: "AI response could not be parsed"
+  });
+}
 
   } catch (err) {
     console.error("AI ERROR:", err);
