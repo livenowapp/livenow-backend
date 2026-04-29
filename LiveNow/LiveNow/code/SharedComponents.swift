@@ -1,0 +1,269 @@
+//
+//  SharedComponents.swift
+//  LiveNow
+//
+//  Created by Maja on 24. 4. 2026.
+//
+
+import SwiftUI
+
+// MARK: - TAB BAR
+
+struct BottomTabBar: View {
+    @ObservedObject var vm: AppViewModel
+    let orange: Color
+
+    var body: some View {
+        HStack(spacing: 0) {
+            TabItem(icon: "house", label: "home", tab: .home, vm: vm, orange: orange)
+            TabItem(icon: "sparkles", label: "moments", tab: .moments, vm: vm, orange: orange)
+            TabItem(icon: "chart.bar", label: "insights", tab: .insights, vm: vm, orange: orange)
+            TabItem(icon: "person", label: "profile", tab: .profile, vm: vm, orange: orange)
+        }
+        .padding(.top, 12)
+        .padding(.bottom, 12)
+        .padding(.horizontal, 10)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 26)
+                .fill(Color.white.opacity(0.95))
+                .shadow(color: Color.black.opacity(0.06), radius: 14, x: 0, y: 4)
+        )
+        .padding(.horizontal, 22)
+        .padding(.bottom, 8)
+    }
+}
+
+struct TabItem: View {
+    let icon: String
+    let label: String
+    let tab: MainTab
+    @ObservedObject var vm: AppViewModel
+    let orange: Color
+
+    @ScaledMetric private var iconSize: CGFloat = 18
+    @ScaledMetric private var labelSize: CGFloat = 11
+
+    var body: some View {
+        Button(action: {
+            vm.currentTab = tab
+        }) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: iconSize))
+
+                Text(label)
+                    .font(.system(size: labelSize))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .foregroundColor(vm.currentTab == tab ? orange : .gray)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct OutcomeButton: View {
+    let title: String
+    let selected: Bool
+    let color: Color
+    let action: () -> Void
+
+    @ScaledMetric private var textSize: CGFloat = 14
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: textSize, weight: .semibold))
+                .foregroundColor(selected ? .white : color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(selected ? color : Color.white.opacity(0.7))
+                .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct TopProgressRow: View {
+    let stepText: String
+    let progress: CGFloat
+    let orange: Color
+    var onBack: () -> Void
+
+    @ScaledMetric private var iconSize: CGFloat = 18
+    @ScaledMetric private var stepSize: CGFloat = 13
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Button(action: onBack) {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: iconSize, weight: .regular))
+                    .foregroundColor(.black.opacity(0.7))
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.plain)
+
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color.black.opacity(0.08))
+                .frame(height: 4)
+                .overlay(alignment: .leading) {
+                    GeometryReader { geo in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(orange)
+                            .frame(width: geo.size.width * progress, height: 4)
+                    }
+                }
+
+            Text(stepText)
+                .font(.system(size: stepSize))
+                .foregroundColor(.black.opacity(0.65))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(width: 46, alignment: .trailing)
+        }
+    }
+}
+
+struct EvidenceRow: View {
+    let question: String
+    let answer: String
+
+    @ScaledMetric private var textSize: CGFloat = 14
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 16) {
+            Text(question)
+                .font(.system(size: textSize))
+                .foregroundColor(.black.opacity(0.9))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(answer)
+                .font(.system(size: textSize))
+                .foregroundColor(.gray)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
+    }
+}
+
+struct AnalysisCard: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    let orange: Color
+
+    @ScaledMetric private var iconCircleSize: CGFloat = 56
+    @ScaledMetric private var iconSize: CGFloat = 24
+    @ScaledMetric private var titleSize: CGFloat = 18
+    @ScaledMetric private var subtitleSize: CGFloat = 14
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.orange.opacity(0.12))
+                    .frame(width: iconCircleSize, height: iconCircleSize)
+
+                Image(systemName: icon)
+                    .font(.system(size: iconSize, weight: .medium))
+                    .foregroundColor(orange)
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text(title)
+                    .font(.system(size: titleSize, weight: .bold))
+                    .foregroundColor(.black)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text(subtitle)
+                    .font(.system(size: subtitleSize))
+                    .foregroundColor(.gray)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white.opacity(0.9))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.orange.opacity(0.12), lineWidth: 1)
+        )
+        .cornerRadius(20)
+    }
+}
+
+struct SparkleView: View {
+    let offsetX: CGFloat
+    let offsetY: CGFloat
+    let orange: Color
+
+    @ScaledMetric private var sparkleSize: CGFloat = 12
+
+    var body: some View {
+        Image(systemName: "sparkles")
+            .font(.system(size: sparkleSize))
+            .foregroundColor(orange)
+            .offset(x: offsetX, y: offsetY)
+    }
+}
+
+struct ProfilePlaceholderScreen: View {
+    @ObservedObject var authVM: AuthViewModel
+    @ObservedObject var vm: AppViewModel
+
+    @ScaledMetric private var titleSize: CGFloat = 28
+    @ScaledMetric private var buttonTextSize: CGFloat = 17
+
+    var body: some View {
+        VStack(spacing: 20) {
+            HStack {
+                Button(action: {
+                    vm.currentTab = .home
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.black.opacity(0.75))
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+            }
+            .padding(.horizontal, 22)
+            .padding(.top, 18)
+
+            Spacer()
+
+            Text("profile")
+                .font(.system(size: titleSize, weight: .bold))
+                .foregroundColor(.black)
+
+            Button(action: {
+                authVM.logout()
+            }) {
+                Text("log out")
+                    .font(.system(size: buttonTextSize, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.red)
+                    .cornerRadius(12)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 24)
+
+            Spacer()
+        }
+    }
+}
