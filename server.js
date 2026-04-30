@@ -31,23 +31,11 @@ app.post("/analyze", async (req, res) => {
     const prompt = `
 User thought: "${thought}"
 
-You are a calm mental clarity assistant for an app called LiveNow.
+Act as a calm mental clarity assistant.
 
-Your job:
-- help the user question an anxious or overthinking thought
-- do not diagnose
-- do not sound clinical
-- keep everything short, warm, and practical
-- choose the 6 most relevant actions based on the user's specific thought
+Respond in VALID JSON only (no markdown, no text outside JSON).
 
-Return ONLY valid JSON.
-Do not include markdown.
-Do not wrap the JSON in code fences.
-Do not use \`\`\`json.
-Do not include explanation outside JSON.
-
-Use this exact structure:
-
+Format:
 {
   "analysis": [
     { "label": "...", "sub": "..." },
@@ -62,31 +50,34 @@ Use this exact structure:
     { "icon": "...", "label": "..." },
     { "icon": "...", "label": "..." },
     { "icon": "...", "label": "..." },
-    { "icon": "...", "label": "..." },
-    { "icon": "...", "label": "..." },
     { "icon": "...", "label": "..." }
   ],
   "insight": "..."
 }
 
-Action icon rules:
-Use ONLY these SF Symbol icon names:
-- wind
-- figure.walk
-- bubble.left.and.bubble.right
-- pencil
-- leaf
-- music.note
+Rules:
+- keep tone warm, short, practical
+- no diagnosis
+- choose EXACTLY 4 actions that best match the thought
 
-Return exactly 6 actions.
-Keep all text short.
-Keep action labels short.
+Available actions (choose only from these):
+
+- wind — take 3 slow breaths
+- figure.walk — take a short walk
+- bubble.left.and.bubble.right — text someone you trust
+- pencil — write the thought down
+- leaf — notice 5 things around you
+- music.note — play calming music
+- drop — drink water
+- bed.double — rest for a few minutes
+- sun.max — step into daylight
+- hand.raised — pause before reacting
 `;
 
     const msg = await anthropic.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 500,
-      temperature: 0.3,
+      temperature: 0.4,
       messages: [
         {
           role: "user",
