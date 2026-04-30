@@ -59,6 +59,8 @@ Rules:
 - keep tone warm, short, practical
 - no diagnosis
 - choose EXACTLY 4 actions that best match the thought
+- Keep all responses very short.
+- Limit each sentence to under 12 words.
 
 Available actions (choose only from these):
 
@@ -76,7 +78,7 @@ Available actions (choose only from these):
 
     const msg = await anthropic.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 500,
+      max_tokens: 700,
       temperature: 0.4,
       messages: [
         {
