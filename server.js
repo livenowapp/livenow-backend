@@ -11,6 +11,9 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const APP_SECRET = process.env.APP_SECRET;
+
+// očisti Claude response
 function cleanClaudeJson(text) {
   return text
     .replace(/```json/gi, "")
@@ -19,6 +22,15 @@ function cleanClaudeJson(text) {
 }
 
 app.post("/analyze", async (req, res) => {
+  // 🔐 ZAŠČITA
+  const clientSecret = req.headers["x-app-secret"];
+
+  if (clientSecret !== APP_SECRET) {
+    return res.status(401).json({
+      error: "Unauthorized",
+    });
+  }
+
   const thought = req.body.thought || "";
 
   if (!thought.trim()) {
@@ -59,8 +71,8 @@ Rules:
 - keep tone warm, short, practical
 - no diagnosis
 - choose EXACTLY 4 actions that best match the thought
-- Keep all responses very short.
-- Limit each sentence to under 12 words.
+- keep all responses very short
+- limit each sentence to under 12 words
 
 Available actions (choose only from these):
 
