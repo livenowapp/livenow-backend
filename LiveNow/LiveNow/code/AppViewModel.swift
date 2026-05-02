@@ -100,7 +100,8 @@ final class AppViewModel: ObservableObject {
         guard let ai = aiResponse else { return }
 
         let action = ai.actions.indices.contains(selectedActionIndex) ? ai.actions[selectedActionIndex] : nil
-
+        let reframe = ai.reframes.indices.contains(selectedReframeIndex) ? ai.reframes[selectedReframeIndex] : nil
+        
         let entry = ThoughtEntry(
             id: UUID(),
             date: Date(),
@@ -108,8 +109,8 @@ final class AppViewModel: ObservableObject {
             ai: ai,
             selectedActionLabel: action?.label,
             selectedActionIcon: action?.icon,
-            didHappen: nil,
-            note: nil
+            selectedReframe: reframe,
+            didHappen: nil
         )
 
         entries.insert(entry, at: 0)

@@ -39,6 +39,7 @@ Format:
 {
   "analysis": [
     { "label": "...", "sub": "..." },
+    { "label": "...", "sub": "..." },
     { "label": "...", "sub": "..." }
   ],
   "evidence": [
@@ -56,9 +57,12 @@ Format:
 }
 
 Rules:
+- Return EXACTLY 3 analysis items.
+- Return EXACTLY 2 evidence items.
+- Return EXACTLY 3 reframes.
+- Return EXACTLY 4 actions.
 - keep tone warm, short, practical
 - no diagnosis
-- choose EXACTLY 4 actions that best match the thought
 - Keep all responses very short.
 - Limit each sentence to under 12 words.
 
@@ -70,7 +74,6 @@ Available actions (choose only from these):
 - pencil — write the thought down
 - leaf — notice 5 things around you
 - music.note — play calming music
-- drop — drink water
 - bed.double — rest for a few minutes
 - sun.max — step into daylight
 - hand.raised — pause before reacting

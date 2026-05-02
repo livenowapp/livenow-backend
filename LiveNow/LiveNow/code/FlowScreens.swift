@@ -220,11 +220,11 @@ struct AnalyzeScreen: View {
                         .background(Color(red: 0.95, green: 0.89, blue: 0.84))
                         .cornerRadius(20)
 
-                        ForEach(Array((ai?.analysis ?? []).enumerated()), id: \.offset) { index, item in
+                        ForEach(Array((ai?.analysis ?? []).prefix(3).enumerated()), id: \.offset) { index, item in
                             AnalysisCard(
                                 title: item.label,
                                 subtitle: item.sub,
-                                icon: index == 0 ? "magnifyingglass" : "brain.head.profile",
+                                icon: analysisIcon(for: index),
                                 orange: orange
                             )
                         }
@@ -270,6 +270,18 @@ struct AnalyzeScreen: View {
                 Spacer().frame(height: bottomSpacing)
             }
             .padding(.horizontal, horizontalPadding)
+        }
+    }
+    private func analysisIcon(for index: Int) -> String {
+        switch index {
+        case 0:
+            return "magnifyingglass"
+        case 1:
+            return "brain.head.profile"
+        case 2:
+            return "heart"
+        default:
+            return "sparkles"
         }
     }
 }

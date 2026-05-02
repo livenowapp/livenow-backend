@@ -55,6 +55,7 @@ struct ThoughtEntry: Identifiable, Codable, Hashable {
     let ai: AIResponse
     var selectedActionLabel: String?
     var selectedActionIcon: String?
+    var selectedReframe: String?
     var didHappen: EntryOutcome?
     var note: String?
 }
