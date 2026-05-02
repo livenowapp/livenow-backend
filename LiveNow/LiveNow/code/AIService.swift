@@ -23,7 +23,6 @@ final class AIService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("livenow_app_secret_2026_private", forHTTPHeaderField: "x-app-secret")
         
         let body = ["thought": thought]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
