@@ -121,7 +121,19 @@ struct InputScreen: View {
                         Spacer().frame(height: 24)
                     }
                 }
+                HStack(spacing: 7) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 13))
+                        .foregroundColor(.gray)
 
+                    Text("AI-generated reflection. Not professional advice.")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 10)
+                
                 Button(action: onAnalyze) {
                     Text(vm.isLoading ? "analyzing..." : "analyze")
                         .font(.system(size: buttonSize, weight: .semibold))
