@@ -65,18 +65,23 @@ Rules:
 - no diagnosis
 - Keep all responses very short.
 - Limit each sentence to under 12 words.
+- For every action, icon must be one exact value from Available actions.
+- Do not use emojis or SF Symbols.
 
-Available actions (choose only from these):
+Available actions.
 
-- wind — take 3 slow breaths
-- figure.walk — take a short walk
-- bubble.left.and.bubble.right — text someone you trust
-- pencil — write the thought down
-- leaf — notice 5 things around you
-- music.note — play calming music
-- bed.double — rest for a few minutes
-- sun.max — step into daylight
-- hand.raised — pause before reacting
+Choose only from these icon values.
+The icon value must match exactly:
+
+- action_breath — take 3 slow breaths
+- action_walk — take a short walk
+- action_chat — text someone you trust
+- action_pencil — write the thought down
+- action_leaf — notice 5 things around you
+- action_music — play calming music
+- action_sleep — rest for a few minutes
+- action_sunlight — step into daylight
+- action_handraised — pause before reacting
 `;
 
     const msg = await anthropic.messages.create({

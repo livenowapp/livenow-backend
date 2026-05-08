@@ -222,48 +222,231 @@ struct ProfilePlaceholderScreen: View {
     @ObservedObject var authVM: AuthViewModel
     @ObservedObject var vm: AppViewModel
 
-    @ScaledMetric private var titleSize: CGFloat = 28
-    @ScaledMetric private var buttonTextSize: CGFloat = 17
+    private let orange = Color(red: 1.0, green: 0.43, blue: 0.10)
+
+    @ScaledMetric private var logoSize: CGFloat = 24
+    @ScaledMetric private var topButtonSize: CGFloat = 40
+    @ScaledMetric private var nameSize: CGFloat = 34
 
     var body: some View {
-        VStack(spacing: 20) {
-            HStack {
-                Button(action: {
-                    vm.currentTab = .home
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.black.opacity(0.75))
-                        .frame(width: 44, height: 44)
+        GeometryReader { geo in
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
+
+            let horizontalPadding = min(screenWidth * 0.06, 24)
+            let topPadding = min(screenHeight * 0.025, 18)
+
+            VStack(spacing: 0) {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 24) {
+
+                        HStack {
+                            Circle()
+                                .fill(Color.clear)
+                                .frame(width: topButtonSize, height: topButtonSize)
+
+                            Spacer()
+
+                            Text("LiveNow")
+                                .font(.system(size: logoSize, weight: .semibold))
+                                .foregroundColor(.black)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+
+                            Spacer()
+
+                            Circle()
+                                .fill(Color.clear)
+                                .frame(width: topButtonSize, height: topButtonSize)
+                        }
+                        .padding(.horizontal, horizontalPadding)
+                        .padding(.top, topPadding)
+                        
+                        HStack(spacing: 18) {
+                            Circle()
+                                .fill(orange.opacity(0.14))
+                                .frame(width: 86, height: 86)
+                                .overlay(
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 36))
+                                        .foregroundColor(orange)
+                                )
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Jack")
+                                    .font(.system(size: nameSize, weight: .bold))
+                                    .foregroundColor(.black)
+
+                                Text("Focus on what matters.\nLive in the now.")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                    .lineSpacing(4)
+                            }
+
+                            Spacer()
+                        }
+
+                        progressCard
+
+                        menuCard
+                    }
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.bottom, 28)
                 }
-                .buttonStyle(.plain)
+
+                BottomTabBar(vm: vm, orange: orange)
+            }
+        }
+    }
+
+    private var progressCard: some View {
+        VStack(spacing: 18) {
+            HStack {
+                Text("Your progress")
+                    .font(.system(size: 20, weight: .bold))
+
+                Spacer()
+
+                Text("View all")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(orange)
+
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray)
+            }
+
+            HStack(spacing: 0) {
+                progressCircle
+
+                Divider().padding(.vertical, 8)
+
+                statItem(icon: "arrow.clockwise", value: "\(vm.last7DaysEntries.count)", title: "resets", subtitle: "this week")
+
+                Divider().padding(.vertical, 8)
+
+                statItem(icon: "flame", value: "\(vm.streakCount)", title: "day streak", subtitle: "current")
+
+                Divider().padding(.vertical, 8)
+
+                statItem(icon: "star", value: "\(vm.entries.count)", title: "moments", subtitle: "saved")
+            }
+
+            HStack(spacing: 14) {
+                Circle()
+                    .fill(orange.opacity(0.12))
+                    .frame(width: 46, height: 46)
+                    .overlay(
+                        Image(systemName: "bolt.fill")
+                            .foregroundColor(orange)
+                    )
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("You’ve broken the loop \(vm.last7DaysEntries.count) times this week.")
+                        .font(.system(size: 15, weight: .semibold))
+
+                    Text("Keep going.")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                }
 
                 Spacer()
             }
-            .padding(.horizontal, 22)
-            .padding(.top, 18)
-
-            Spacer()
-
-            Text("profile")
-                .font(.system(size: titleSize, weight: .bold))
-                .foregroundColor(.black)
-
-            Button(action: {
-                authVM.logout()
-            }) {
-                Text("log out")
-                    .font(.system(size: buttonTextSize, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.red)
-                    .cornerRadius(12)
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 24)
-
-            Spacer()
+            .padding()
+            .background(orange.opacity(0.05))
+            .cornerRadius(16)
         }
+        .padding(18)
+        .background(Color.white.opacity(0.75))
+        .cornerRadius(22)
+    }
+
+    private var progressCircle: some View {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .stroke(orange.opacity(0.15), lineWidth: 7)
+                    .frame(width: 82, height: 82)
+
+                Circle()
+                    .trim(from: 0, to: CGFloat(vm.last7DaysDidNotHappenPercent) / 100)
+                    .stroke(orange, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                    .frame(width: 82, height: 82)
+                    .rotationEffect(.degrees(-90))
+
+                Text("\(vm.last7DaysDidNotHappenPercent)%")
+                    .font(.system(size: 22, weight: .bold))
+            }
+
+            Text("less overthinking")
+                .font(.system(size: 13))
+                .multilineTextAlignment(.center)
+
+            Text("this week")
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func statItem(icon: String, value: String, title: String, subtitle: String) -> some View {
+        VStack(spacing: 7) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(orange)
+
+            Text(value)
+                .font(.system(size: 22, weight: .bold))
+
+            Text(title)
+                .font(.system(size: 13))
+
+            Text(subtitle)
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var menuCard: some View {
+        VStack(spacing: 0) {
+            menuRow(icon: "gearshape", title: "Settings", subtitle: "Manage your account and app", orangeIcon: true)
+            Divider().padding(.leading, 74)
+
+            menuRow(icon: "envelope", title: "Contact us", subtitle: "We’d love to hear from you")
+            Divider().padding(.leading, 74)
+
+            menuRow(icon: "star", title: "Rate LiveNow", subtitle: "If LiveNow helps you, leave a review")
+            Divider().padding(.leading, 74)
+
+            menuRow(icon: "square.and.arrow.up", title: "Share LiveNow", subtitle: "Help others live more in the now")
+        }
+        .background(Color.white.opacity(0.75))
+        .cornerRadius(22)
+    }
+
+    private func menuRow(icon: String, title: String, subtitle: String, orangeIcon: Bool = false) -> some View {
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(orangeIcon ? orange : .gray)
+                .frame(width: 42)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.black)
+
+                Text(subtitle)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 18)
     }
 }

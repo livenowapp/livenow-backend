@@ -51,7 +51,48 @@ final class AppViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let response = try await AIService.shared.analyzeThought(thought: thought)
+            //let response = try await AIService.shared.analyzeThought(thought: thought)
+                  //      aiResponse = response
+                   //     step = .analyze
+            let response = AIResponse(
+                analysis: [
+                    AIAnalysisItem(
+                        label: "possible overthinking",
+                        sub: "Your mind may be assuming the worst too quickly."
+                    ),
+                    AIAnalysisItem(
+                        label: "what your brain is doing",
+                        sub: "You are trying to predict danger before it happens."
+                    )
+                ],
+                
+                evidence: [
+                    AIEvidenceItem(
+                        q: "Do you have clear proof?",
+                        a: "Not really"
+                    ),
+                    AIEvidenceItem(
+                        q: "Could there be another explanation?",
+                        a: "Yes"
+                    )
+                ],
+                
+                reframes: [
+                    "This thought is not necessarily true.",
+                    "I don’t need to solve everything right now.",
+                    "I can let this pass without reacting."
+                ],
+                
+                actions: [
+                    AIActionItem(icon: "🌬", label: "take 3 deep breaths"),
+                    AIActionItem(icon: "🚶", label: "go for a short walk"),
+                    AIActionItem(icon: "✍️", label: "write down the thought"),
+                    AIActionItem(icon: "🎵", label: "listen to calming music")
+                ],
+                
+                insight: "You often assume the worst before having evidence."
+            )
+
             aiResponse = response
             step = .analyze
         } catch {

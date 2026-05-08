@@ -475,8 +475,15 @@ struct ActionScreen: View {
                                     vm.selectedActionIndex = index
                                 }) {
                                     HStack {
-                                        Image(systemName: item.icon.isEmpty ? "circle" : item.icon)
-                                            .font(.system(size: 18))
+                                        Circle()
+                                            .fill(actionColor(for: item.icon))
+                                            .frame(width: 60, height: 60)
+                                            .overlay(
+                                                Image(assetIconName(item.icon))
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 46, height: 46)
+                                            )
 
                                         Text(item.label)
                                             .font(.system(size: 15))
@@ -542,6 +549,49 @@ struct ActionScreen: View {
             }
             .padding(.horizontal, horizontalPadding)
         }
+    }
+    private func assetIconName(_ icon: String) -> String {
+        let map: [String: String] = [
+            "wind": "action_breath",
+            "figure.walk": "action_walk",
+            "bubble.left.and.bubble.right": "action_chat",
+            "pencil": "action_pencil",
+            "leaf": "action_leaf",
+            "music.note": "action_music",
+            "bed.double": "action_sleep",
+            "sun.max": "action_sunlight",
+            "hand.raised": "action_handraised",
+
+            "action_breath": "action_breath",
+            "action_walk": "action_walk",
+            "action_chat": "action_chat",
+            "action_pencil": "action_pencil",
+            "action_leaf": "action_leaf",
+            "action_music": "action_music",
+            "action_sleep": "action_sleep",
+            "action_sunlight": "action_sunlight",
+            "action_handraised": "action_handraised"
+        ]
+
+        return map[icon] ?? "action_sunlight"
+    }
+
+    private func actionColor(for icon: String) -> Color {
+        let asset = assetIconName(icon)
+
+        let colorMap: [String: Color] = [
+            "action_breath": .blue,
+            "action_walk": .orange,
+            "action_chat": .teal,
+            "action_pencil": .indigo,
+            "action_leaf": .green,
+            "action_music": .purple,
+            "action_sleep": .pink,
+            "action_sunlight": .yellow,
+            "action_handraised": .red
+        ]
+
+        return colorMap[asset]?.opacity(0.22) ?? .gray.opacity(0.18)
     }
 }
 

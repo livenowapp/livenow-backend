@@ -85,9 +85,34 @@ struct MomentDetailScreen: View {
                             }
                             .frame(maxWidth: .infinity)
                             
+                            VStack(alignment: .leading, spacing: 14) {
+                                Text("did this actually happen?")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.black)
+                                
+                                HStack(spacing: 12) {
+                                    OutcomeButton(title: "no", selected: currentEntry.didHappen == .no, color: .green) {
+                                        vm.updateOutcome(for: entry.id, outcome: .no)
+                                    }
+                                    
+                                    OutcomeButton(title: "maybe", selected: currentEntry.didHappen == .maybe, color: .orange) {
+                                        vm.updateOutcome(for: entry.id, outcome: .maybe)
+                                    }
+                                    
+                                    OutcomeButton(title: "yes", selected: currentEntry.didHappen == .yes, color: .red) {
+                                        vm.updateOutcome(for: entry.id, outcome: .yes)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.white.opacity(0.6))
+                            .cornerRadius(cardRadius)
+                            
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Your thought")
-                                    .font(.system(size: 20, weight: .bold))
+                                    .font(.system(size: 18, weight: .bold))
                                     .foregroundColor(.black)
                                 
                                 Text(entry.thought)
@@ -102,7 +127,7 @@ struct MomentDetailScreen: View {
                             
                             VStack(alignment: .leading, spacing: 16) {
                                 Text("Analysis")
-                                    .font(.system(size: 20, weight: .bold))
+                                    .font(.system(size: 18, weight: .bold))
                                     .foregroundColor(.black)
                                 
                                 ForEach(Array(entry.ai.analysis.prefix(3).enumerated()), id: \.offset) { index, item in
@@ -139,7 +164,7 @@ struct MomentDetailScreen: View {
                             
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Chosen reframe")
-                                    .font(.system(size: 20, weight: .bold))
+                                    .font(.system(size: 18, weight: .bold))
                                     .foregroundColor(.black)
                                 
                                 Text(entry.selectedReframe ?? "No reframe saved")
@@ -152,34 +177,9 @@ struct MomentDetailScreen: View {
                             .background(Color.white.opacity(0.72))
                             .cornerRadius(22)
                             
-                            VStack(alignment: .leading, spacing: 14) {
-                                Text("did this actually happen?")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.black)
-                                
-                                HStack(spacing: 12) {
-                                    OutcomeButton(title: "no", selected: currentEntry.didHappen == .no, color: .green) {
-                                        vm.updateOutcome(for: entry.id, outcome: .no)
-                                    }
-                                    
-                                    OutcomeButton(title: "maybe", selected: currentEntry.didHappen == .maybe, color: .orange) {
-                                        vm.updateOutcome(for: entry.id, outcome: .maybe)
-                                    }
-                                    
-                                    OutcomeButton(title: "yes", selected: currentEntry.didHappen == .yes, color: .red) {
-                                        vm.updateOutcome(for: entry.id, outcome: .yes)
-                                    }
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.white.opacity(0.6))
-                            .cornerRadius(cardRadius)
-                            
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Note")
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .font(.system(size: 18, weight: .semibold))
                                     .foregroundColor(.black)
                                 
                                 ZStack(alignment: .topLeading) {

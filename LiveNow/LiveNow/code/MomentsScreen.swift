@@ -129,6 +129,8 @@ struct MomentStatItem: View {
 
 // MARK: - CALENDAR CARD
 
+// MARK: - CALENDAR MINI CARD
+
 struct CalendarMiniCard: View {
     @ObservedObject var vm: AppViewModel
     let orange: Color
@@ -140,7 +142,7 @@ struct CalendarMiniCard: View {
     @ScaledMetric private var monthTitleSize: CGFloat = 20
     @ScaledMetric private var dayTextSize: CGFloat = 15
     @ScaledMetric private var dotSize: CGFloat = 5
-    @ScaledMetric private var previewIconSize: CGFloat = 36
+    @ScaledMetric private var previewIconSize: CGFloat = 40
 
     var body: some View {
         let cellSize: CGFloat = 40
@@ -257,9 +259,10 @@ struct CalendarMiniCard: View {
                                     .fill(colorForMoment(entry))
                                     .frame(width: previewIconSize, height: previewIconSize)
                                     .overlay(
-                                        Image(systemName: entry.selectedActionIcon ?? "sparkles")
-                                            .font(.system(size: previewIconSize * 0.42, weight: .medium))
-                                            .foregroundColor(.black.opacity(0.75))
+                                        Image(assetIconName(for: entry))
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: previewIconSize * 0.92, height: previewIconSize * 0.92)
                                     )
                             }
                             .buttonStyle(.plain)
@@ -351,20 +354,50 @@ struct CalendarMiniCard: View {
         return dates
     }
 
-    private func colorForMoment(_ entry: ThoughtEntry) -> Color {
-        let icon = entry.selectedActionIcon ?? "sparkles"
-        let colors: [Color] = [
-            .orange,
-            .green,
-            .purple,
-            .blue,
-            .pink,
-            .yellow,
-            .teal
+    private func assetIconName(for entry: ThoughtEntry) -> String {
+        let icon = entry.selectedActionIcon ?? "action_sunlight"
+
+        let map: [String: String] = [
+            "wind": "action_breath",
+            "figure.walk": "action_walk",
+            "bubble.left.and.bubble.right": "action_chat",
+            "pencil": "action_pencil",
+            "leaf": "action_leaf",
+            "music.note": "action_music",
+            "bed.double": "action_sleep",
+            "sun.max": "action_sunlight",
+            "hand.raised": "action_handraised",
+
+            "action_breath": "action_breath",
+            "action_walk": "action_walk",
+            "action_chat": "action_chat",
+            "action_pencil": "action_pencil",
+            "action_leaf": "action_leaf",
+            "action_music": "action_music",
+            "action_sleep": "action_sleep",
+            "action_sunlight": "action_sunlight",
+            "action_handraised": "action_handraised"
         ]
 
-        let index = abs(icon.hashValue) % colors.count
-        return colors[index].opacity(0.45)
+        return map[icon] ?? "action_sunlight"
+    }
+
+    private func colorForMoment(_ entry: ThoughtEntry) -> Color {
+        let icon = assetIconName(for: entry)
+
+        let colorMap: [String: Color] = [
+            "action_breath": .blue,
+            "action_walk": .orange,
+            "action_chat": .teal,
+            "action_pencil": .indigo,
+            "action_leaf": .green,
+            "action_music": .purple,
+            "action_sleep": .pink,
+            "action_sunlight": .yellow,
+            "action_handraised": .red
+        ]
+
+        return colorMap[icon]?.opacity(0.22) ?? .gray.opacity(0.18)
     }
 }
 
@@ -374,15 +407,15 @@ struct SelectedDateEntriesSheet: View {
     @ObservedObject var vm: AppViewModel
     let orange: Color
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var path: [ThoughtEntry] = []
-    
-    @ScaledMetric private var iconSize: CGFloat = 52
-    
+
+    @ScaledMetric private var iconSize: CGFloat = 72
+
     private var selectedEntries: [ThoughtEntry] {
         vm.entries(for: vm.selectedDate)
     }
-    
+
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView(showsIndicators: false) {
@@ -392,36 +425,40 @@ struct SelectedDateEntriesSheet: View {
                             path.append(entry)
                         }) {
                             HStack(alignment: .top, spacing: 14) {
+
                                 Circle()
                                     .fill(colorForMoment(entry))
                                     .frame(width: iconSize, height: iconSize)
                                     .overlay(
-                                        Image(systemName: entry.selectedActionIcon ?? "sparkles")
-                                            .font(.system(size: iconSize * 0.38, weight: .medium))
-                                            .foregroundColor(.black.opacity(0.75))
+                                        Image(assetIconName(for: entry))
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(
+                                                width: iconSize * 0.92,
+                                                height: iconSize * 0.92
+                                            )
                                     )
-                                
+
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(timeString(entry.date))
                                         .font(.system(size: 13))
                                         .foregroundColor(.gray)
-                                    
+
                                     Text(entry.selectedActionLabel ?? entry.thought)
                                         .font(.system(size: 16, weight: .medium))
                                         .foregroundColor(.black)
                                         .multilineTextAlignment(.leading)
                                         .fixedSize(horizontal: false, vertical: true)
-                                    
+
                                     Text(shortTag(entry))
                                         .font(.system(size: 13))
                                         .foregroundColor(outcomeColor(entry))
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 4)
                                         .background(outcomeColor(entry).opacity(0.12))
-                                        .background(outcomeColor(entry).opacity(0.12))
                                         .cornerRadius(10)
                                 }
-                                
+
                                 Spacer()
                             }
                             .padding()
@@ -434,7 +471,10 @@ struct SelectedDateEntriesSheet: View {
                 }
                 .padding(22)
             }
-            .background(Color(red: 0.97, green: 0.96, blue: 0.94).ignoresSafeArea())
+            .background(
+                Color(red: 0.97, green: 0.96, blue: 0.94)
+                    .ignoresSafeArea()
+            )
             .navigationTitle(formattedSelectedDate())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -450,7 +490,11 @@ struct SelectedDateEntriesSheet: View {
                     vm: vm,
                     entry: entry,
                     orange: orange,
-                    lightOrange: Color(red: 1.0, green: 0.66, blue: 0.32),
+                    lightOrange: Color(
+                        red: 1.0,
+                        green: 0.66,
+                        blue: 0.32
+                    ),
                     onClose: {
                         if !path.isEmpty {
                             path.removeLast()
@@ -461,20 +505,19 @@ struct SelectedDateEntriesSheet: View {
             }
         }
     }
-    
+
     private func formattedSelectedDate() -> String {
         let f = DateFormatter()
         f.dateFormat = "MMMM d, yyyy"
         return f.string(from: vm.selectedDate)
     }
-    
+
     private func timeString(_ date: Date) -> String {
         let f = DateFormatter()
         f.dateFormat = "h:mm a"
         return f.string(from: date)
     }
-    
-    
+
     private func shortTag(_ entry: ThoughtEntry) -> String {
         switch entry.didHappen {
         case .no:
@@ -487,22 +530,54 @@ struct SelectedDateEntriesSheet: View {
             return "Pending"
         }
     }
-    
-    private func colorForMoment(_ entry: ThoughtEntry) -> Color {
-        let icon = entry.selectedActionIcon ?? "sparkles"
 
-        let colors: [Color] = [
-            .orange,
-            .green,
-            .purple,
-            .blue,
-            .pink,
-            .teal
+    private func assetIconName(for entry: ThoughtEntry) -> String {
+        let icon = entry.selectedActionIcon ?? "action_sunlight"
+
+        let map: [String: String] = [
+            "wind": "action_breath",
+            "figure.walk": "action_walk",
+            "bubble.left.and.bubble.right": "action_chat",
+            "pencil": "action_pencil",
+            "leaf": "action_leaf",
+            "music.note": "action_music",
+            "bed.double": "action_sleep",
+            "sun.max": "action_sunlight",
+            "hand.raised": "action_handraised",
+
+            "action_breath": "action_breath",
+            "action_walk": "action_walk",
+            "action_chat": "action_chat",
+            "action_pencil": "action_pencil",
+            "action_leaf": "action_leaf",
+            "action_music": "action_music",
+            "action_sleep": "action_sleep",
+            "action_sunlight": "action_sunlight",
+            "action_handraised": "action_handraised"
         ]
 
-        let index = abs(icon.hashValue) % colors.count
-        return colors[index].opacity(0.45)
+        return map[icon] ?? "action_sunlight"
     }
+
+    private func colorForMoment(_ entry: ThoughtEntry) -> Color {
+        let icon = assetIconName(for: entry)
+
+        let colorMap: [String: Color] = [
+            "action_breath": .blue,
+            "action_walk": .orange,
+            "action_chat": .teal,
+            "action_pencil": .indigo,
+            "action_leaf": .green,
+            "action_music": .purple,
+            "action_sleep": .pink,
+            "action_sunlight": .yellow,
+            "action_handraised": .red
+        ]
+
+        return colorMap[icon]?.opacity(0.22)
+        ?? .gray.opacity(0.18)
+    }
+
     private func outcomeColor(_ entry: ThoughtEntry) -> Color {
         switch entry.didHappen {
         case .no:
@@ -520,137 +595,176 @@ struct SelectedDateEntriesSheet: View {
 // MARK: - DAY SECTION VIEW
 
 struct DaySectionView: View {
-            let title: String
-            let entries: [ThoughtEntry]
-            @ObservedObject var vm: AppViewModel
-            let orange: Color
-            var showViewMore: Bool = false
-            var onViewMore: (() -> Void)? = nil
-            
-            @ScaledMetric private var iconSize: CGFloat = 52
-            @ScaledMetric private var titleSize: CGFloat = 18
-            @ScaledMetric private var bodySize: CGFloat = 16
-            
-            var body: some View {
-                VStack(alignment: .leading, spacing: 12) {
-                    if !title.isEmpty {
-                        HStack {
-                            Text(title)
-                                .font(.system(size: titleSize, weight: .semibold))
-                                .foregroundColor(.black)
-                            
-                            Spacer()
-                            
-                            if showViewMore, let onViewMore {
-                                Button(action: onViewMore) {
-                                    Text("View more")
-                                        .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(orange)
-                                }
-                                .buttonStyle(.plain)
-                            } else {
-                                Text("\(entries.count) moments")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.gray)
-                            }
-                        }
-                    }
-                    
-                    ForEach(entries) { entry in
-                        Button(action: {
-                            vm.selectedMoment = entry
-                        }) {
-                            HStack(alignment: .top, spacing: 14) {
-                                Circle()
-                                    .fill(colorForMoment(entry))
-                                    .frame(width: iconSize, height: iconSize)
-                                    .overlay(
-                                        Image(systemName: entry.selectedActionIcon ?? "sparkles")
-                                            .font(.system(size: iconSize * 0.42))
-                                            .foregroundColor(.white)
-                                    )
-                                
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(timeString(entry.date))
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.gray)
-                                    
-                                    Text(entry.selectedActionLabel ?? entry.thought)
-                                        .font(.system(size: bodySize, weight: .medium))
-                                        .foregroundColor(.black)
-                                        .multilineTextAlignment(.leading)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                    
-                                    Text(shortTag(entry))
-                                        .font(.system(size: 13))
-                                        .foregroundColor(outcomeColor(entry))
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 4)
-                                        .background(outcomeColor(entry).opacity(0.12))
-                                        .cornerRadius(10)
-                                }
-                                
-                                Spacer()
-                                
-                                Image(systemName: "ellipsis")
-                                    .foregroundColor(.gray)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.white.opacity(0.6))
-                            .cornerRadius(18)
+    let title: String
+    let entries: [ThoughtEntry]
+    @ObservedObject var vm: AppViewModel
+    let orange: Color
+
+    var showViewMore: Bool = false
+    var onViewMore: (() -> Void)? = nil
+
+    @ScaledMetric private var iconSize: CGFloat = 72
+    @ScaledMetric private var titleSize: CGFloat = 18
+    @ScaledMetric private var bodySize: CGFloat = 16
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+
+            if !title.isEmpty {
+                HStack {
+                    Text(title)
+                        .font(.system(size: titleSize, weight: .semibold))
+                        .foregroundColor(.black)
+
+                    Spacer()
+
+                    if showViewMore, let onViewMore {
+                        Button(action: onViewMore) {
+                            Text("View more")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(orange)
                         }
                         .buttonStyle(.plain)
+
+                    } else {
+                        Text("\(entries.count) moments")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
                     }
                 }
             }
-            
-            private func timeString(_ date: Date) -> String {
-                let f = DateFormatter()
-                f.dateFormat = "h:mm a"
-                return f.string(from: date)
-            }
-            
-            private func shortTag(_ entry: ThoughtEntry) -> String {
-                switch entry.didHappen {
-                case .no:
-                    return "Didn’t happen"
-                case .maybe:
-                    return "Maybe"
-                case .yes:
-                    return "Happened"
-                default:
-                    return "Pending"
-                }
-            }
-            
-            private func colorForMoment(_ entry: ThoughtEntry) -> Color {
-                let icon = entry.selectedActionIcon ?? "sparkles"
 
-                let colors: [Color] = [
-                    .orange,
-                    .green,
-                    .purple,
-                    .blue,
-                    .pink,
-                    .teal
-                ]
+            ForEach(entries) { entry in
+                Button(action: {
+                    vm.selectedMoment = entry
+                }) {
+                    HStack(alignment: .top, spacing: 14) {
 
-                let index = abs(icon.hashValue) % colors.count
-                return colors[index].opacity(0.45)
-            }
-    
-            private func outcomeColor(_ entry: ThoughtEntry) -> Color {
-                switch entry.didHappen {
-                case .no:
-                    return .green
-                case .maybe:
-                    return .orange
-                case .yes:
-                    return .red
-                default:
-                    return .gray
+                        Circle()
+                            .fill(colorForMoment(entry))
+                            .frame(width: iconSize, height: iconSize)
+                            .overlay(
+                                Image(assetIconName(for: entry))
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(
+                                        width: iconSize * 0.92,
+                                        height: iconSize * 0.92
+                                    )
+                            )
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(timeString(entry.date))
+                                .font(.system(size: 13))
+                                .foregroundColor(.gray)
+
+                            Text(entry.selectedActionLabel ?? entry.thought)
+                                .font(.system(size: bodySize, weight: .medium))
+                                .foregroundColor(.black)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            Text(shortTag(entry))
+                                .font(.system(size: 13))
+                                .foregroundColor(outcomeColor(entry))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(outcomeColor(entry).opacity(0.12))
+                                .cornerRadius(10)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "ellipsis")
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.white.opacity(0.6))
+                    .cornerRadius(18)
                 }
+                .buttonStyle(.plain)
             }
         }
+    }
 
+    private func timeString(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        return f.string(from: date)
+    }
+
+    private func shortTag(_ entry: ThoughtEntry) -> String {
+        switch entry.didHappen {
+        case .no:
+            return "Didn’t happen"
+        case .maybe:
+            return "Maybe"
+        case .yes:
+            return "Happened"
+        default:
+            return "Pending"
+        }
+    }
+
+    private func assetIconName(for entry: ThoughtEntry) -> String {
+        let icon = entry.selectedActionIcon ?? "action_sunlight"
+
+        let map: [String: String] = [
+            "wind": "action_breath",
+            "figure.walk": "action_walk",
+            "bubble.left.and.bubble.right": "action_chat",
+            "pencil": "action_pencil",
+            "leaf": "action_leaf",
+            "music.note": "action_music",
+            "bed.double": "action_sleep",
+            "sun.max": "action_sunlight",
+            "hand.raised": "action_handraised",
+
+            "action_breath": "action_breath",
+            "action_walk": "action_walk",
+            "action_chat": "action_chat",
+            "action_pencil": "action_pencil",
+            "action_leaf": "action_leaf",
+            "action_music": "action_music",
+            "action_sleep": "action_sleep",
+            "action_sunlight": "action_sunlight",
+            "action_handraised": "action_handraised"
+        ]
+
+        return map[icon] ?? "action_sunlight"
+    }
+
+    private func colorForMoment(_ entry: ThoughtEntry) -> Color {
+           let icon = assetIconName(for: entry)
+
+        let colorMap: [String: Color] = [
+            "action_breath": .blue,
+            "action_walk": .orange,
+            "action_chat": .teal,
+            "action_pencil": .indigo,
+            "action_leaf": .green,
+            "action_music": .purple,
+            "action_sleep": .pink,
+            "action_sunlight": .yellow,
+            "action_handraised": .red
+        ]
+
+           return colorMap[icon]?.opacity(0.22)
+           ?? .gray.opacity(0.18)
+       }
+
+
+    private func outcomeColor(_ entry: ThoughtEntry) -> Color {
+        switch entry.didHappen {
+        case .no:
+            return .green
+        case .maybe:
+            return .orange
+        case .yes:
+            return .red
+        default:
+            return .gray
+        }
+    }
+}
