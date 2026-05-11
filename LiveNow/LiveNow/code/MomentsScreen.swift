@@ -16,8 +16,6 @@ struct MomentsScreen: View {
 
     @State private var displayedMonth: Date = Date()
 
-    private var calendar: Calendar { Calendar.current }
-
     @ScaledMetric private var titleSize: CGFloat = 34
     @ScaledMetric private var subtitleSize: CGFloat = 15
 
@@ -93,6 +91,7 @@ struct MomentsStatsCard: View {
     private var thisWeekCount: Int {
         let calendar = Calendar.current
         let now = Date()
+
         return vm.entries.filter {
             calendar.isDate($0.date, equalTo: now, toGranularity: .weekOfYear)
         }.count
@@ -126,8 +125,6 @@ struct MomentStatItem: View {
         .frame(maxWidth: .infinity)
     }
 }
-
-// MARK: - CALENDAR CARD
 
 // MARK: - CALENDAR MINI CARD
 
@@ -256,13 +253,13 @@ struct CalendarMiniCard: View {
                                 vm.selectedMoment = entry
                             }) {
                                 Circle()
-                                    .fill(colorForMoment(entry))
+                                    .fill(ActionStyle.color(entry.selectedActionIcon))
                                     .frame(width: previewIconSize, height: previewIconSize)
                                     .overlay(
-                                        Image(assetIconName(for: entry))
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: previewIconSize * 0.92, height: previewIconSize * 0.92)
+                                        MomentIconImage(
+                                            icon: ActionStyle.iconName(entry.selectedActionIcon),
+                                            size: previewIconSize * 0.92
+                                        )
                                     )
                             }
                             .buttonStyle(.plain)
@@ -353,52 +350,6 @@ struct CalendarMiniCard: View {
 
         return dates
     }
-
-    private func assetIconName(for entry: ThoughtEntry) -> String {
-        let icon = entry.selectedActionIcon ?? "action_sunlight"
-
-        let map: [String: String] = [
-            "wind": "action_breath",
-            "figure.walk": "action_walk",
-            "bubble.left.and.bubble.right": "action_chat",
-            "pencil": "action_pencil",
-            "leaf": "action_leaf",
-            "music.note": "action_music",
-            "bed.double": "action_sleep",
-            "sun.max": "action_sunlight",
-            "hand.raised": "action_handraised",
-
-            "action_breath": "action_breath",
-            "action_walk": "action_walk",
-            "action_chat": "action_chat",
-            "action_pencil": "action_pencil",
-            "action_leaf": "action_leaf",
-            "action_music": "action_music",
-            "action_sleep": "action_sleep",
-            "action_sunlight": "action_sunlight",
-            "action_handraised": "action_handraised"
-        ]
-
-        return map[icon] ?? "action_sunlight"
-    }
-
-    private func colorForMoment(_ entry: ThoughtEntry) -> Color {
-        let icon = assetIconName(for: entry)
-
-        let colorMap: [String: Color] = [
-            "action_breath": .blue,
-            "action_walk": .orange,
-            "action_chat": .teal,
-            "action_pencil": .indigo,
-            "action_leaf": .green,
-            "action_music": .purple,
-            "action_sleep": .pink,
-            "action_sunlight": .yellow,
-            "action_handraised": .red
-        ]
-
-        return colorMap[icon]?.opacity(0.22) ?? .gray.opacity(0.18)
-    }
 }
 
 // MARK: - SELECTED DATE SHEET
@@ -425,18 +376,14 @@ struct SelectedDateEntriesSheet: View {
                             path.append(entry)
                         }) {
                             HStack(alignment: .top, spacing: 14) {
-
                                 Circle()
-                                    .fill(colorForMoment(entry))
+                                    .fill(ActionStyle.color(entry.selectedActionIcon))
                                     .frame(width: iconSize, height: iconSize)
                                     .overlay(
-                                        Image(assetIconName(for: entry))
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(
-                                                width: iconSize * 0.92,
-                                                height: iconSize * 0.92
-                                            )
+                                        MomentIconImage(
+                                            icon: ActionStyle.iconName(entry.selectedActionIcon),
+                                            size: iconSize * 0.92
+                                        )
                                     )
 
                                 VStack(alignment: .leading, spacing: 6) {
@@ -490,11 +437,7 @@ struct SelectedDateEntriesSheet: View {
                     vm: vm,
                     entry: entry,
                     orange: orange,
-                    lightOrange: Color(
-                        red: 1.0,
-                        green: 0.66,
-                        blue: 0.32
-                    ),
+                    lightOrange: Color(red: 1.0, green: 0.66, blue: 0.32),
                     onClose: {
                         if !path.isEmpty {
                             path.removeLast()
@@ -531,53 +474,6 @@ struct SelectedDateEntriesSheet: View {
         }
     }
 
-    private func assetIconName(for entry: ThoughtEntry) -> String {
-        let icon = entry.selectedActionIcon ?? "action_sunlight"
-
-        let map: [String: String] = [
-            "wind": "action_breath",
-            "figure.walk": "action_walk",
-            "bubble.left.and.bubble.right": "action_chat",
-            "pencil": "action_pencil",
-            "leaf": "action_leaf",
-            "music.note": "action_music",
-            "bed.double": "action_sleep",
-            "sun.max": "action_sunlight",
-            "hand.raised": "action_handraised",
-
-            "action_breath": "action_breath",
-            "action_walk": "action_walk",
-            "action_chat": "action_chat",
-            "action_pencil": "action_pencil",
-            "action_leaf": "action_leaf",
-            "action_music": "action_music",
-            "action_sleep": "action_sleep",
-            "action_sunlight": "action_sunlight",
-            "action_handraised": "action_handraised"
-        ]
-
-        return map[icon] ?? "action_sunlight"
-    }
-
-    private func colorForMoment(_ entry: ThoughtEntry) -> Color {
-        let icon = assetIconName(for: entry)
-
-        let colorMap: [String: Color] = [
-            "action_breath": .blue,
-            "action_walk": .orange,
-            "action_chat": .teal,
-            "action_pencil": .indigo,
-            "action_leaf": .green,
-            "action_music": .purple,
-            "action_sleep": .pink,
-            "action_sunlight": .yellow,
-            "action_handraised": .red
-        ]
-
-        return colorMap[icon]?.opacity(0.22)
-        ?? .gray.opacity(0.18)
-    }
-
     private func outcomeColor(_ entry: ThoughtEntry) -> Color {
         switch entry.didHappen {
         case .no:
@@ -609,7 +505,6 @@ struct DaySectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-
             if !title.isEmpty {
                 HStack {
                     Text(title)
@@ -625,7 +520,6 @@ struct DaySectionView: View {
                                 .foregroundColor(orange)
                         }
                         .buttonStyle(.plain)
-
                     } else {
                         Text("\(entries.count) moments")
                             .font(.system(size: 14))
@@ -639,18 +533,14 @@ struct DaySectionView: View {
                     vm.selectedMoment = entry
                 }) {
                     HStack(alignment: .top, spacing: 14) {
-
                         Circle()
-                            .fill(colorForMoment(entry))
+                            .fill(ActionStyle.color(entry.selectedActionIcon))
                             .frame(width: iconSize, height: iconSize)
                             .overlay(
-                                Image(assetIconName(for: entry))
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(
-                                        width: iconSize * 0.92,
-                                        height: iconSize * 0.92
-                                    )
+                                MomentIconImage(
+                                    icon: ActionStyle.iconName(entry.selectedActionIcon),
+                                    size: iconSize * 0.92
+                                )
                             )
 
                         VStack(alignment: .leading, spacing: 6) {
@@ -706,54 +596,6 @@ struct DaySectionView: View {
             return "Pending"
         }
     }
-
-    private func assetIconName(for entry: ThoughtEntry) -> String {
-        let icon = entry.selectedActionIcon ?? "action_sunlight"
-
-        let map: [String: String] = [
-            "wind": "action_breath",
-            "figure.walk": "action_walk",
-            "bubble.left.and.bubble.right": "action_chat",
-            "pencil": "action_pencil",
-            "leaf": "action_leaf",
-            "music.note": "action_music",
-            "bed.double": "action_sleep",
-            "sun.max": "action_sunlight",
-            "hand.raised": "action_handraised",
-
-            "action_breath": "action_breath",
-            "action_walk": "action_walk",
-            "action_chat": "action_chat",
-            "action_pencil": "action_pencil",
-            "action_leaf": "action_leaf",
-            "action_music": "action_music",
-            "action_sleep": "action_sleep",
-            "action_sunlight": "action_sunlight",
-            "action_handraised": "action_handraised"
-        ]
-
-        return map[icon] ?? "action_sunlight"
-    }
-
-    private func colorForMoment(_ entry: ThoughtEntry) -> Color {
-           let icon = assetIconName(for: entry)
-
-        let colorMap: [String: Color] = [
-            "action_breath": .blue,
-            "action_walk": .orange,
-            "action_chat": .teal,
-            "action_pencil": .indigo,
-            "action_leaf": .green,
-            "action_music": .purple,
-            "action_sleep": .pink,
-            "action_sunlight": .yellow,
-            "action_handraised": .red
-        ]
-
-           return colorMap[icon]?.opacity(0.22)
-           ?? .gray.opacity(0.18)
-       }
-
 
     private func outcomeColor(_ entry: ThoughtEntry) -> Color {
         switch entry.didHappen {

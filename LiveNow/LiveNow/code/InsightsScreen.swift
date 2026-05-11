@@ -18,7 +18,8 @@ struct InsightsScreen: View {
     @ScaledMetric private var bodySize: CGFloat = 14
     @ScaledMetric private var cardRadius: CGFloat = 20
     @ScaledMetric private var dotSize: CGFloat = 8
-   
+    @ScaledMetric private var iconSize: CGFloat = 60
+
     private var dynamicInsight: String {
         if vm.didNotHappenPercent > 70 {
             return "Most of your worries don’t come true."
@@ -28,6 +29,7 @@ struct InsightsScreen: View {
             return "Keep going — patterns will become clearer."
         }
     }
+
     var body: some View {
         GeometryReader { geo in
             let horizontalPadding = min(geo.size.width * 0.055, 24)
@@ -51,7 +53,6 @@ struct InsightsScreen: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: cardSpacing) {
-                        
                         VStack(spacing: 6) {
                             Text("last 7 days")
                                 .font(.system(size: 12))
@@ -65,12 +66,12 @@ struct InsightsScreen: View {
                         .padding(.vertical, 14)
                         .background(Color.white.opacity(0.6))
                         .cornerRadius(cardRadius)
-                        
+
                         VStack(spacing: 10) {
                             Text("all time")
                                 .font(.system(size: 12))
                                 .foregroundColor(.gray)
-                            
+
                             Text("\(vm.didNotHappenPercent)%")
                                 .font(.system(size: percentSize, weight: .bold))
                                 .foregroundColor(orange)
@@ -113,7 +114,7 @@ struct InsightsScreen: View {
                         .frame(maxWidth: .infinity)
                         .background(Color.white.opacity(0.6))
                         .cornerRadius(cardRadius)
-                        
+
                         VStack(alignment: .leading, spacing: 12) {
                             Text("insight")
                                 .font(.system(size: 12))
@@ -128,22 +129,28 @@ struct InsightsScreen: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color.white.opacity(0.6))
                         .cornerRadius(cardRadius)
-                        
-                        VStack(alignment: .leading, spacing: 8) {
+
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("most used reset")
                                 .font(.system(size: 12))
                                 .foregroundColor(.gray)
 
-                            HStack(spacing: 8) {
-                                Image(systemName: vm.mostUsedAction.icon)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(orange)
-                                    .frame(width: 28, height: 28)
-                                    .background(orange.opacity(0.15))
-                                    .cornerRadius(8)
+                            HStack(spacing: 10) {
+                                Circle()
+                                    .fill(ActionStyle.color(vm.mostUsedAction.icon))
+                                    .frame(width: iconSize, height: iconSize)
+                                    .overlay(
+                                        MomentIconImage(
+                                            icon: ActionStyle.iconName(vm.mostUsedAction.icon),
+                                            size: iconSize * 0.92
+                                        )
+                                    )
 
                                 Text(vm.mostUsedAction.label)
                                     .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.black)
+
+                                Spacer()
                             }
                         }
                         .padding()
@@ -161,6 +168,7 @@ struct InsightsScreen: View {
         }
     }
 }
+
 struct InsightRow: View {
     let label: String
     let value: Int

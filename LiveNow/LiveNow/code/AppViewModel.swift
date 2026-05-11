@@ -65,7 +65,7 @@ final class AppViewModel: ObservableObject {
                         sub: "You are trying to predict danger before it happens."
                     )
                 ],
-                
+
                 evidence: [
                     AIEvidenceItem(
                         q: "Do you have clear proof?",
@@ -76,20 +76,32 @@ final class AppViewModel: ObservableObject {
                         a: "Yes"
                     )
                 ],
-                
+
                 reframes: [
                     "This thought is not necessarily true.",
                     "I don’t need to solve everything right now.",
                     "I can let this pass without reacting."
                 ],
-                
+
                 actions: [
-                    AIActionItem(icon: "🌬", label: "take 3 deep breaths"),
-                    AIActionItem(icon: "🚶", label: "go for a short walk"),
-                    AIActionItem(icon: "✍️", label: "write down the thought"),
-                    AIActionItem(icon: "🎵", label: "listen to calming music")
+                    AIActionItem(
+                        icon: "action_breath",
+                        label: "take 3 deep breaths"
+                    ),
+                    AIActionItem(
+                        icon: "action_walk",
+                        label: "go for a short walk"
+                    ),
+                    AIActionItem(
+                        icon: "action_pencil",
+                        label: "write down the thought"
+                    ),
+                    AIActionItem(
+                        icon: "action_music",
+                        label: "listen to calming music"
+                    )
                 ],
-                
+
                 insight: "You often assume the worst before having evidence."
             )
 
@@ -221,24 +233,45 @@ final class AppViewModel: ObservableObject {
         return Int((Double(didntHappenCount) / Double(total) * 100).rounded())
     }
 
-    var mostUsedAction: (label: String, icon: String) {
-        let actions: [(label: String, icon: String)] = entries.compactMap { entry in
-            if let label = entry.selectedActionLabel,
-               let icon = entry.selectedActionIcon {
-                return (label: label, icon: icon)
+    var mostUsedAction: (icon: String, label: String) {
+        let actions = entries.compactMap { entry -> (icon: String, label: String, date: Date)? in
+            guard
+                let icon = entry.selectedActionIcon,
+                let label = entry.selectedActionLabel
+            else {
+                return nil
             }
-            return nil
+
+            return (icon, label, entry.date)
         }
 
-        let counts = Dictionary(grouping: actions, by: { $0.label })
-            .mapValues { $0.count }
-
-        guard let mostUsedLabel = counts.max(by: { $0.value < $1.value })?.key,
-              let match = actions.first(where: { $0.label == mostUsedLabel }) else {
-            return (label: "No data yet", icon: "•")
+        guard !actions.isEmpty else {
+            return ("sparkles", "No reset yet")
         }
 
-        return match
+        let grouped = Dictionary(grouping: actions, by: { $0.icon })
+
+        let ranked = grouped.map { icon, items in
+            (
+                icon: icon,
+                label: items.first?.label ?? "Reset",
+                count: items.count,
+                latestDate: items.map(\.date).max() ?? Date.distantPast
+            )
+        }
+
+        let winner = ranked.sorted {
+            if $0.count == $1.count {
+                return $0.latestDate > $1.latestDate
+            }
+
+            return $0.count > $1.count
+        }.first
+
+        return (
+            winner?.icon ?? "sparkles",
+            winner?.label ?? "No reset yet"
+        )
     }
 
     // MARK: - Last 7 days

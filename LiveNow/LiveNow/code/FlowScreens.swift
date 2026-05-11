@@ -15,7 +15,7 @@ struct InputScreen: View {
     var onBack: () -> Void
     var onAnalyze: () -> Void
 
-    @ScaledMetric private var titleSize: CGFloat = 24
+    @ScaledMetric private var titleSize: CGFloat = 29
     @ScaledMetric private var bodySize: CGFloat = 14
     @ScaledMetric private var buttonSize: CGFloat = 18
 
@@ -27,11 +27,12 @@ struct InputScreen: View {
 
     var body: some View {
         GeometryReader { geo in
-            let horizontalPadding = min(geo.size.width * 0.055, 28)
-            let topPadding = min(geo.size.height * 0.025, 24)
-            let titleTopSpacing = min(geo.size.height * 0.04, 36)
+            let horizontalPadding = min(geo.size.width * 0.06, 28)
+            let topPadding = min(geo.size.height * 0.03, 24)
+            let titleTopSpacing = min(geo.size.height * 0.045, 36)
             let editorHeight = min(max(geo.size.height * 0.22, 130), 240)
-            let buttonBottomSpacing = min(geo.size.height * 0.025, 24)
+            let buttonVerticalPadding = min(geo.size.height * 0.022, 17)
+            let bottomSpacing = min(geo.size.height * 0.025, 20)
 
             VStack(alignment: .leading, spacing: 0) {
                 TopProgressRow(
@@ -46,32 +47,22 @@ struct InputScreen: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Spacer().frame(height: titleTopSpacing)
 
-                        Text("what’s on\nyour mind?")
-                            .font(.system(size: titleSize, weight: .bold))
-                            .foregroundColor(.black)
-
-                        Spacer().frame(height: min(geo.size.height * 0.012, 8))
-
-                        Text("write freely, no filter.")
-                            .font(.system(size: bodySize))
-                            .foregroundColor(.gray)
+                        FlowTitleHeader(
+                            title: "what’s on\nyour mind?",
+                            subtitle: "write freely, no filter."
+                        )
 
                         Spacer().frame(height: min(geo.size.height * 0.03, 22))
 
                         ZStack(alignment: .topLeading) {
                             RoundedRectangle(cornerRadius: 18)
                                 .fill(Color.white.opacity(0.55))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
-                                )
 
                             TextEditor(text: $vm.thought)
                                 .scrollContentBackground(.hidden)
                                 .background(Color.clear)
                                 .padding(12)
                                 .font(.system(size: 15))
-                                .foregroundColor(.black.opacity(0.8))
 
                             if vm.thought.isEmpty {
                                 Text("type your thought...")
@@ -79,25 +70,23 @@ struct InputScreen: View {
                                     .font(.system(size: 15))
                                     .padding(.top, 20)
                                     .padding(.leading, 18)
-                                    .allowsHitTesting(false)
                             }
                         }
                         .frame(height: editorHeight)
-                        .frame(maxWidth: .infinity)
 
-                        Spacer().frame(height: min(geo.size.height * 0.02, 16))
+                        Spacer().frame(height: 16)
 
                         Text("examples")
                             .font(.system(size: 12))
                             .foregroundColor(.black.opacity(0.45))
 
-                        Spacer().frame(height: min(geo.size.height * 0.012, 10))
+                        Spacer().frame(height: 10)
 
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(examples, id: \.self) { example in
-                                Button(action: {
+                                Button {
                                     vm.thought = example
-                                }) {
+                                } label: {
                                     Text(example)
                                         .font(.system(size: 13))
                                         .foregroundColor(.black.opacity(0.65))
@@ -121,6 +110,8 @@ struct InputScreen: View {
                         Spacer().frame(height: 24)
                     }
                 }
+                .frame(maxHeight: .infinity)
+
                 HStack(spacing: 7) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 13))
@@ -129,24 +120,23 @@ struct InputScreen: View {
                     Text("AI-generated reflection. Not professional advice.")
                         .font(.system(size: 12))
                         .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, 10)
-                
+
                 Button(action: onAnalyze) {
                     Text(vm.isLoading ? "analyzing..." : "analyze")
                         .font(.system(size: buttonSize, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, min(geo.size.height * 0.02, 17))
+                        .padding(.vertical, buttonVerticalPadding)
                         .background(orange)
                         .cornerRadius(16)
                 }
                 .buttonStyle(.plain)
                 .disabled(vm.isLoading || vm.thought.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
-                Spacer().frame(height: buttonBottomSpacing)
+                Spacer().frame(height: bottomSpacing)
             }
             .padding(.horizontal, horizontalPadding)
         }
@@ -161,8 +151,6 @@ struct AnalyzeScreen: View {
     var onBack: () -> Void
     var onContinue: () -> Void
 
-    @ScaledMetric private var titleSize: CGFloat = 24
-    @ScaledMetric private var bodySize: CGFloat = 14
     @ScaledMetric private var buttonSize: CGFloat = 18
 
     var body: some View {
@@ -172,13 +160,14 @@ struct AnalyzeScreen: View {
             let horizontalPadding = min(geo.size.width * 0.06, 28)
             let topPadding = min(geo.size.height * 0.03, 24)
             let titleTopSpacing = min(geo.size.height * 0.045, 36)
-            let smallSpacing = min(geo.size.height * 0.012, 10)
-            let mediumSpacing = min(geo.size.height * 0.028, 24)
+            let sectionSpacing = min(geo.size.height * 0.026, 22)
+            let cardSpacing = min(geo.size.height * 0.018, 16)
             let cardPadding = min(geo.size.width * 0.055, 22)
-            let buttonVerticalPadding = min(geo.size.height * 0.022, 18)
-            let bottomSpacing = min(geo.size.height * 0.03, 24)
+            let buttonVerticalPadding = min(geo.size.height * 0.022, 17)
+            let bottomSpacing = min(geo.size.height * 0.025, 20)
 
             VStack(alignment: .leading, spacing: 0) {
+
                 TopProgressRow(
                     stepText: "2 of 4",
                     progress: 0.50,
@@ -188,27 +177,25 @@ struct AnalyzeScreen: View {
                 .padding(.top, topPadding)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: mediumSpacing) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Spacer().frame(height: titleTopSpacing)
 
-                            Text("let’s analyze\nthis thought")
-                                .font(.system(size: titleSize, weight: .bold))
-                                .foregroundColor(.black)
+                    VStack(spacing: 0) {
 
-                            Spacer().frame(height: smallSpacing)
+                        Spacer()
+                            .frame(height: titleTopSpacing)
 
-                            Text("this helps you see clearly.")
-                                .font(.system(size: bodySize))
-                                .foregroundColor(.gray)
+                        FlowTitleHeader(
+                            title: "let’s analyze\nthis thought",
+                            subtitle: "this helps you see clearly."
+                        )
 
-                            Spacer().frame(height: mediumSpacing)
-                        }
+                        Spacer()
+                            .frame(height: sectionSpacing)
 
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("your thought:")
-                                .font(.system(size: 14))
-                                .foregroundColor(.black.opacity(0.6))
+                        VStack(alignment: .leading, spacing: 12) {
+
+                            Text("your thought")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.black.opacity(0.45))
 
                             Text(vm.thought)
                                 .font(.system(size: 22, weight: .semibold))
@@ -217,69 +204,99 @@ struct AnalyzeScreen: View {
                         }
                         .padding(cardPadding)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(red: 0.95, green: 0.89, blue: 0.84))
-                        .cornerRadius(20)
+                        .background(
+                            Color(red: 0.95, green: 0.89, blue: 0.84)
+                        )
+                        .cornerRadius(22)
 
-                        ForEach(Array((ai?.analysis ?? []).prefix(3).enumerated()), id: \.offset) { index, item in
-                            AnalysisCard(
-                                title: item.label,
-                                subtitle: item.sub,
-                                icon: analysisIcon(for: index),
-                                orange: orange
-                            )
+                        Spacer()
+                            .frame(height: cardSpacing)
+
+                        VStack(spacing: cardSpacing) {
+
+                            ForEach(Array((ai?.analysis ?? []).prefix(3).enumerated()), id: \.offset) { index, item in
+                                AnalysisCard(
+                                    title: item.label,
+                                    subtitle: item.sub,
+                                    icon: analysisIcon(for: index),
+                                    orange: orange
+                                )
+                            }
                         }
 
-                        VStack(alignment: .leading, spacing: 12) {
+                        Spacer()
+                            .frame(height: sectionSpacing)
+
+                        VStack(alignment: .leading, spacing: 14) {
+
                             Text("evidence check")
-                                .font(.system(size: 13))
-                                .foregroundColor(.black.opacity(0.7))
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.black.opacity(0.55))
 
                             VStack(spacing: 0) {
+
                                 ForEach(Array((ai?.evidence ?? []).enumerated()), id: \.offset) { index, item in
+
                                     VStack(spacing: 0) {
-                                        EvidenceRow(question: item.q, answer: item.a)
+
+                                        EvidenceRow(
+                                            question: item.q,
+                                            answer: item.a
+                                        )
 
                                         if index < (ai?.evidence.count ?? 0) - 1 {
-                                            Divider().opacity(0.2)
-                                                .padding(.horizontal, 16)
+
+                                            Divider()
+                                                .opacity(0.12)
+                                                .padding(.horizontal, 18)
                                         }
                                     }
                                 }
                             }
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 6)
                             .frame(maxWidth: .infinity)
                             .background(Color.white.opacity(0.9))
-                            .cornerRadius(20)
+                            .cornerRadius(22)
                         }
 
-                        Spacer().frame(height: bottomSpacing)
+                        Spacer()
+                            .frame(height: 28)
                     }
                 }
+                .frame(maxHeight: .infinity)
 
                 Button(action: onContinue) {
+
                     Text("continue")
                         .font(.system(size: buttonSize, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, buttonVerticalPadding)
                         .background(orange)
-                        .cornerRadius(18)
+                        .cornerRadius(16)
                 }
                 .buttonStyle(.plain)
 
-                Spacer().frame(height: bottomSpacing)
+                Spacer()
+                    .frame(height: bottomSpacing)
             }
             .padding(.horizontal, horizontalPadding)
         }
     }
+
     private func analysisIcon(for index: Int) -> String {
+
         switch index {
+
         case 0:
             return "magnifyingglass"
+
         case 1:
             return "brain.head.profile"
+
         case 2:
             return "heart"
+
         default:
             return "sparkles"
         }
@@ -294,7 +311,7 @@ struct ReframeScreen: View {
     var onBack: () -> Void
     var onContinue: () -> Void
 
-    @ScaledMetric private var titleSize: CGFloat = 24
+    @ScaledMetric private var titleSize: CGFloat = 29
     @ScaledMetric private var bodySize: CGFloat = 14
     @ScaledMetric private var buttonSize: CGFloat = 18
 
@@ -305,12 +322,11 @@ struct ReframeScreen: View {
             let horizontalPadding = min(geo.size.width * 0.06, 28)
             let topPadding = min(geo.size.height * 0.03, 24)
             let titleTopSpacing = min(geo.size.height * 0.045, 36)
-            let smallSpacing = min(geo.size.height * 0.012, 10)
             let mediumSpacing = min(geo.size.height * 0.03, 24)
             let optionSpacing = min(geo.size.height * 0.018, 14)
             let cardPadding = min(geo.size.width * 0.05, 20)
-            let buttonVerticalPadding = min(geo.size.height * 0.022, 18)
-            let bottomSpacing = min(geo.size.height * 0.03, 24)
+            let buttonVerticalPadding = min(geo.size.height * 0.022, 17)
+            let bottomSpacing = min(geo.size.height * 0.025, 20)
 
             VStack(alignment: .leading, spacing: 0) {
                 TopProgressRow(
@@ -325,15 +341,10 @@ struct ReframeScreen: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Spacer().frame(height: titleTopSpacing)
 
-                        Text("let’s reframe\nthis")
-                            .font(.system(size: titleSize, weight: .bold))
-                            .foregroundColor(.black)
-
-                        Spacer().frame(height: smallSpacing)
-
-                        Text("here’s a more realistic view")
-                            .font(.system(size: bodySize))
-                            .foregroundColor(.gray)
+                        FlowTitleHeader(
+                            title: "let’s reframe\nthis",
+                            subtitle: "here’s a more realistic view"
+                        )
 
                         Spacer().frame(height: mediumSpacing)
 
@@ -345,25 +356,20 @@ struct ReframeScreen: View {
 
                         VStack(spacing: optionSpacing) {
                             ForEach(Array((ai?.reframes ?? []).enumerated()), id: \.offset) { index, line in
-                                Button(action: {
+                                Button {
                                     vm.selectedReframeIndex = index
-                                }) {
-                                    VStack(alignment: .leading, spacing: 10) {
-                                        Text(line)
-                                            .font(.system(size: 17, weight: vm.selectedReframeIndex == index ? .semibold : .regular))
-                                            .foregroundColor(.black.opacity(0.86))
-                                            .multilineTextAlignment(.leading)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    .padding(cardPadding)
-                                    .frame(maxWidth: .infinity)
-                                    .background(vm.selectedReframeIndex == index ? Color.white : Color.white.opacity(0.55))
-                                    .shadow(color: vm.selectedReframeIndex == index ? Color.orange.opacity(0.15) : .clear, radius: 8, x: 0, y: 4)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(vm.selectedReframeIndex == index ? orange.opacity(0.35) : Color.black.opacity(0.05), lineWidth: 1)
-                                    )
-                                    .cornerRadius(16)
+                                } label: {
+                                    Text(line)
+                                        .font(.system(size: 17, weight: vm.selectedReframeIndex == index ? .semibold : .regular))
+                                        .foregroundColor(.black.opacity(0.86))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(cardPadding)
+                                        .background(vm.selectedReframeIndex == index ? Color.white : Color.white.opacity(0.55))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(vm.selectedReframeIndex == index ? orange.opacity(0.35) : Color.black.opacity(0.05), lineWidth: 1)
+                                        )
+                                        .cornerRadius(16)
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -373,7 +379,6 @@ struct ReframeScreen: View {
                                     Image(systemName: "brain")
                                         .font(.system(size: 22))
                                         .foregroundColor(orange)
-                                        .padding(.top, 2)
 
                                     VStack(alignment: .leading, spacing: 6) {
                                         Text("reminder")
@@ -383,22 +388,20 @@ struct ReframeScreen: View {
                                         Text(ai.reframes[vm.selectedReframeIndex])
                                             .font(.system(size: 14))
                                             .foregroundColor(.black.opacity(0.75))
-                                            .fixedSize(horizontal: false, vertical: true)
                                     }
 
                                     Spacer()
                                 }
                                 .padding(cardPadding)
-                                .frame(maxWidth: .infinity)
                                 .background(Color.white.opacity(0.52))
                                 .cornerRadius(16)
-                                .padding(.top, 4)
                             }
 
-                            Spacer().frame(height: bottomSpacing)
+                            Spacer().frame(height: 24)
                         }
                     }
                 }
+                .frame(maxHeight: .infinity)
 
                 Button(action: onContinue) {
                     Text("continue")
@@ -426,10 +429,11 @@ struct ActionScreen: View {
     var onBack: () -> Void
     var onFinish: () -> Void
 
-    @ScaledMetric private var titleSize: CGFloat = 24
+    @ScaledMetric private var titleSize: CGFloat = 29
     @ScaledMetric private var bodySize: CGFloat = 14
     @ScaledMetric private var buttonSize: CGFloat = 18
     @ScaledMetric private var checkSize: CGFloat = 20
+    @ScaledMetric private var iconSize: CGFloat = 60
 
     var body: some View {
         GeometryReader { geo in
@@ -438,11 +442,10 @@ struct ActionScreen: View {
             let horizontalPadding = min(geo.size.width * 0.06, 28)
             let topPadding = min(geo.size.height * 0.03, 24)
             let titleTopSpacing = min(geo.size.height * 0.045, 36)
-            let smallSpacing = min(geo.size.height * 0.012, 10)
             let mediumSpacing = min(geo.size.height * 0.03, 24)
             let itemSpacing = min(geo.size.height * 0.018, 12)
             let buttonVerticalPadding = min(geo.size.height * 0.022, 17)
-            let bottomSpacing = min(geo.size.height * 0.025, 18)
+            let bottomSpacing = min(geo.size.height * 0.025, 20)
 
             VStack(alignment: .leading, spacing: 0) {
                 TopProgressRow(
@@ -457,38 +460,32 @@ struct ActionScreen: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Spacer().frame(height: titleTopSpacing)
 
-                        Text("what’s one small\nstep you can take\nnow?")
-                            .font(.system(size: titleSize, weight: .bold))
-                            .foregroundColor(.black)
-
-                        Spacer().frame(height: smallSpacing)
-
-                        Text("shift your focus")
-                            .font(.system(size: bodySize))
-                            .foregroundColor(.gray)
+                        FlowTitleHeader(
+                            title: "what’s one small\nstep you can take\nnow?",
+                            subtitle: "shift your focus"
+                        )
 
                         Spacer().frame(height: mediumSpacing)
 
                         VStack(spacing: itemSpacing) {
                             ForEach(Array(actions.enumerated()), id: \.offset) { index, item in
-                                Button(action: {
+                                Button {
                                     vm.selectedActionIndex = index
-                                }) {
-                                    HStack {
+                                } label: {
+                                    HStack(spacing: 14) {
                                         Circle()
-                                            .fill(actionColor(for: item.icon))
-                                            .frame(width: 60, height: 60)
+                                            .fill(ActionStyle.color(item.icon))
+                                            .frame(width: iconSize, height: iconSize)
                                             .overlay(
-                                                Image(assetIconName(item.icon))
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 46, height: 46)
+                                                MomentIconImage(
+                                                    icon: ActionStyle.iconName(item.icon),
+                                                    size: iconSize * 0.76
+                                                )
                                             )
 
                                         Text(item.label)
                                             .font(.system(size: 15))
                                             .foregroundColor(.black.opacity(0.82))
-                                            .fixedSize(horizontal: false, vertical: true)
 
                                         Spacer()
 
@@ -505,7 +502,6 @@ struct ActionScreen: View {
                                     }
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 14)
-                                    .frame(maxWidth: .infinity)
                                     .background(vm.selectedActionIndex == index ? Color.white.opacity(0.82) : Color.white.opacity(0.54))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12)
@@ -517,9 +513,10 @@ struct ActionScreen: View {
                             }
                         }
 
-                        Spacer().frame(height: mediumSpacing)
+                        Spacer().frame(height: 24)
                     }
                 }
+                .frame(maxHeight: .infinity)
 
                 Button(action: onFinish) {
                     Text("finish")
@@ -532,66 +529,10 @@ struct ActionScreen: View {
                 }
                 .buttonStyle(.plain)
 
-                Spacer().frame(height: smallSpacing)
-
-                Button(action: onFinish) {
-                    HStack {
-                        Spacer()
-                        Text("skip for now")
-                            .font(.system(size: 16))
-                            .foregroundColor(orange)
-                        Spacer()
-                    }
-                }
-                .buttonStyle(.plain)
-
                 Spacer().frame(height: bottomSpacing)
             }
             .padding(.horizontal, horizontalPadding)
         }
-    }
-    private func assetIconName(_ icon: String) -> String {
-        let map: [String: String] = [
-            "wind": "action_breath",
-            "figure.walk": "action_walk",
-            "bubble.left.and.bubble.right": "action_chat",
-            "pencil": "action_pencil",
-            "leaf": "action_leaf",
-            "music.note": "action_music",
-            "bed.double": "action_sleep",
-            "sun.max": "action_sunlight",
-            "hand.raised": "action_handraised",
-
-            "action_breath": "action_breath",
-            "action_walk": "action_walk",
-            "action_chat": "action_chat",
-            "action_pencil": "action_pencil",
-            "action_leaf": "action_leaf",
-            "action_music": "action_music",
-            "action_sleep": "action_sleep",
-            "action_sunlight": "action_sunlight",
-            "action_handraised": "action_handraised"
-        ]
-
-        return map[icon] ?? "action_sunlight"
-    }
-
-    private func actionColor(for icon: String) -> Color {
-        let asset = assetIconName(icon)
-
-        let colorMap: [String: Color] = [
-            "action_breath": .blue,
-            "action_walk": .orange,
-            "action_chat": .teal,
-            "action_pencil": .indigo,
-            "action_leaf": .green,
-            "action_music": .purple,
-            "action_sleep": .pink,
-            "action_sunlight": .yellow,
-            "action_handraised": .red
-        ]
-
-        return colorMap[asset]?.opacity(0.22) ?? .gray.opacity(0.18)
     }
 }
 
@@ -673,6 +614,7 @@ struct CompleteScreen: View {
                             .font(.system(size: titleSize, weight: .bold))
                             .foregroundColor(.black)
                             .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity, alignment: .center)
 
                         Spacer().frame(height: smallSpacing)
 
@@ -683,6 +625,7 @@ struct CompleteScreen: View {
                         .font(.system(size: 15))
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity, alignment: .center)
 
                         Spacer().frame(height: sectionSpacing)
 
@@ -739,5 +682,30 @@ struct CompleteScreen: View {
                 }
             }
         }
+    }
+}
+struct FlowTitleHeader: View {
+    let title: String
+    let subtitle: String
+
+    @ScaledMetric private var titleSize: CGFloat = 35
+    @ScaledMetric private var subtitleSize: CGFloat = 14
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text(title)
+                .font(.system(size: titleSize, weight: .bold))
+                .foregroundColor(.black)
+                .multilineTextAlignment(.center)
+                .lineLimit(nil)
+                .minimumScaleFactor(0.75)
+                .frame(maxWidth: .infinity, alignment: .top)
+
+            Text(subtitle)
+                .font(.system(size: subtitleSize))
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
     }
 }
