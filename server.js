@@ -82,6 +82,9 @@ The icon value must match exactly:
 - action_sleep — rest for a few minutes
 - action_sunlight — step into daylight
 - action_handraised — pause before reacting
+- action_meditation — meditate for 10 minutes
+- action_book — read 10 pages
+- action_nophone — put your phone away
 `;
 
     const msg = await anthropic.messages.create({

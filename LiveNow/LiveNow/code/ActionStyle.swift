@@ -24,7 +24,8 @@ struct ActionStyle {
             "🛏": "action_sleep",
             "☀️": "action_sunlight",
             "✋": "action_handraised",
-            
+            "🧘": "action_meditation",
+
             // SF Symbols
             "wind": "action_breath",
             "figure.walk": "action_walk",
@@ -35,7 +36,8 @@ struct ActionStyle {
             "bed.double": "action_sleep",
             "sun.max": "action_sunlight",
             "hand.raised": "action_handraised",
-            
+            "figure.mind.and.body": "action_meditation",
+
             // new format
             "action_breath": "action_breath",
             "action_walk": "action_walk",
@@ -45,7 +47,8 @@ struct ActionStyle {
             "action_music": "action_music",
             "action_sleep": "action_sleep",
             "action_sunlight": "action_sunlight",
-            "action_handraised": "action_handraised"
+            "action_handraised": "action_handraised",
+            "action_meditation": "action_meditation"
         ]
         
         return map[icon] ?? "sparkles"
@@ -55,7 +58,7 @@ struct ActionStyle {
         switch iconName(icon) {
 
         case "action_breath":
-            return .blue.opacity(0.22)
+            return .yellow.opacity(0.22)
 
         case "action_walk":
             return .orange.opacity(0.22)
@@ -67,7 +70,7 @@ struct ActionStyle {
             return .indigo.opacity(0.22)
 
         case "action_leaf":
-            return .green.opacity(0.22)
+            return .gray.opacity(0.05)
 
         case "action_music":
             return .purple.opacity(0.22)
@@ -76,14 +79,20 @@ struct ActionStyle {
             return .pink.opacity(0.22)
 
         case "action_sunlight":
-            return .yellow.opacity(0.22)
+            return .blue.opacity(0.22)
 
         case "action_handraised":
             return .red.opacity(0.22)
             
         case "action_meditation":
-            return .pink.opacity(0.22)
-
+            return .green.opacity(0.22)
+            
+        case "action_nophone":
+            return .gray.opacity(0.22)
+            
+        case "action_book":
+            return .brown.opacity(0.22)
+            
         default:
             return .gray.opacity(0.18)
         }

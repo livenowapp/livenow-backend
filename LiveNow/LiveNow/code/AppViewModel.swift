@@ -85,19 +85,19 @@ final class AppViewModel: ObservableObject {
 
                 actions: [
                     AIActionItem(
-                        icon: "action_breath",
+                        icon: "action_leaf",
                         label: "take 3 deep breaths"
                     ),
                     AIActionItem(
-                        icon: "action_walk",
+                        icon: "action_nophone",
                         label: "go for a short walk"
                     ),
                     AIActionItem(
-                        icon: "action_pencil",
+                        icon: "action_book",
                         label: "write down the thought"
                     ),
                     AIActionItem(
-                        icon: "action_music",
+                        icon: "action_meditation",
                         label: "listen to calming music"
                     )
                 ],
@@ -109,7 +109,7 @@ final class AppViewModel: ObservableObject {
             step = .analyze
         } catch {
             print("ANALYZE ERROR:", error)
-            errorMessage = "Napaka: \(error.localizedDescription)"
+            errorMessage = "error: \(error.localizedDescription)"
         }
 
         isLoading = false
