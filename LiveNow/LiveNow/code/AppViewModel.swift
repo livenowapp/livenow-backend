@@ -97,6 +97,38 @@ final class AppViewModel: ObservableObject {
                         label: "write down the thought"
                     ),
                     AIActionItem(
+                        icon: "action_sleep",
+                        label: "write down the thought"
+                    ),
+                    AIActionItem(
+                        icon: "action_walk",
+                        label: "write down the thought"
+                    ),
+                    AIActionItem(
+                        icon: "action_sunlight",
+                        label: "write down the thought"
+                    ),
+                    AIActionItem(
+                        icon: "action_music",
+                        label: "write down the thought"
+                    ),
+                    AIActionItem(
+                        icon: "action_handraised",
+                        label: "write down the thought"
+                    ),
+                    AIActionItem(
+                        icon: "action_chat",
+                        label: "write down the thought"
+                    ),
+                    AIActionItem(
+                        icon: "action_pencil",
+                        label: "write down the thought"
+                    ),
+                    AIActionItem(
+                        icon: "action_breath",
+                        label: "write down the thought"
+                    ),
+                    AIActionItem(
                         icon: "action_meditation",
                         label: "listen to calming music"
                     )
@@ -365,5 +397,16 @@ final class AppViewModel: ObservableObject {
         } catch {
             print("Load error:", error)
         }
+    }
+    var activeDaysCount: Int {
+        let calendar = Calendar.current
+
+        let uniqueDays = Set(
+            last7DaysEntries.map {
+                calendar.startOfDay(for: $0.date)
+            }
+        )
+
+        return uniqueDays.count
     }
 }

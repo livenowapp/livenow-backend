@@ -25,6 +25,10 @@ struct ActionStyle {
             "☀️": "action_sunlight",
             "✋": "action_handraised",
             "🧘": "action_meditation",
+            "📚": "action_book",
+            "📖": "action_book",
+            "📵": "action_nophone",
+            "🚿": "action_coldshower",
 
             // SF Symbols
             "wind": "action_breath",
@@ -37,6 +41,10 @@ struct ActionStyle {
             "sun.max": "action_sunlight",
             "hand.raised": "action_handraised",
             "figure.mind.and.body": "action_meditation",
+            "book": "action_book",
+            "book.closed": "action_book",
+            "iphone.slash": "action_nophone",
+            "shower": "action_coldshower",
 
             // new format
             "action_breath": "action_breath",
@@ -48,56 +56,62 @@ struct ActionStyle {
             "action_sleep": "action_sleep",
             "action_sunlight": "action_sunlight",
             "action_handraised": "action_handraised",
-            "action_meditation": "action_meditation"
-        ]
-        
-        return map[icon] ?? "sparkles"
+            "action_meditation": "action_meditation",
+            "action_book": "action_book",
+            "action_nophone": "action_nophone",
+            "action_coldshower": "action_coldshower"
+            ]
+
+            return map[icon] ?? "sparkles"
+            }
+
+            static func color(_ icon: String?) -> Color {
+                switch iconName(icon) {
+
+                case "action_breath":
+                    return .yellow.opacity(0.33)
+
+                case "action_walk":
+                    return .orange.opacity(0.22)
+
+                case "action_chat":
+                    return .teal.opacity(0.22)
+
+                case "action_pencil":
+                    return .indigo.opacity(0.33)
+
+                case "action_leaf":
+                    return .blue.opacity(0.11)
+
+                case "action_music":
+                    return .purple.opacity(0.22)
+
+                case "action_sleep":
+                    return .pink.opacity(0.16)
+
+                case "action_sunlight":
+                    return .blue.opacity(0.22)
+
+                case "action_handraised":
+                    return .red.opacity(0.33)
+
+                case "action_meditation":
+                    return .purple.opacity(0.11)
+
+                case "action_nophone":
+                    return .gray.opacity(0.33)
+
+                case "action_book":
+                    return .cyan.opacity(0.16)
+
+                case "action_coldshower":
+                    return .mint.opacity(0.22)
+
+                default:
+                    return .gray.opacity(0.18)
+                }
+            }
     }
-
-    static func color(_ icon: String?) -> Color {
-        switch iconName(icon) {
-
-        case "action_breath":
-            return .yellow.opacity(0.22)
-
-        case "action_walk":
-            return .orange.opacity(0.22)
-
-        case "action_chat":
-            return .teal.opacity(0.22)
-
-        case "action_pencil":
-            return .indigo.opacity(0.22)
-
-        case "action_leaf":
-            return .gray.opacity(0.05)
-
-        case "action_music":
-            return .purple.opacity(0.22)
-
-        case "action_sleep":
-            return .pink.opacity(0.22)
-
-        case "action_sunlight":
-            return .blue.opacity(0.22)
-
-        case "action_handraised":
-            return .red.opacity(0.22)
-            
-        case "action_meditation":
-            return .green.opacity(0.22)
-            
-        case "action_nophone":
-            return .gray.opacity(0.22)
-            
-        case "action_book":
-            return .brown.opacity(0.22)
-            
-        default:
-            return .gray.opacity(0.18)
-        }
-    }
-}
 
 struct MomentIconImage: View {
     

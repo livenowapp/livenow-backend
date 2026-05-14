@@ -220,6 +220,7 @@ struct MomentDetailScreen: View {
                 if noteText.isEmpty {
                     Text("what did you learn from this?")
                         .foregroundColor(.gray)
+                        .autocorrectionDisabled()
                         .padding(.top, 20)
                         .padding(.leading, 16)
                 }

@@ -67,6 +67,7 @@ struct InputScreen: View {
                             if vm.thought.isEmpty {
                                 Text("type your thought...")
                                     .foregroundColor(.black.opacity(0.35))
+                                    .autocorrectionDisabled()
                                     .font(.system(size: 15))
                                     .padding(.top, 20)
                                     .padding(.leading, 18)

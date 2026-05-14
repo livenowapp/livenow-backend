@@ -53,11 +53,15 @@ struct ContentView: View {
                 )
             }
         } else {
-            LoginScreen(authVM: authVM, orange: orange)
-                .onAppear {
-                    vm.currentTab = .home
-                    vm.step = .home
-                }
+            if authVM.showSignup {
+                SignupScreen(authVM: authVM, orange: orange)
+            } else {
+                LoginScreen(authVM: authVM, orange: orange)
+                    .onAppear {
+                        vm.currentTab = .home
+                        vm.step = .home
+                    }
+            }
         }
     }
     
