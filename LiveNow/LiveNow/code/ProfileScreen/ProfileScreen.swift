@@ -7,19 +7,65 @@
 
 import SwiftUI
 import StoreKit
+import FirebaseAuth
+
+// MARK: - PROFILE SCREEN
 
 struct ProfilePlaceholderScreen: View {
     @ObservedObject var authVM: AuthViewModel
     @ObservedObject var vm: AppViewModel
 
     private let orange = Color(red: 1.0, green: 0.43, blue: 0.10)
+    
+    private let calmMessages = [
+        "Focus on what matters.",
+        "Come back to the present.",
+        "One moment at a time.",
+        "Small resets matter.",
+        "You are not your thoughts.",
+        "Breathe before you react.",
+        "Let this moment be enough.",
+        "Slow down your mind.",
+        "Choose presence over pressure.",
+        "You can pause first.",
+        "Notice the thought, then let it pass.",
+        "You don’t need to solve everything now.",
+        "Return to what is real.",
+        "A calm mind starts with one breath.",
+        "You are safe in this moment.",
+        "Progress can be quiet.",
+        "Less reacting. More noticing.",
+        "You can begin again.",
+        "Stay with what you know.",
+        "Let the noise settle.",
+        "You are allowed to slow down.",
+        "This thought is not the whole story.",
+        "Clarity comes after the pause.",
+        "Be where your feet are.",
+        "You have time to respond.",
+        "Not every thought needs action.",
+        "Come back to now.",
+        "One clear step is enough.",
+        "You can trust the next breath.",
+        "Keep choosing the present.",
+        "Let today be simple.",
+        "Pause. Breathe. Continue.",
+        "A reset is still progress.",
+        "You are doing better than you think.",
+        "Return to the moment in front of you."
+    ]
+    
+    private var dailyCalmMessage: String {
+        let day = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
+        let index = day % calmMessages.count
+        return calmMessages[index]
+    }
 
     @ScaledMetric private var logoSize: CGFloat = 24
     @ScaledMetric private var topButtonSize: CGFloat = 40
     @ScaledMetric private var nameSize: CGFloat = 34
 
     @State private var showSettings = false
-    @State private var showContact = false
     @State private var showShare = false
     
     var body: some View {
@@ -56,29 +102,18 @@ struct ProfilePlaceholderScreen: View {
                         .padding(.horizontal, horizontalPadding)
                         .padding(.top, topPadding)
                         
-                        HStack(spacing: 18) {
-                            Circle()
-                                .fill(orange.opacity(0.14))
-                                .frame(width: 86, height: 86)
-                                .overlay(
-                                    Image(systemName: "person.fill")
-                                        .font(.system(size: 36))
-                                        .foregroundColor(orange)
-                                )
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(authVM.displayName.isEmpty ? "LiveNow" : authVM.displayName)
+                                .font(.system(size: nameSize, weight: .bold))
+                                .foregroundColor(.black)
 
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(authVM.displayName)
-                                    .font(.system(size: nameSize, weight: .bold))
-                                    .foregroundColor(.black)
-
-                                Text("Focus on what matters.\nLive in the now.")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.gray)
-                                    .lineSpacing(4)
-                            }
-
-                            Spacer()
+                            Text(dailyCalmMessage)
+                                .font(.system(size: 16))
+                                .foregroundColor(.gray)
+                                .lineSpacing(4)
+                                .lineLimit(2)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
                         progressCard
 
@@ -91,9 +126,6 @@ struct ProfilePlaceholderScreen: View {
                 BottomTabBar(vm: vm, orange: orange)
                     .sheet(isPresented: $showSettings) {
                         SettingsScreen(authVM: authVM, orange: orange)
-                    }
-                    .sheet(isPresented: $showContact) {
-                        ContactScreen(orange: orange)
                     }
             }
         }
@@ -161,40 +193,12 @@ struct ProfilePlaceholderScreen: View {
                     )
                 }
                 .frame(height: statHeight)
-
-                HStack(spacing: isSmall ? 10 : 14) {
-                    Circle()
-                        .fill(orange.opacity(0.12))
-                        .frame(width: isSmall ? 42 : 50, height: isSmall ? 42 : 50)
-                        .overlay(
-                            Image(systemName: "bolt.fill")
-                                .font(.system(size: isSmall ? 18 : 22))
-                                .foregroundColor(orange)
-                        )
-
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("You’ve broken the loop \(vm.last7DaysEntries.count) times this week.")
-                            .font(.system(size: isSmall ? 14 : 16, weight: .semibold))
-                            .foregroundColor(.black)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        Text("Keep going.")
-                            .font(.system(size: isSmall ? 13 : 15))
-                            .foregroundColor(.gray)
-                    }
-
-                    Spacer()
-                }
-                .padding(.horizontal, isSmall ? 12 : 16)
-                .padding(.vertical, isSmall ? 13 : 16)
-                .background(orange.opacity(0.045))
-                .cornerRadius(isSmall ? 16 : 18)
             }
             .padding(cardPadding)
             .background(Color.white.opacity(0.78))
             .cornerRadius(24)
         }
-        .frame(height: 310)
+        .frame(height: 220)
     }
 
     private func progressCircle(cardWidth: CGFloat) -> some View {
@@ -293,34 +297,16 @@ struct ProfilePlaceholderScreen: View {
             Divider().padding(.leading, 74)
 
             Button {
-                showContact = true
-            } label: {
-                menuRow(icon: "envelope", title: "Contact us", subtitle: "We’d love to hear from you")
-            }
-            .buttonStyle(.plain)
-
-            Divider().padding(.leading, 74)
-
-            Button {
                 requestReview()
             } label: {
-                menuRow(icon: "star", title: "Rate LiveNow", subtitle: "If LiveNow helps you, leave a review")
+                menuRow(icon: "star", title: "Rate LiveNow", subtitle: "If LiveNow helps you, leave a review", orangeIcon: true)
             }
             .buttonStyle(.plain)
 
             Divider().padding(.leading, 74)
 
             ShareLink(item: "Check out LiveNow") {
-                menuRow(icon: "square.and.arrow.up", title: "Share LiveNow", subtitle: "Help others live more in the now")
-            }
-            .buttonStyle(.plain)
-
-            Divider().padding(.leading, 74)
-
-            Button {
-                authVM.logout()
-            } label: {
-                menuRow(icon: "rectangle.portrait.and.arrow.right", title: "Log out", subtitle: "Sign out of your account")
+                menuRow(icon: "square.and.arrow.up", title: "Share LiveNow", subtitle: "Help others live more in the now", orangeIcon: true)
             }
             .buttonStyle(.plain)
         }
@@ -352,6 +338,7 @@ struct ProfilePlaceholderScreen: View {
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
+        .contentShape(Rectangle())
     }
   
     private func requestReview() {
@@ -360,67 +347,4 @@ struct ProfilePlaceholderScreen: View {
         }
     }
     
-}
-struct SettingsScreen: View {
-    @ObservedObject var authVM: AuthViewModel
-    let orange: Color
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationView {
-            VStack(spacing: 18) {
-                Text("Account")
-                    .font(.system(size: 24, weight: .bold))
-
-                Text(authVM.email)
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-
-                Spacer()
-            }
-            .padding(24)
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                Button("Done") {
-                    dismiss()
-                }
-                .foregroundColor(orange)
-            }
-        }
-    }
-}
-
-struct ContactScreen: View {
-    let orange: Color
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationView {
-            VStack(spacing: 18) {
-                Text("Contact us")
-                    .font(.system(size: 24, weight: .bold))
-
-                Text("livenowapp@outlook.com")
-                    .font(.system(size: 16))
-                    .foregroundColor(orange)
-
-                Text("Send us feedback, questions, or anything that could help improve LiveNow.")
-                    .font(.system(size: 15))
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
-
-                Spacer()
-            }
-            .padding(24)
-            .navigationTitle("Contact us")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                Button("Done") {
-                    dismiss()
-                }
-                .foregroundColor(orange)
-            }
-        }
-    }
 }

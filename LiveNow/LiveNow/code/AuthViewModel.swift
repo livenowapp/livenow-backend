@@ -17,7 +17,7 @@ final class AuthViewModel: ObservableObject {
     @Published var showSignup: Bool = false
     
     var displayName: String {
-        Auth.auth().currentUser?.displayName ?? "friend"
+        Auth.auth().currentUser?.displayName ?? ""
     }
     
     @Published var name: String = ""
@@ -98,8 +98,22 @@ final class AuthViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.isLoading = false
 
-                if let error = error {
-                    self.errorMessage = error.localizedDescription
+                if let error = error as NSError? {
+                    switch error.code {
+                    case AuthErrorCode.wrongPassword.rawValue,
+                         AuthErrorCode.invalidCredential.rawValue:
+                        self.errorMessage = "Incorrect email or password."
+
+                    case AuthErrorCode.invalidEmail.rawValue:
+                        self.errorMessage = "Please enter a valid email."
+
+                    case AuthErrorCode.userNotFound.rawValue:
+                        self.errorMessage = "No account found with this email."
+
+                    default:
+                        self.errorMessage = "Something went wrong. Please try again."
+                    }
+
                     return
                 }
                 
@@ -119,10 +133,57 @@ final class AuthViewModel: ObservableObject {
         do {
             try Auth.auth().signOut()
             isLoggedIn = false
+            name = ""
             email = ""
             password = ""
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+    
+    func updateName(_ name: String, completion: @escaping (Bool) -> Void) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Please enter your name."
+            completion(false)
+            return
+        }
+
+        let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
+        changeRequest?.displayName = trimmedName
+
+        changeRequest?.commitChanges { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                    completion(false)
+                } else {
+                    self.name = trimmedName
+                    self.objectWillChange.send()
+                    completion(true)
+                }
+            }
+        }
+    }
+    
+    func resetPassword(email: String, completion: @escaping (String?) -> Void) {
+
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedEmail.isEmpty else {
+            completion("Please enter your email.")
+            return
+        }
+
+        Auth.auth().sendPasswordReset(withEmail: trimmedEmail) { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    completion(error.localizedDescription)
+                } else {
+                    completion(nil)
+                }
+            }
         }
     }
 }

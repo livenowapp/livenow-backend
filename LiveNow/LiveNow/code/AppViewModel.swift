@@ -7,6 +7,8 @@
 
 import SwiftUI
 import Combine
+import FirebaseAuth
+import FirebaseFirestore
 
 // MARK: - STORAGE
 
@@ -27,11 +29,7 @@ final class AppViewModel: ObservableObject {
     @Published var selectedDate: Date = Date()
     @Published var showSelectedDateEntries: Bool = false
 
-    private let storageKey = "livenow_entries_v1"
-
-    init() {
-        loadEntries()
-    }
+    private let db = Firestore.firestore()
 
     func goToInput() {
         currentTab = .home
@@ -51,9 +49,13 @@ final class AppViewModel: ObservableObject {
         errorMessage = nil
 
         do {
+            
+            
             //let response = try await AIService.shared.analyzeThought(thought: thought)
                   //      aiResponse = response
                    //     step = .analyze
+            
+            
             let response = AIResponse(
                 analysis: [
                     AIAnalysisItem(
@@ -199,8 +201,26 @@ final class AppViewModel: ObservableObject {
         )
 
         entries.insert(entry, at: 0)
-        saveEntries()
+        saveEntry(entry)
         step = .complete
+    }
+
+    func updateOutcome(for entryID: UUID, outcome: EntryOutcome) {
+        guard let index = entries.firstIndex(where: { $0.id == entryID }) else { return }
+        entries[index].didHappen = outcome
+        saveEntry(entries[index])
+    }
+
+    func updateNote(for entryID: UUID, note: String) {
+        guard let index = entries.firstIndex(where: { $0.id == entryID }) else { return }
+        entries[index].note = note
+        saveEntry(entries[index])
+    }
+
+    func deleteEntry(_ entryID: UUID) {
+        entries.removeAll { $0.id == entryID }
+        selectedMoment = nil
+        deleteEntryFromFirestore(entryID)
     }
 
     func resetToHome() {
@@ -211,24 +231,6 @@ final class AppViewModel: ObservableObject {
         selectedActionIndex = 0
         errorMessage = nil
         currentTab = .home
-    }
-
-    func updateOutcome(for entryID: UUID, outcome: EntryOutcome) {
-        guard let index = entries.firstIndex(where: { $0.id == entryID }) else { return }
-        entries[index].didHappen = outcome
-        saveEntries()
-    }
-
-    func updateNote(for entryID: UUID, note: String) {
-        guard let index = entries.firstIndex(where: { $0.id == entryID }) else { return }
-        entries[index].note = note
-        saveEntries()
-    }
-
-    func deleteEntry(_ entryID: UUID) {
-        entries.removeAll { $0.id == entryID }
-        selectedMoment = nil
-        saveEntries()
     }
     
     func symbolName(for icon: String?) -> String {
@@ -380,24 +382,88 @@ final class AppViewModel: ObservableObject {
         !entries(for: date).isEmpty
     }
 
-    private func saveEntries() {
+    private func userEntriesCollection() -> CollectionReference? {
+        guard let uid = Auth.auth().currentUser?.uid else { return nil }
+
+        return db
+            .collection("users")
+            .document(uid)
+            .collection("entries")
+    }
+
+    private func saveEntry(_ entry: ThoughtEntry) {
+        guard let collection = userEntriesCollection() else { return }
+
         do {
-            let data = try JSONEncoder().encode(entries)
-            UserDefaults.standard.set(data, forKey: storageKey)
+            let data = try JSONEncoder().encode(entry)
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+
+            collection
+                .document(entry.id.uuidString)
+                .setData(json) { error in
+                    if let error = error {
+                        print("Firestore save error:", error.localizedDescription)
+                    } else {
+                        print("Saved entry:", entry.id.uuidString)
+                    }
+                }
         } catch {
-            print("Save error:", error)
+            print("Encode entry error:", error)
         }
     }
 
     private func loadEntries() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else { return }
+        guard let collection = userEntriesCollection() else {
+            entries = []
+            return
+        }
 
-        do {
-            entries = try JSONDecoder().decode([ThoughtEntry].self, from: data)
-        } catch {
-            print("Load error:", error)
+        collection
+            .order(by: "date", descending: true)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("Firestore load error:", error.localizedDescription)
+                    return
+                }
+
+                guard let documents = snapshot?.documents else {
+                    DispatchQueue.main.async {
+                        self.entries = []
+                    }
+                    return
+                }
+
+                let decodedEntries: [ThoughtEntry] = documents.compactMap { document in
+                    do {
+                        let rawData = try JSONSerialization.data(withJSONObject: document.data())
+                        return try JSONDecoder().decode(ThoughtEntry.self, from: rawData)
+                    } catch {
+                        print("Decode entry error:", error)
+                        return nil
+                    }
+                }
+
+                DispatchQueue.main.async {
+                    self.entries = decodedEntries
+                }
+            }
+    }
+
+    private func deleteEntryFromFirestore(_ entryID: UUID) {
+        guard let collection = userEntriesCollection() else { return }
+
+        collection.document(entryID.uuidString).delete { error in
+            if let error = error {
+                print("Firestore delete error:", error.localizedDescription)
+            }
         }
     }
+
+    func reloadEntriesForCurrentUser() {
+        entries = []
+        loadEntries()
+    }
+    
     var activeDaysCount: Int {
         let calendar = Calendar.current
 

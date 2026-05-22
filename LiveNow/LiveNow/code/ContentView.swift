@@ -21,26 +21,29 @@ struct ContentView: View {
     var body: some View {
         if authVM.isLoggedIn {
             ZStack {
-            bgColor
-                .ignoresSafeArea()
-            
-            if vm.currentTab == .home {
-                homeFlow
-            } else if vm.currentTab == .moments {
-                MomentsScreen(
-                    vm: vm,
-                    orange: orange,
-                    lightOrange: lightOrange
-                )
-            } else if vm.currentTab == .insights {
-                InsightsScreen(
-                    vm: vm,
-                    orange: orange
-                )
-            } else {
-                ProfilePlaceholderScreen(authVM: authVM, vm: vm)
+                bgColor
+                    .ignoresSafeArea()
+
+                if vm.currentTab == .home {
+                    homeFlow
+                } else if vm.currentTab == .moments {
+                    MomentsScreen(vm: vm, orange: orange, lightOrange: lightOrange)
+                } else if vm.currentTab == .insights {
+                    InsightsScreen(vm: vm, orange: orange)
+                } else {
+                    ProfilePlaceholderScreen(authVM: authVM, vm: vm)
+                }
             }
-        }
+            .onAppear {
+                vm.reloadEntriesForCurrentUser()
+            }
+            .onChange(of: authVM.isLoggedIn) { _, loggedIn in
+                if loggedIn {
+                    vm.reloadEntriesForCurrentUser()
+                } else {
+                    vm.entries = []
+                }
+            }
             .sheet(item: $vm.selectedMoment) { moment in
                 MomentDetailScreen(
                     vm: vm,
@@ -55,9 +58,15 @@ struct ContentView: View {
         } else {
             if authVM.showSignup {
                 SignupScreen(authVM: authVM, orange: orange)
+                    .onAppear {
+                        vm.entries = []
+                        vm.currentTab = .home
+                        vm.step = .home
+                    }
             } else {
                 LoginScreen(authVM: authVM, orange: orange)
                     .onAppear {
+                        vm.entries = []
                         vm.currentTab = .home
                         vm.step = .home
                     }
@@ -69,22 +78,15 @@ struct ContentView: View {
     private var homeFlow: some View {
         switch vm.step {
         case .home:
-            HomeScreen(
-                vm: vm,
-                orange: orange,
-                lightOrange: lightOrange,
-                onStart: {
-                    vm.goToInput()
-                }
-            )
+            HomeScreen(vm: vm, orange: orange, lightOrange: lightOrange) {
+                vm.goToInput()
+            }
             
         case .input:
             InputScreen(
                 vm: vm,
                 orange: orange,
-                onBack: {
-                    vm.goBack()
-                },
+                onBack: { vm.goBack() },
                 onAnalyze: {
                     Task {
                         await vm.analyze()
@@ -96,36 +98,24 @@ struct ContentView: View {
             AnalyzeScreen(
                 vm: vm,
                 orange: orange,
-                onBack: {
-                    vm.goBack()
-                },
-                onContinue: {
-                    vm.goNext()
-                }
+                onBack: { vm.goBack() },
+                onContinue: { vm.goNext() }
             )
             
         case .reframe:
             ReframeScreen(
                 vm: vm,
                 orange: orange,
-                onBack: {
-                    vm.goBack()
-                },
-                onContinue: {
-                    vm.goNext()
-                }
+                onBack: { vm.goBack() },
+                onContinue: { vm.goNext() }
             )
             
         case .action:
             ActionScreen(
                 vm: vm,
                 orange: orange,
-                onBack: {
-                    vm.goBack()
-                },
-                onFinish: {
-                    vm.goNext()
-                }
+                onBack: { vm.goBack() },
+                onFinish: { vm.goNext() }
             )
             
         case .complete:
@@ -133,12 +123,8 @@ struct ContentView: View {
                 vm: vm,
                 orange: orange,
                 lightOrange: lightOrange,
-                onClose: {
-                    vm.resetToHome()
-                },
-                onNewReset: {
-                    vm.goToInput()
-                }
+                onClose: { vm.resetToHome() },
+                onNewReset: { vm.goToInput() }
             )
         }
     }

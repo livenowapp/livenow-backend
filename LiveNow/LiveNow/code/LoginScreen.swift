@@ -17,7 +17,10 @@ struct LoginScreen: View {
     @ScaledMetric private var subtitleSize: CGFloat = 15
     @ScaledMetric private var fieldTextSize: CGFloat = 16
     @ScaledMetric private var buttonTextSize: CGFloat = 17
+    
     @FocusState private var focusedField: Field?
+    
+    @State private var showForgotPassword = false
 
     enum Field {
         case email
@@ -93,6 +96,17 @@ struct LoginScreen: View {
                                     )
                             )
                             .cornerRadius(14)
+                        
+                        Button(action: {
+                            showForgotPassword = true
+                        }) {
+                            Text("Forgot password?")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(orange)
+                        }
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.top, 6)
                     }
                     .padding(.top, 18)
 
@@ -144,6 +158,9 @@ struct LoginScreen: View {
             .scrollDismissesKeyboard(.interactively)
         }
         .background(Color(red: 0.97, green: 0.96, blue: 0.94).ignoresSafeArea())
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordScreen(authVM: authVM, orange: orange)
+        }
     }
 }
 
