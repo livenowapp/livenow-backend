@@ -23,8 +23,9 @@ struct MomentsScreen: View {
         GeometryReader { geo in
             let horizontalPadding = min(geo.size.width * 0.055, 24)
             let topPadding = min(geo.size.height * 0.025, 22)
-
+            
             VStack(spacing: 0) {
+                ScrollView(showsIndicators: false) {
                 HStack {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Moments")
@@ -41,9 +42,7 @@ struct MomentsScreen: View {
                 .padding(.horizontal, horizontalPadding)
                 .padding(.top, topPadding)
 
-                ScrollView(showsIndicators: false) {
                     VStack(spacing: 18) {
-                        MomentsStatsCard(vm: vm, orange: orange)
 
                         CalendarMiniCard(
                             vm: vm,
@@ -65,73 +64,13 @@ struct MomentsScreen: View {
     }
 }
 
-// MARK: - STATS CARD
-
-struct MomentsStatsCard: View {
-    @ObservedObject var vm: AppViewModel
-    let orange: Color
-
-    var body: some View {
-        LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 4),
-            spacing: 0
-        ) {
-            MomentStatItem(icon: "sparkles", value: "\(vm.entries.count)", title: "moments", orange: orange)
-            MomentStatItem(icon: "flame", value: "\(thisWeekCount)", title: "this week", orange: orange)
-            MomentStatItem(icon: "chart.line.uptrend.xyaxis", value: "\(vm.streakCount)", title: "streak", orange: orange)
-            MomentStatItem(icon: "checkmark.circle", value: "\(vm.didNotHappenPercent)%", title: "less worry", orange: orange)
-        }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 8)
-        .frame(maxWidth: .infinity)
-        .background(Color.white.opacity(0.62))
-        .cornerRadius(20)
-    }
-
-    private var thisWeekCount: Int {
-        let calendar = Calendar.current
-        let now = Date()
-
-        return vm.entries.filter {
-            calendar.isDate($0.date, equalTo: now, toGranularity: .weekOfYear)
-        }.count
-    }
-}
-
-struct MomentStatItem: View {
-    let icon: String
-    let value: String
-    let title: String
-    let orange: Color
-
-    @ScaledMetric private var iconSize: CGFloat = 18
-    @ScaledMetric private var valueSize: CGFloat = 20
-    @ScaledMetric private var titleSize: CGFloat = 11
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: iconSize))
-                .foregroundColor(orange)
-
-            Text(value)
-                .font(.system(size: valueSize, weight: .semibold))
-                .foregroundColor(.black)
-
-            Text(title)
-                .font(.system(size: titleSize))
-                .foregroundColor(.gray)
-        }
-        .frame(maxWidth: .infinity)
-    }
-}
-
 // MARK: - CALENDAR MINI CARD
 
 struct CalendarMiniCard: View {
     @ObservedObject var vm: AppViewModel
     let orange: Color
     @Binding var displayedMonth: Date
+    @State private var selectedPreviewEntry: ThoughtEntry? = nil
 
     private let calendar = Calendar.current
     private let weekdays = ["M", "T", "W", "T", "F", "S", "S"]
@@ -250,7 +189,7 @@ struct CalendarMiniCard: View {
                     HStack(spacing: 10) {
                         ForEach(selectedEntries.prefix(3), id: \.id) { entry in
                             Button(action: {
-                                vm.selectedMoment = entry
+                                selectedPreviewEntry = entry
                             }) {
                                 Circle()
                                     .fill(ActionStyle.color(entry.selectedActionIcon))
@@ -288,6 +227,18 @@ struct CalendarMiniCard: View {
         .frame(maxWidth: .infinity)
         .background(Color.white.opacity(0.62))
         .cornerRadius(20)
+        
+        .sheet(item: $selectedPreviewEntry) { entry in
+            MomentDetailScreen(
+                vm: vm,
+                entry: entry,
+                orange: orange,
+                lightOrange: Color(red: 1.0, green: 0.66, blue: 0.32),
+                onClose: {
+                    selectedPreviewEntry = nil
+                }
+            )
+        }
     }
 
     private var monthTitle: String {

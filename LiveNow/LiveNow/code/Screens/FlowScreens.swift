@@ -126,13 +126,21 @@ struct InputScreen: View {
                 .padding(.bottom, 10)
 
                 Button(action: onAnalyze) {
-                    Text(vm.isLoading ? "analyzing..." : "analyze")
-                        .font(.system(size: buttonSize, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, buttonVerticalPadding)
-                        .background(orange)
-                        .cornerRadius(16)
+                    HStack(spacing: 10) {
+
+                        if vm.isLoading {
+                            ProgressView()
+                                .tint(.white)
+                        }
+
+                        Text(vm.isLoading ? "analyzing..." : "analyze")
+                            .font(.system(size: buttonSize, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, buttonVerticalPadding)
+                    .background(orange)
+                    .cornerRadius(16)
                 }
                 .buttonStyle(.plain)
                 .disabled(vm.isLoading || vm.thought.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

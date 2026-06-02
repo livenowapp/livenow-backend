@@ -144,24 +144,24 @@ struct HomeScreen: View {
                         }
 
                         VStack(spacing: min(screenHeight * 0.009, 8)) {
-                            InsightRow(
-                                label: "didn't happen",
+                            OutcomeRow(
+                                label: "didn't come true",
                                 value: vm.last7DaysDidntHappenCount,
-                                color: .green,
+                                color: Color.green,
                                 dotSize: min(screenWidth * 0.018, 7)
                             )
 
-                            InsightRow(
+                            OutcomeRow(
                                 label: "maybe",
                                 value: vm.last7DaysMaybeCount,
-                                color: .orange,
+                                color: Color.orange,
                                 dotSize: min(screenWidth * 0.018, 7)
                             )
 
-                            InsightRow(
-                                label: "happened",
+                            OutcomeRow(
+                                label: "come true",
                                 value: vm.last7DaysHappenedCount,
-                                color: .red,
+                                color: Color.red,
                                 dotSize: min(screenWidth * 0.018, 7)
                             )
                         }
@@ -181,6 +181,30 @@ struct HomeScreen: View {
                 }
 
                 BottomTabBar(vm: vm, orange: orange)
+            }
+        }
+    }
+    struct OutcomeRow: View {
+        let label: String
+        let value: Int
+        let color: Color
+        let dotSize: CGFloat
+
+        var body: some View {
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(color)
+                    .frame(width: dotSize, height: dotSize)
+
+                Text(label)
+                    .font(.system(size: 14))
+                    .foregroundColor(.black.opacity(0.8))
+
+                Spacer()
+
+                Text("\(value)")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.black)
             }
         }
     }

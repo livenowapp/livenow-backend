@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import FirebaseAuth
+import FirebaseFirestore
 
 final class AuthViewModel: ObservableObject {
     
@@ -133,9 +134,11 @@ final class AuthViewModel: ObservableObject {
         do {
             try Auth.auth().signOut()
             isLoggedIn = false
+            showSignup = false
             name = ""
             email = ""
             password = ""
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -182,6 +185,58 @@ final class AuthViewModel: ObservableObject {
                     completion(error.localizedDescription)
                 } else {
                     completion(nil)
+                }
+            }
+        }
+    }
+    
+    func deleteAccount(completion: @escaping (String?) -> Void) {
+        guard let user = Auth.auth().currentUser else {
+            completion("No user found.")
+            return
+        }
+
+        let uid = user.uid
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(uid)
+        let entriesRef = userRef.collection("entries")
+
+        entriesRef.getDocuments { snapshot, error in
+            if let error = error {
+                DispatchQueue.main.async {
+                    completion(error.localizedDescription)
+                }
+                return
+            }
+
+            let batch = db.batch()
+
+            snapshot?.documents.forEach { document in
+                batch.deleteDocument(document.reference)
+            }
+
+            batch.deleteDocument(userRef)
+
+            batch.commit { error in
+                if let error = error {
+                    DispatchQueue.main.async {
+                        completion(error.localizedDescription)
+                    }
+                    return
+                }
+
+                user.delete { error in
+                    DispatchQueue.main.async {
+                        if let error = error {
+                            completion(error.localizedDescription)
+                        } else {
+                            self.isLoggedIn = false
+                            self.name = ""
+                            self.email = ""
+                            self.password = ""
+                            completion(nil)
+                        }
+                    }
                 }
             }
         }

@@ -16,7 +16,7 @@ struct ProfilePlaceholderScreen: View {
     @ObservedObject var vm: AppViewModel
 
     private let orange = Color(red: 1.0, green: 0.43, blue: 0.10)
-    
+
     private let calmMessages = [
         "Focus on what matters.",
         "Come back to the present.",
@@ -54,19 +54,20 @@ struct ProfilePlaceholderScreen: View {
         "You are doing better than you think.",
         "Return to the moment in front of you."
     ]
-    
+
     private var dailyCalmMessage: String {
         let day = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
-        let index = day % calmMessages.count
-        return calmMessages[index]
+        return calmMessages[day % calmMessages.count]
     }
 
     @ScaledMetric private var logoSize: CGFloat = 24
     @ScaledMetric private var topButtonSize: CGFloat = 40
     @ScaledMetric private var nameSize: CGFloat = 34
+    @ScaledMetric private var titleSize: CGFloat = 34
 
     @State private var showSettings = false
-    @State private var showShare = false
+    
+                                                            @State private var showPaywallPreview = false
     
     var body: some View {
         GeometryReader { geo in
@@ -77,8 +78,78 @@ struct ProfilePlaceholderScreen: View {
             let topPadding = min(screenHeight * 0.025, 18)
 
             VStack(spacing: 0) {
+                
+                HStack {
+                    Circle()
+                        .fill(Color.clear)
+                        .frame(width: topButtonSize, height: topButtonSize)
+
+                    Spacer()
+
+                    Text("LiveNow")
+                        .font(.system(size: logoSize, weight: .semibold))
+                        .foregroundColor(.black)
+
+                    Spacer()
+
+                    Circle()
+                        .fill(Color.clear)
+                        .frame(width: topButtonSize, height: topButtonSize)
+                }
+                .padding(.top, topPadding)
+                
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 6) {
+
+                    Text(
+                        authVM.displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        ? "Hey, friend"
+                        : "Hey, \(authVM.displayName)"
+                    )
+                    .font(.system(size: nameSize, weight: .bold))
+                    .foregroundColor(.black)
+
+                    Text(dailyCalmMessage)
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                        .lineLimit(2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, horizontalPadding)
+                .padding(.top, topPadding)
+
+                    VStack(spacing: 18) {
+                        progressCard
+                        Spacer()
+                        menuCard
+                    }
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.top, 22)
+                    .padding(.bottom, 24)
+                }
+                BottomTabBar(vm: vm, orange: orange)
+                    .sheet(isPresented: $showSettings) {
+                        SettingsScreen(authVM: authVM, orange: orange)
+                    }
+                                                            .sheet(isPresented: $showPaywallPreview) {
+                                                                PaywallScreen(
+                                                                    orange: orange,
+                                                                    lightOrange: Color(red: 1.0, green: 0.66, blue: 0.32),
+                                                                    onSubscribe: { plan in
+                                                                        print("Preview selected plan:", plan)
+                                                                    },
+                                                                    onRestore: {},
+                                                                    onClose: {
+                                                                        showPaywallPreview = false
+                                                                    }
+                                                                )
+                                                            }
+            }
+            
+            
+            /*(VStack(spacing: 0) {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 18) {
 
                         HStack {
                             Circle()
@@ -90,8 +161,6 @@ struct ProfilePlaceholderScreen: View {
                             Text("LiveNow")
                                 .font(.system(size: logoSize, weight: .semibold))
                                 .foregroundColor(.black)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
 
                             Spacer()
 
@@ -99,9 +168,8 @@ struct ProfilePlaceholderScreen: View {
                                 .fill(Color.clear)
                                 .frame(width: topButtonSize, height: topButtonSize)
                         }
-                        .padding(.horizontal, horizontalPadding)
                         .padding(.top, topPadding)
-                        
+
                         VStack(alignment: .leading, spacing: 8) {
                             Text(authVM.displayName.isEmpty ? "LiveNow" : authVM.displayName)
                                 .font(.system(size: nameSize, weight: .bold))
@@ -110,12 +178,13 @@ struct ProfilePlaceholderScreen: View {
                             Text(dailyCalmMessage)
                                 .font(.system(size: 16))
                                 .foregroundColor(.gray)
-                                .lineSpacing(4)
                                 .lineLimit(2)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                         progressCard
+                        
+                        Spacer()
 
                         menuCard
                     }
@@ -127,7 +196,7 @@ struct ProfilePlaceholderScreen: View {
                     .sheet(isPresented: $showSettings) {
                         SettingsScreen(authVM: authVM, orange: orange)
                     }
-            }
+            }*/
         }
     }
 
@@ -137,26 +206,14 @@ struct ProfilePlaceholderScreen: View {
             let isSmall = cardWidth < 350
             let circleColumnWidth: CGFloat = isSmall ? 105 : 120
             let cardPadding: CGFloat = isSmall ? 14 : 18
-            let statHeight: CGFloat = isSmall ? 128 : 148
+            let statHeight: CGFloat = isSmall ? 118 : 132
 
-            VStack(spacing: isSmall ? 14 : 18) {
-                HStack {
-                    Text("Your progress")
-                        .font(.system(size: isSmall ? 18 : 20, weight: .bold))
-                        .foregroundColor(.black)
-
-                    Spacer()
-
-                    HStack(spacing: 5) {
-                        Text("View all")
-                            .font(.system(size: isSmall ? 14 : 16, weight: .medium))
-                            .foregroundColor(orange)
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: isSmall ? 15 : 18, weight: .semibold))
-                            .foregroundColor(.gray)
-                    }
-                }
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Your progress")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.black)
+                
+                Spacer()
 
                 HStack(spacing: 0) {
                     progressCircle(cardWidth: cardWidth)
@@ -166,30 +223,24 @@ struct ProfilePlaceholderScreen: View {
 
                     statItem(
                         icon: "arrow.clockwise",
-                        value: "\(vm.last7DaysEntries.count)",
-                        title: "resets",
-                        subtitle: "this week",
-                        cardWidth: cardWidth
+                        value: "\(vm.thisMonthDidntHappenCount)",
+                        title: "worries released"
                     )
 
                     Divider().padding(.vertical, 8)
 
                     statItem(
                         icon: "leaf",
-                        value: "\(vm.activeDaysCount)",
-                        title: "active days",
-                        subtitle: "this week",
-                        cardWidth: cardWidth
+                        value: "\(vm.thisMonthActiveDaysCount)",
+                        title: "active days"
                     )
 
                     Divider().padding(.vertical, 8)
 
                     statItem(
                         icon: "star",
-                        value: "\(vm.entries.count)",
-                        title: "moments",
-                        subtitle: "saved",
-                        cardWidth: cardWidth
+                        value: "\(vm.thisMonthEntries.count)",
+                        title: "moments"
                     )
                 }
                 .frame(height: statHeight)
@@ -198,7 +249,7 @@ struct ProfilePlaceholderScreen: View {
             .background(Color.white.opacity(0.78))
             .cornerRadius(24)
         }
-        .frame(height: 220)
+        .frame(height: 205)
     }
 
     private func progressCircle(cardWidth: CGFloat) -> some View {
@@ -214,13 +265,19 @@ struct ProfilePlaceholderScreen: View {
                     .frame(width: circleSize, height: circleSize)
 
                 Circle()
-                    .trim(from: 0, to: CGFloat(vm.last7DaysDidNotHappenPercent) / 100)
-                    .stroke(orange, style: StrokeStyle(lineWidth: isSmall ? 7 : 8, lineCap: .round))
+                    .trim(from: 0, to: CGFloat(vm.thisMonthDidNotHappenPercent) / 100)
+                    .stroke(
+                        orange,
+                        style: StrokeStyle(
+                            lineWidth: isSmall ? 7 : 8,
+                            lineCap: .round
+                        )
+                    )
                     .frame(width: circleSize, height: circleSize)
                     .rotationEffect(.degrees(-90))
 
                 HStack(alignment: .firstTextBaseline, spacing: 1) {
-                    Text("\(vm.last7DaysDidNotHappenPercent)")
+                    Text("\(vm.thisMonthDidNotHappenPercent)")
                         .font(.system(size: percentSize, weight: .bold))
                         .foregroundColor(.black)
 
@@ -231,24 +288,22 @@ struct ProfilePlaceholderScreen: View {
             }
 
             VStack(spacing: 1) {
-                Text("less")
-                Text("overthinking")
+                Text("thoughts")
+                Text("didn't come true")
             }
             .font(.system(size: 12, weight: .medium))
             .foregroundColor(.black)
             .multilineTextAlignment(.center)
-            .lineLimit(1)
 
-            Text("this week")
-                .font(.system(size: isSmall ? 12 : 14))
+            Text("this month")
+                .font(.system(size: 12))
                 .foregroundColor(.gray)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                .frame(height: 18)
         }
         .frame(maxWidth: .infinity)
     }
 
-    private func statItem(icon: String, value: String, title: String, subtitle: String, cardWidth: CGFloat) -> some View {
+    private func statItem(icon: String, value: String, title: String) -> some View {
         VStack(spacing: 0) {
             Image(systemName: icon)
                 .font(.system(size: 25, weight: .regular))
@@ -264,6 +319,9 @@ struct ProfilePlaceholderScreen: View {
                 if title == "active days" {
                     Text("active")
                     Text("days")
+                } else if title == "worries released" {
+                    Text("worries")
+                    Text("released")
                 } else {
                     Text(title)
                     Text(" ")
@@ -274,39 +332,47 @@ struct ProfilePlaceholderScreen: View {
             .foregroundColor(.black)
             .multilineTextAlignment(.center)
             .frame(height: 34)
-
-            Text(subtitle)
-                .font(.system(size: 12))
-                .foregroundColor(.gray)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(height: 18)
         }
         .frame(maxWidth: .infinity)
+        
+        
     }
-    
+
     private var menuCard: some View {
         VStack(spacing: 0) {
             Button {
                 showSettings = true
             } label: {
-                menuRow(icon: "gearshape", title: "Settings", subtitle: "Manage your account and app", orangeIcon: true)
+                menuRow(icon: "gearshape", title: "Settings", subtitle: "Manage your account and app")
             }
             .buttonStyle(.plain)
 
+                                                        Divider().padding(.leading, 74)
+
+                                                        Button {
+                                                            showPaywallPreview = true
+                                                        } label: {
+                                                            menuRow(
+                                                                icon: "creditcard",
+                                                                title: "Preview Paywall",
+                                                                subtitle: "View the subscription screen"
+                                                            )
+                                                        }
+                                                        .buttonStyle(.plain)
+            
             Divider().padding(.leading, 74)
 
             Button {
                 requestReview()
             } label: {
-                menuRow(icon: "star", title: "Rate LiveNow", subtitle: "If LiveNow helps you, leave a review", orangeIcon: true)
+                menuRow(icon: "star", title: "Rate LiveNow", subtitle: "If LiveNow helps you, leave a review")
             }
             .buttonStyle(.plain)
 
             Divider().padding(.leading, 74)
 
             ShareLink(item: "Check out LiveNow") {
-                menuRow(icon: "square.and.arrow.up", title: "Share LiveNow", subtitle: "Help others live more in the now", orangeIcon: true)
+                menuRow(icon: "square.and.arrow.up", title: "Share LiveNow", subtitle: "Help others live more in the now")
             }
             .buttonStyle(.plain)
         }
@@ -314,16 +380,16 @@ struct ProfilePlaceholderScreen: View {
         .cornerRadius(22)
     }
 
-    private func menuRow(icon: String, title: String, subtitle: String, orangeIcon: Bool = false) -> some View {
+    private func menuRow(icon: String, title: String, subtitle: String) -> some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.system(size: 24))
-                .foregroundColor(orangeIcon ? orange : .gray)
+                .foregroundColor(orange)
                 .frame(width: 42)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.black)
 
                 Text(subtitle)
@@ -340,11 +406,10 @@ struct ProfilePlaceholderScreen: View {
         .padding(.vertical, 18)
         .contentShape(Rectangle())
     }
-  
+
     private func requestReview() {
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             AppStore.requestReview(in: scene)
         }
     }
-    
 }

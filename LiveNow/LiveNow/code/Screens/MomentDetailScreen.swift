@@ -129,7 +129,7 @@ struct MomentDetailScreen: View {
 
     private var outcomeCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("did this actually happen?")
+            Text("did this actualy come true?")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.black)
 
