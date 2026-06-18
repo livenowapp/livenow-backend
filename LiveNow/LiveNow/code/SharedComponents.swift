@@ -101,7 +101,7 @@ struct TopProgressRow: View {
     var body: some View {
         HStack(spacing: 14) {
             Button(action: onBack) {
-                Image(systemName: "arrow.left")
+                Image(systemName: "chevron.left")
                     .font(.system(size: iconSize, weight: .regular))
                     .foregroundColor(.black.opacity(0.7))
                     .frame(width: 32, height: 32)

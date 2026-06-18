@@ -61,6 +61,10 @@ struct MomentsScreen: View {
         .sheet(isPresented: $vm.showSelectedDateEntries) {
             SelectedDateEntriesSheet(vm: vm, orange: orange)
         }
+        .onAppear {
+            vm.selectedDate = Date()
+            displayedMonth = Date()
+        }
     }
 }
 
@@ -162,14 +166,20 @@ struct CalendarMiniCard: View {
                     Spacer()
 
                     if !selectedEntries.isEmpty {
-                        Button(action: {
-                            vm.showSelectedDateEntries = true
-                        }) {
-                            Text(selectedEntries.count > 3 ? "View more" : "\(selectedEntries.count) moments")
+                        if selectedEntries.count > 3 {
+                            Button(action: {
+                                vm.showSelectedDateEntries = true
+                            }) {
+                                Text("View more")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(orange)
+                            }
+                            .buttonStyle(.plain)
+                        } else {
+                            Text("\(selectedEntries.count) moments")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(selectedEntries.count > 3 ? orange : .gray)
+                                .foregroundColor(.gray)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
 
@@ -373,16 +383,34 @@ struct SelectedDateEntriesSheet: View {
                 Color(red: 0.97, green: 0.96, blue: 0.94)
                     .ignoresSafeArea()
             )
-            .navigationTitle(formattedSelectedDate())
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+            .navigationBarHidden(true)
+            .safeAreaInset(edge: .top) {
+                ZStack {
+
+                    Text(formattedSelectedDate())
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.black)
+
+                    HStack {
+                        Button(action: {
+                            dismiss()
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 20, weight: .regular))
+                                .foregroundColor(.black.opacity(0.75))
+                                .frame(width: 44, height: 44)
+                        }
+                        .buttonStyle(.plain)
+
+                        Spacer()
                     }
-                    .foregroundColor(orange)
                 }
+                .padding(.horizontal, 22)
+                .padding(.top, 18)
+                .padding(.bottom, 14)
+                .background(Color(red: 0.97, green: 0.96, blue: 0.94))
             }
+
             .navigationDestination(for: ThoughtEntry.self) { entry in
                 MomentDetailScreen(
                     vm: vm,
@@ -413,20 +441,20 @@ struct SelectedDateEntriesSheet: View {
     }
 
     private func shortTag(_ entry: ThoughtEntry) -> String {
-        switch entry.didHappen {
+        switch entry.worthIt {
         case .no:
-            return "Didn’t happen"
+            return "Not worth it"
         case .maybe:
             return "Maybe"
         case .yes:
-            return "Happened"
+            return "Worth it"
         default:
-            return "Pending"
+            return "Waiting for outcome"
         }
     }
 
     private func outcomeColor(_ entry: ThoughtEntry) -> Color {
-        switch entry.didHappen {
+        switch entry.worthIt {
         case .no:
             return .green
         case .maybe:
@@ -536,20 +564,20 @@ struct DaySectionView: View {
     }
 
     private func shortTag(_ entry: ThoughtEntry) -> String {
-        switch entry.didHappen {
+        switch entry.worthIt {
         case .no:
-            return "Didn’t happen"
+            return "Not worth it"
         case .maybe:
             return "Maybe"
         case .yes:
-            return "Happened"
+            return "Wrorth it"
         default:
             return "Pending"
         }
     }
 
     private func outcomeColor(_ entry: ThoughtEntry) -> Color {
-        switch entry.didHappen {
+        switch entry.worthIt {
         case .no:
             return .green
         case .maybe:

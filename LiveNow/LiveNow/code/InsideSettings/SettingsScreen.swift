@@ -74,8 +74,8 @@ struct SettingsScreen: View {
     private func header(horizontalPadding: CGFloat, topPadding: CGFloat) -> some View {
         HStack {
             Button(action: { dismiss() }) {
-                Image(systemName: "arrow.left")
-                    .font(.system(size: 24, weight: .regular))
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 20, weight: .regular))
                     .foregroundColor(.black.opacity(0.75))
                     .frame(width: 44, height: 44)
             }
@@ -266,8 +266,9 @@ struct SettingsScreen: View {
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(.gray.opacity(0.9))
+                .font(.system(size: 20, weight: .regular))
+                .foregroundColor(.gray)
+                .frame(width: 44, height: 44)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 20)

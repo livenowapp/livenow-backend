@@ -110,6 +110,14 @@ struct ContentView: View {
                 }
             )
             
+        case .thinking:
+            ThinkingScreen(
+                orange: orange,
+                onBack: {
+                    vm.goBack()
+                }
+            )
+            
         case .analyze:
             AnalyzeScreen(
                 vm: vm,

@@ -72,7 +72,7 @@ struct ChangePasswordScreen: View {
             Button(action: {
                 dismiss()
             }) {
-                Image(systemName: "arrow.left")
+                Image(systemName: "chevron.left")
                     .font(.system(size: 24))
                     .foregroundColor(.black.opacity(0.75))
                     .frame(width: 44, height: 44)

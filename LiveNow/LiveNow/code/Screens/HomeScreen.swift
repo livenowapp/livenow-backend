@@ -15,6 +15,8 @@ struct HomeScreen: View {
     let lightOrange: Color
     var onStart: () -> Void
 
+    @State private var isBreathing = false
+    
     @ScaledMetric private var logoSize: CGFloat = 24
     @ScaledMetric private var heroSize: CGFloat = 43
     @ScaledMetric private var subtitleSize: CGFloat = 16
@@ -25,8 +27,8 @@ struct HomeScreen: View {
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
 
-            let horizontalPadding = min(screenWidth * 0.06, 24)
-            let topPadding = min(screenHeight * 0.025, 18)
+            let horizontalPadding = min(geo.size.width * 0.06, 24)
+            let topPadding = min(geo.size.height * 0.025, 18)
 
             let resetSize = min(screenWidth * 0.50, screenHeight * 0.23, 210)
 
@@ -36,25 +38,16 @@ struct HomeScreen: View {
 
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
-                    HStack {
-                        Circle()
-                            .fill(Color.clear)
-                            .frame(width: topButtonSize, height: topButtonSize)
-
-                        Spacer()
-
+                
+                    ZStack {
                         Text("LiveNow")
                             .font(.system(size: logoSize, weight: .semibold))
                             .foregroundColor(.black)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
-
-                        Spacer()
-
-                        Circle()
-                            .fill(Color.clear)
-                            .frame(width: topButtonSize, height: topButtonSize)
                     }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: topButtonSize)
                     .padding(.horizontal, horizontalPadding)
                     .padding(.top, topPadding)
 
@@ -67,7 +60,7 @@ struct HomeScreen: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
 
-                        Text("your head.")
+                        Text("your head")
                             .font(.system(size: heroSize, weight: .bold))
                             .foregroundColor(orange)
                             .lineLimit(1)
@@ -89,8 +82,14 @@ struct HomeScreen: View {
 
                     Spacer().frame(height: spacingAfterSubtitle)
 
-                    Button(action: onStart) {
+                     Button(action: onStart) {
                         ZStack {
+                            Circle()
+                                .fill(orange.opacity(0.16))
+                                .frame(width: resetSize * 1.14, height: resetSize * 1.14)
+                                .scaleEffect(isBreathing ? 1.08 : 0.92)
+                                .opacity(isBreathing ? 0.15 : 0.35)
+
                             Circle()
                                 .fill(
                                     LinearGradient(
@@ -100,7 +99,8 @@ struct HomeScreen: View {
                                     )
                                 )
                                 .frame(width: resetSize, height: resetSize)
-                                .shadow(color: orange.opacity(0.28), radius: 18, x: 0, y: 9)
+                                .shadow(color: orange.opacity(isBreathing ? 0.38 : 0.22), radius: isBreathing ? 26 : 16, x: 0, y: 9)
+                                .scaleEffect(isBreathing ? 1.055 : 0.975)
 
                             VStack(spacing: resetSize * 0.035) {
                                 Text("RESET")
@@ -116,9 +116,19 @@ struct HomeScreen: View {
                                     .minimumScaleFactor(0.8)
                             }
                             .offset(y: -resetSize * 0.01)
+                            .scaleEffect(isBreathing ? 1.01 : 0.99)
                         }
                     }
                     .buttonStyle(.plain)
+                    .onAppear {
+                        withAnimation(
+                            .easeInOut(duration: 1.35)
+                            .repeatForever(autoreverses: true)
+                        ) {
+                            isBreathing = true
+                        }
+                    }
+                    
 
                     Spacer().frame(height: spacingAfterReset)
 
@@ -130,13 +140,13 @@ struct HomeScreen: View {
                             .minimumScaleFactor(0.8)
 
                         HStack(spacing: 6) {
-                            Text("\(vm.last7DaysDidNotHappenPercent)%")
+                            Text("\(vm.last7DaysNotWorthItPercent)%")
                                 .font(.system(size: min(screenWidth * 0.075, 28), weight: .bold))
                                 .foregroundColor(orange)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.75)
 
-                            Text("of your thoughts didn’t happen")
+                            Text("of your thoughts weren´t worth overhinking")
                                 .font(.system(size: min(screenWidth * 0.04, 15)))
                                 .foregroundColor(.gray)
                                 .lineLimit(1)
@@ -145,22 +155,22 @@ struct HomeScreen: View {
 
                         VStack(spacing: min(screenHeight * 0.009, 8)) {
                             OutcomeRow(
-                                label: "didn't come true",
-                                value: vm.last7DaysDidntHappenCount,
+                                label: "Not worth it",
+                                value: vm.last7DaysNotWorthItCount,
                                 color: Color.green,
                                 dotSize: min(screenWidth * 0.018, 7)
                             )
 
                             OutcomeRow(
-                                label: "maybe",
+                                label: "Maybe",
                                 value: vm.last7DaysMaybeCount,
                                 color: Color.orange,
                                 dotSize: min(screenWidth * 0.018, 7)
                             )
 
                             OutcomeRow(
-                                label: "come true",
-                                value: vm.last7DaysHappenedCount,
+                                label: "Worth it",
+                                value: vm.last7DaysWorthItCount,
                                 color: Color.red,
                                 dotSize: min(screenWidth * 0.018, 7)
                             )

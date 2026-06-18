@@ -39,14 +39,19 @@ final class PurchaseManager: ObservableObject {
         var hasPremium = false
 
         for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result,
-               [weeklyProductID, yearlyProductID].contains(transaction.productID),
-               transaction.revocationDate == nil {
-                hasPremium = true
+            if case .verified(let transaction) = result {
+                print("FOUND ENTITLEMENT:", transaction.productID)
+
+                if [weeklyProductID, yearlyProductID].contains(transaction.productID),
+                   transaction.revocationDate == nil {
+                    hasPremium = true
+                }
             }
         }
 
         isPremium = hasPremium
+        print("CHECK PREMIUM RESULT:", isPremium)
+
         isLoading = false
     }
 
@@ -106,13 +111,21 @@ final class PurchaseManager: ObservableObject {
     }
 
     func restore() async {
+        print("RESTORE TAPPED")
+
         isLoading = true
         errorMessage = nil
 
         do {
             try await AppStore.sync()
+            print("APPSTORE SYNC DONE")
+
             await checkPremiumStatus()
+
+            print("AFTER RESTORE isPremium:", isPremium)
+
         } catch {
+            print("RESTORE ERROR:", error.localizedDescription)
             errorMessage = error.localizedDescription
         }
 

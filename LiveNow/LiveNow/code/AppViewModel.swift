@@ -28,6 +28,9 @@ final class AppViewModel: ObservableObject {
     @Published var showAllTodayEntries = false
     @Published var selectedDate = Date()
     @Published var showSelectedDateEntries = false
+    
+    private var lastAnalyzedThought: String = ""
+    private var lastAIResponse: AIResponse? = nil
 
     private let db = Firestore.firestore()
     
@@ -48,7 +51,8 @@ final class AppViewModel: ObservableObject {
     func goNext() {
         switch step {
         case .home: step = .input
-        case .input: step = .analyze
+        case .input: step = .thinking
+        case .thinking: step = .analyze
         case .analyze: step = .reframe
         case .reframe: step = .action
         case .action: completeReset()
@@ -60,6 +64,7 @@ final class AppViewModel: ObservableObject {
         switch step {
         case .home: break
         case .input: step = .home
+        case .thinking: step = .input
         case .analyze: step = .input
         case .reframe: step = .analyze
         case .action: step = .reframe
@@ -81,18 +86,32 @@ final class AppViewModel: ObservableObject {
 
     @MainActor
     func analyze() async {
-        guard !thought.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let cleanedThought = thought.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !cleanedThought.isEmpty else { return }
+
+        // Če je user že analiziral isti tekst, ne kličemo API-ja ponovno
+        if cleanedThought == lastAnalyzedThought, let cachedResponse = lastAIResponse {
+            aiResponse = cachedResponse
+            step = .analyze
+            return
+        }
 
         isLoading = true
         errorMessage = nil
+        step = .thinking
 
         do {
-            /*
-            let response = try await AIService.shared.analyzeThought(thought: thought)
-            aiResponse = response
-            step = .analyze
-            */
+            
+            /*let response = try await AIService.shared.analyzeThought(thought: cleanedThought)
 
+            aiResponse = response
+            lastAnalyzedThought = cleanedThought
+            lastAIResponse = response
+
+            step = .analyze
+             */
+            
             let response = AIResponse(
                 analysis: [
                     AIAnalysisItem(label: "possible overthinking", sub: "Your mind may be assuming the worst too quickly."),
@@ -112,20 +131,21 @@ final class AppViewModel: ObservableObject {
                     AIActionItem(icon: "action_nophone", label: "go for a short walk"),
                     AIActionItem(icon: "action_book", label: "write down the thought"),
                     AIActionItem(icon: "action_sleep", label: "rest for a moment"),
-                    AIActionItem(icon: "action_walk", label: "take a short walk"),
+                   /* AIActionItem(icon: "action_walk", label: "take a short walk"),
                     AIActionItem(icon: "action_sunlight", label: "step into sunlight"),
                     AIActionItem(icon: "action_music", label: "listen to calming music"),
                     AIActionItem(icon: "action_handraised", label: "pause and breathe"),
                     AIActionItem(icon: "action_chat", label: "talk to someone"),
                     AIActionItem(icon: "action_pencil", label: "write it down"),
                     AIActionItem(icon: "action_breath", label: "slow your breathing"),
-                    AIActionItem(icon: "action_meditation", label: "sit quietly")
+                    AIActionItem(icon: "action_meditation", label: "sit quietly")*/
                 ],
                 insight: "You often assume the worst before having evidence."
             )
 
             aiResponse = response
             step = .analyze
+            
         } catch {
             print("ANALYZE ERROR:", error)
             errorMessage = "error: \(error.localizedDescription)"
@@ -150,7 +170,7 @@ final class AppViewModel: ObservableObject {
             selectedActionLabel: action?.label,
             selectedActionIcon: action?.icon,
             selectedReframe: reframe,
-            didHappen: nil
+            worthIt: nil
         )
 
         entries.insert(entry, at: 0)
@@ -158,9 +178,9 @@ final class AppViewModel: ObservableObject {
         step = .complete
     }
 
-    func updateOutcome(for entryID: UUID, outcome: EntryOutcome) {
+    func updateOutcome(for entryID: UUID, outcome: EntryOutcome?) {
         guard let index = entries.firstIndex(where: { $0.id == entryID }) else { return }
-        entries[index].didHappen = outcome
+        entries[index].worthIt = outcome
         saveEntry(entries[index])
     }
 
@@ -195,31 +215,31 @@ final class AppViewModel: ObservableObject {
     // MARK: - General Stats
 
     var unresolvedEntries: [ThoughtEntry] {
-        entries.filter { $0.didHappen == nil }
+        entries.filter { $0.worthIt == nil }
     }
 
     var resolvedEntries: [ThoughtEntry] {
-        entries.filter { $0.didHappen != nil }
+        entries.filter { $0.worthIt != nil }
     }
 
-    var didntHappenCount: Int {
-        entries.filter { $0.didHappen == .no }.count
+    var notWorthItCount: Int {
+        entries.filter { $0.worthIt == .no }.count
     }
 
     var maybeCount: Int {
-        entries.filter { $0.didHappen == .maybe }.count
+        entries.filter { $0.worthIt == .maybe }.count
     }
 
-    var happenedCount: Int {
-        entries.filter { $0.didHappen == .yes }.count
+    var worthItCount: Int {
+        entries.filter { $0.worthIt == .yes }.count
     }
 
     var totalResolvedCount: Int {
-        entries.filter { $0.didHappen != nil }.count
+        entries.filter { $0.worthIt != nil }.count
     }
 
-    var didNotHappenPercent: Int {
-        percent(part: didntHappenCount, total: totalResolvedCount)
+    var notWorthItPercent: Int {
+        percent(part: notWorthItCount, total: totalResolvedCount)
     }
 
     // MARK: - Week Stats
@@ -240,24 +260,24 @@ final class AppViewModel: ObservableObject {
         thisWeekEntries.count
     }
 
-    var thisWeekDidntHappenCount: Int {
-        thisWeekEntries.filter { $0.didHappen == .no }.count
+    var thisWeekNotWorthItCount: Int {
+        thisWeekEntries.filter { $0.worthIt == .no }.count
     }
 
     var thisWeekMaybeCount: Int {
-        thisWeekEntries.filter { $0.didHappen == .maybe }.count
+        thisWeekEntries.filter { $0.worthIt == .maybe }.count
     }
 
-    var thisWeekHappenedCount: Int {
-        thisWeekEntries.filter { $0.didHappen == .yes }.count
+    var thisWeekWorthItCount: Int {
+        thisWeekEntries.filter { $0.worthIt == .yes }.count
     }
 
     var thisWeekResolvedCount: Int {
-        thisWeekEntries.filter { $0.didHappen != nil }.count
+        thisWeekEntries.filter { $0.worthIt != nil }.count
     }
 
-    var thisWeekDidNotHappenPercent: Int {
-        percent(part: thisWeekDidntHappenCount, total: thisWeekResolvedCount)
+    var thisWeekNotWorthItPercent: Int {
+        percent(part: thisWeekNotWorthItCount, total: thisWeekResolvedCount)
     }
 
     // MARK: - Month Stats
@@ -278,24 +298,24 @@ final class AppViewModel: ObservableObject {
         thisMonthEntries.count
     }
 
-    var thisMonthDidntHappenCount: Int {
-        thisMonthEntries.filter { $0.didHappen == .no }.count
+    var thisMonthNotWorthItCount: Int {
+        thisMonthEntries.filter { $0.worthIt == .no }.count
     }
 
     var thisMonthMaybeCount: Int {
-        thisMonthEntries.filter { $0.didHappen == .maybe }.count
+        thisMonthEntries.filter { $0.worthIt == .maybe }.count
     }
 
-    var thisMonthHappenedCount: Int {
-        thisMonthEntries.filter { $0.didHappen == .yes }.count
+    var thisMonthWorthItCount: Int {
+        thisMonthEntries.filter { $0.worthIt == .yes }.count
     }
 
     var thisMonthResolvedCount: Int {
-        thisMonthEntries.filter { $0.didHappen != nil }.count
+        thisMonthEntries.filter { $0.worthIt != nil }.count
     }
 
-    var thisMonthDidNotHappenPercent: Int {
-        percent(part: thisMonthDidntHappenCount, total: thisMonthResolvedCount)
+    var thisMonthNotWorthItPercent: Int {
+        percent(part: thisMonthNotWorthItCount, total: thisMonthResolvedCount)
     }
 
     var thisMonthActiveDaysCount: Int {
@@ -312,11 +332,11 @@ final class AppViewModel: ObservableObject {
 
     // MARK: - Compatibility aliases
 
-    var last7DaysDidntHappenCount: Int { thisWeekDidntHappenCount }
+    var last7DaysNotWorthItCount: Int { thisWeekNotWorthItCount }
     var last7DaysMaybeCount: Int { thisWeekMaybeCount }
-    var last7DaysHappenedCount: Int { thisWeekHappenedCount }
+    var last7DaysWorthItCount: Int { thisWeekWorthItCount }
     var last7DaysResolvedCount: Int { thisWeekResolvedCount }
-    var last7DaysDidNotHappenPercent: Int { thisWeekDidNotHappenPercent }
+    var last7DaysNotWorthItPercent: Int { thisWeekNotWorthItPercent }
 
     // MARK: - Streak / Most Used
 
@@ -428,7 +448,7 @@ final class AppViewModel: ObservableObject {
             .order(by: "date", descending: true)
             .getDocuments { snapshot, error in
                 if let error {
-                    print("Firestore load error:", error.localizedDescription)
+                    print("Firestore load error:", error)
                     return
                 }
 
@@ -467,7 +487,11 @@ final class AppViewModel: ObservableObject {
     }
 
     func reloadEntriesForCurrentUser() {
-        entries = []
+        guard Auth.auth().currentUser != nil else {
+            entries = []
+            return
+        }
+
         loadEntries()
     }
     
@@ -499,27 +523,27 @@ final class AppViewModel: ObservableObject {
         lastMonthEntries.count
     }
 
-    var lastMonthDidntHappenCount: Int {
-        lastMonthEntries.filter { $0.didHappen == .no }.count
+    var lastMonthNotWorthItCount: Int {
+        lastMonthEntries.filter { $0.worthIt == .no }.count
     }
 
     var lastMonthMaybeCount: Int {
-        lastMonthEntries.filter { $0.didHappen == .maybe }.count
+        lastMonthEntries.filter { $0.worthIt == .maybe }.count
     }
 
-    var lastMonthHappenedCount: Int {
-        lastMonthEntries.filter { $0.didHappen == .yes }.count
+    var lastMonthWorthItCount: Int {
+        lastMonthEntries.filter { $0.worthIt == .yes }.count
     }
 
     var lastMonthResolvedCount: Int {
-        lastMonthEntries.filter { $0.didHappen != nil }.count
+        lastMonthEntries.filter { $0.worthIt != nil }.count
     }
 
-    var lastMonthDidNotHappenPercent: Int {
+    var lastMonthNotWorthItPercent: Int {
         guard lastMonthResolvedCount > 0 else { return 0 }
 
         return Int(
-            (Double(lastMonthDidntHappenCount) / Double(lastMonthResolvedCount) * 100)
+            (Double(lastMonthNotWorthItCount) / Double(lastMonthResolvedCount) * 100)
                 .rounded()
         )
     }

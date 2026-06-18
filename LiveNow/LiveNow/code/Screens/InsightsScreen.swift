@@ -19,76 +19,49 @@ struct InsightsScreen: View {
     @ScaledMetric private var iconSize: CGFloat = 58
 
     private var currentPercent: Int {
-        showingLastMonth
-            ? vm.lastMonthDidNotHappenPercent
-            : vm.thisMonthDidNotHappenPercent
+        showingLastMonth ? vm.lastMonthNotWorthItPercent : vm.thisMonthNotWorthItPercent
     }
 
-    private var currentDidntHappen: Int {
-        showingLastMonth
-            ? vm.lastMonthDidntHappenCount
-            : vm.thisMonthDidntHappenCount
+    private var currentNotWorthIt: Int {
+        showingLastMonth ? vm.lastMonthNotWorthItCount : vm.thisMonthNotWorthItCount
     }
 
     private var currentMaybe: Int {
-        showingLastMonth
-            ? vm.lastMonthMaybeCount
-            : vm.thisMonthMaybeCount
+        showingLastMonth ? vm.lastMonthMaybeCount : vm.thisMonthMaybeCount
     }
 
-    private var currentHappened: Int {
-        showingLastMonth
-            ? vm.lastMonthHappenedCount
-            : vm.thisMonthHappenedCount
+    private var currentWorthIt: Int {
+        showingLastMonth ? vm.lastMonthWorthItCount : vm.thisMonthWorthItCount
     }
 
     private var currentMoments: Int {
-        showingLastMonth
-            ? vm.lastMonthResetCount
-            : vm.thisMonthResetCount
+        showingLastMonth ? vm.lastMonthResetCount : vm.thisMonthResetCount
     }
 
     private var currentActiveDays: Int {
-        showingLastMonth
-            ? vm.lastMonthActiveDaysCount
-            : vm.thisMonthActiveDaysCount
-    }
-
-    private var currentMonthLabel: String {
-        showingLastMonth ? "last month" : "this month"
-    }
-
-    private var dynamicInsight: String {
-        if currentPercent > 70 {
-            return "Most of your worries don’t come true."
-        } else if currentPercent > 50 {
-            return "You’re starting to see patterns in your thinking."
-        } else {
-            return "Keep going — patterns will become clearer."
-        }
+        showingLastMonth ? vm.lastMonthActiveDaysCount : vm.thisMonthActiveDaysCount
     }
 
     var body: some View {
         GeometryReader { geo in
             let horizontalPadding = min(geo.size.width * 0.055, 24)
             let topPadding = min(geo.size.height * 0.025, 22)
-         
+
             VStack(spacing: 0) {
                 ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Insights")
-                        .font(.system(size: titleSize, weight: .bold))
-                        .foregroundColor(.black)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Insights")
+                            .font(.system(size: titleSize, weight: .bold))
+                            .foregroundColor(.black)
 
-                    Text("Your patterns. Your progress.")
-                        .font(.system(size: 15))
-                        .foregroundColor(.gray)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, horizontalPadding)
-                .padding(.top, topPadding)
+                        Text("Your patterns. Your progress.")
+                            .font(.system(size: 15))
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.top, topPadding)
 
-                
                     VStack(spacing: 18) {
                         progressCard
                         mostUsedResetCard
@@ -105,7 +78,7 @@ struct InsightsScreen: View {
 
     private var progressCard: some View {
         VStack(alignment: .leading, spacing: 22) {
-            
+
             HStack {
                 Text("Your progress")
                     .font(.system(size: 24, weight: .bold))
@@ -120,9 +93,7 @@ struct InsightsScreen: View {
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
-
                         Text(showingLastMonth ? "Last month" : "This month")
-
                         Image(systemName: "chevron.right")
                     }
                     .font(.system(size: 14, weight: .semibold))
@@ -130,8 +101,6 @@ struct InsightsScreen: View {
                 }
                 .buttonStyle(.plain)
             }
-                .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.black)
 
             HStack(spacing: 0) {
                 progressCircle
@@ -142,28 +111,28 @@ struct InsightsScreen: View {
 
                 VStack(spacing: 0) {
                     outcomeRow(
-                        label: "didn't come true",
-                        value: currentDidntHappen,
+                        label: "Not\nworth it",
+                        value: currentNotWorthIt,
                         color: .green,
                         showDivider: true
                     )
 
                     outcomeRow(
-                        label: "maybe",
+                        label: "Maybe",
                         value: currentMaybe,
                         color: .orange,
                         showDivider: true
                     )
 
                     outcomeRow(
-                        label: "come true",
-                        value: currentHappened,
+                        label: "Worth it",
+                        value: currentWorthIt,
                         color: .red,
                         showDivider: false
                     )
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.leading, 12)
+                .padding(.leading, 8)
             }
             .frame(minHeight: 210)
 
@@ -172,30 +141,27 @@ struct InsightsScreen: View {
             HStack(spacing: 0) {
                 bottomStat(
                     icon: "arrow.clockwise",
-                    value: "\(currentDidntHappen)",
-                    title: "worries released",
-                    subtitle: currentMonthLabel
-                )
-
-                Divider().padding(.vertical, 10)
-
-                bottomStat(
-                    icon: "leaf",
-                    value: "\(currentActiveDays)",
-                    title: "active days",
-                    subtitle: currentMonthLabel
+                    value: "\(currentNotWorthIt)",
+                    title: "worries released"
                 )
 
                 Divider().padding(.vertical, 10)
 
                 bottomStat(
                     icon: "star",
+                    value: "\(currentActiveDays)",
+                    title: "active days"
+                )
+
+                Divider().padding(.vertical, 10)
+
+                bottomStat(
+                    icon: "sparkles",
                     value: "\(currentMoments)",
-                    title: "moments",
-                    subtitle: currentMonthLabel
+                    title: "moments"
                 )
             }
-            .frame(height: 140)
+            .frame(height: 118)
         }
         .padding(22)
         .background(Color.white.opacity(0.78))
@@ -207,7 +173,7 @@ struct InsightsScreen: View {
             ZStack {
                 Circle()
                     .stroke(orange.opacity(0.16), lineWidth: 9)
-                    .frame(width: 118, height: 118)
+                    .frame(width: 108, height: 108)
 
                 Circle()
                     .trim(from: 0, to: CGFloat(currentPercent) / 100)
@@ -218,30 +184,25 @@ struct InsightsScreen: View {
                             lineCap: .round
                         )
                     )
-                    .frame(width: 118, height: 118)
+                    .frame(width: 108, height: 108)
                     .rotationEffect(.degrees(-90))
 
                 HStack(alignment: .firstTextBaseline, spacing: 1) {
                     Text("\(currentPercent)")
-                        .font(.system(size: 34, weight: .bold))
+                        .font(.system(size: 32, weight: .bold))
 
                     Text("%")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 14, weight: .bold))
                 }
                 .foregroundColor(.black)
             }
 
             VStack(spacing: 2) {
-                Text("thoughts")
-                Text("didn't come true")
+                Text("of your thoughts weren't worth overthinking")
             }
             .font(.system(size: 14, weight: .semibold))
             .foregroundColor(.black)
             .multilineTextAlignment(.center)
-
-            Text(currentMonthLabel)
-                .font(.system(size: 13))
-                .foregroundColor(.gray)
         }
     }
 
@@ -257,24 +218,16 @@ struct InsightsScreen: View {
                     .fill(color)
                     .frame(width: 11, height: 11)
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(label)
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.black)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text(currentMonthLabel)
-                        .font(.system(size: 13))
-                        .foregroundColor(.gray)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
+                Text(label)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.black)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Spacer(minLength: 8)
 
                 Text("\(value)")
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.black)
             }
             .padding(.vertical, 14)
@@ -288,8 +241,7 @@ struct InsightsScreen: View {
     private func bottomStat(
         icon: String,
         value: String,
-        title: String,
-        subtitle: String
+        title: String
     ) -> some View {
         VStack(spacing: 0) {
             Image(systemName: icon)
@@ -319,13 +271,6 @@ struct InsightsScreen: View {
             .foregroundColor(.black)
             .multilineTextAlignment(.center)
             .frame(height: 34)
-
-            Text(subtitle)
-                .font(.system(size: 12))
-                .foregroundColor(.gray)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(height: 18)
         }
         .frame(maxWidth: .infinity)
     }
@@ -350,7 +295,6 @@ struct InsightsScreen: View {
                 Text(vm.mostUsedAction.label)
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.black)
-
             }
         }
         .padding(22)

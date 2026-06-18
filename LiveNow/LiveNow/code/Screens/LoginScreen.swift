@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AuthenticationServices
 
 // MARK: - LOGIN
 
@@ -149,7 +150,22 @@ struct LoginScreen: View {
                     }
                     .buttonStyle(.plain)
 
+                    SignInWithAppleButton(.signIn) { request in
+                        let nonce = authVM.randomNonceString()
+                        authVM.currentNonce = nonce
+
+                        request.requestedScopes = [.fullName, .email]
+                        request.nonce = authVM.sha256(nonce)
+
+                    } onCompletion: { result in
+                        authVM.handleAppleSignIn(result: result)
+                    }
+                    .signInWithAppleButtonStyle(.black)
+                    .frame(height: 52)
+                    .cornerRadius(14)
+                    
                     Spacer().frame(height: 40)
+                    
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, horizontalPadding)
@@ -229,6 +245,21 @@ struct SignupScreen: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(authVM.isLoading)
+                    
+                    SignInWithAppleButton(.signUp) { request in
+                        let nonce = authVM.randomNonceString()
+                        authVM.currentNonce = nonce
+
+                        request.requestedScopes = [.fullName, .email]
+                        request.nonce = authVM.sha256(nonce)
+
+                    } onCompletion: { result in
+                        authVM.handleAppleSignIn(result: result)
+                    }
+                    .signInWithAppleButtonStyle(.black)
+                    .frame(height: 52)
+                    .cornerRadius(14)
+                    .padding(.top, 8)
 
                     Button(action: {
                         authVM.showSignup = false

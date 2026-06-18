@@ -28,8 +28,8 @@ struct AccountInfoScreen: View {
                     Button(action: {
                         dismiss()
                     }) {
-                        Image(systemName: "arrow.left")
-                            .font(.system(size: 24))
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 20))
                             .foregroundColor(.black.opacity(0.75))
                             .frame(width: 44, height: 44)
                     }

@@ -12,6 +12,7 @@ import SwiftUI
 enum AppStep {
     case home
     case input
+    case thinking
     case analyze
     case reframe
     case action
@@ -56,7 +57,7 @@ struct ThoughtEntry: Identifiable, Codable, Hashable {
     var selectedActionLabel: String?
     var selectedActionIcon: String?
     var selectedReframe: String?
-    var didHappen: EntryOutcome?
+    var worthIt: EntryOutcome?
     var note: String?
 }
 

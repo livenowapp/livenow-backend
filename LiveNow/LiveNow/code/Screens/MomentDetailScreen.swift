@@ -17,16 +17,15 @@ struct MomentDetailScreen: View {
     var onClose: () -> Void
 
     @State private var noteText: String = ""
-    @State private var showDeleteConfirmation: Bool = false
+    @State private var showDeleteConfirmation = false
 
     private var currentEntry: ThoughtEntry {
         vm.entries.first(where: { $0.id == entry.id }) ?? entry
     }
 
-    @ScaledMetric private var iconCircleSize: CGFloat = 118
-    @ScaledMetric private var titleSize: CGFloat = 22
-    @ScaledMetric private var bodySize: CGFloat = 14
-    @ScaledMetric private var cardRadius: CGFloat = 18
+    @ScaledMetric private var titleSize: CGFloat = 30
+    @ScaledMetric private var bodySize: CGFloat = 15
+    @ScaledMetric private var cardRadius: CGFloat = 28
 
     var body: some View {
         ZStack {
@@ -36,61 +35,23 @@ struct MomentDetailScreen: View {
             GeometryReader { geo in
                 let horizontalPadding = min(geo.size.width * 0.055, 24)
                 let topPadding = min(geo.size.height * 0.025, 22)
-                let circleSize = min(iconCircleSize, geo.size.width * 0.32)
 
                 VStack(spacing: 0) {
-                    HStack {
-                        Button(action: onClose) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 20, weight: .medium))
-                                .foregroundColor(.black)
-                                .frame(width: 44, height: 44)
-                        }
-                        .buttonStyle(.plain)
-
-                        Spacer()
-                    }
-                    .padding(.horizontal, horizontalPadding)
-                    .padding(.top, topPadding)
+                    header(horizontalPadding: horizontalPadding, topPadding: topPadding)
 
                     ScrollView(showsIndicators: false) {
-                        VStack(spacing: 24) {
-                            actionHeaderIcon(circleSize: circleSize)
-
-                            VStack(spacing: 6) {
-                                Text(formattedDate(currentEntry.date))
-                                    .font(.system(size: bodySize))
-                                    .foregroundColor(.gray)
-
-                                Text(currentEntry.selectedActionLabel ?? "moment")
-                                    .font(.system(size: titleSize, weight: .semibold))
-                                    .foregroundColor(.black)
-                                    .multilineTextAlignment(.center)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            .frame(maxWidth: .infinity)
-
+                        VStack(spacing: 18) {
+                            heroCard
+                            thoughtCard
                             outcomeCard
-
-                            detailCard(
-                                title: "Your thought",
-                                text: currentEntry.thought
-                            )
-
                             analysisCard
-
-                            detailCard(
-                                title: "Chosen reframe",
-                                text: currentEntry.selectedReframe ?? "No reframe saved"
-                            )
-
+                            reframeCard
                             noteCard
-
                             deleteButton
                         }
                         .padding(.horizontal, horizontalPadding)
-                        .padding(.top, 22)
-                        .padding(.bottom, 28)
+                        .padding(.top, 18)
+                        .padding(.bottom, 30)
                     }
                 }
             }
@@ -113,85 +74,147 @@ struct MomentDetailScreen: View {
         }
     }
 
-    private func actionHeaderIcon(circleSize: CGFloat) -> some View {
-        ZStack {
-            Circle()
-                .fill(ActionStyle.color(currentEntry.selectedActionIcon))
-                .frame(width: circleSize, height: circleSize)
-                .shadow(color: Color.black.opacity(0.06), radius: 14, x: 0, y: 8)
+    private func header(horizontalPadding: CGFloat, topPadding: CGFloat) -> some View {
+        HStack {
+            Button(action: onClose) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 20, weight: .regular))
+                    .foregroundColor(.black.opacity(0.75))
+                    .frame(width: 44, height: 44)
+            }
+            .buttonStyle(.plain)
 
-            MomentIconImage(
-                icon: ActionStyle.iconName(currentEntry.selectedActionIcon),
-                size: circleSize * 0.82
-            )
+            Spacer()
         }
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, topPadding)
+    }
+
+    private var heroCard: some View {
+        VStack(spacing: 18) {
+            ZStack {
+                Circle()
+                    .fill(ActionStyle.color(currentEntry.selectedActionIcon))
+                    .frame(width: 116, height: 116)
+                    .shadow(
+                        color: ActionStyle.color(currentEntry.selectedActionIcon).opacity(0.25),
+                        radius: 18,
+                        x: 0,
+                        y: 10
+                    )
+
+                MomentIconImage(
+                    icon: ActionStyle.iconName(currentEntry.selectedActionIcon),
+                    size: 92
+                )
+            }
+
+            VStack(spacing: 6) {
+                Text(formattedDate(currentEntry.date))
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+
+                Text(currentEntry.selectedActionLabel ?? "moment")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+                    .frame(maxWidth: 285)
+
+                Text(statusText)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(statusColor)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(statusColor.opacity(0.12))
+                    .cornerRadius(14)
+                    .padding(.top, 4)
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity)
+        .background(Color.white.opacity(0.9))
+        .cornerRadius(32)
+        .shadow(color: Color.black.opacity(0.045), radius: 18, x: 0, y: 8)
     }
 
     private var outcomeCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("did this actualy come true?")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.black)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Was it worth overthinking?")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.black)
 
-            HStack(spacing: 12) {
-                OutcomeButton(title: "no", selected: currentEntry.didHappen == .no, color: .green) {
-                    vm.updateOutcome(for: entry.id, outcome: .no)
+                Spacer()
+            }
+
+            HStack(spacing: 10) {
+                OutcomeButton(title: "no", selected: currentEntry.worthIt == .no, color: .green) {
+
+                    if currentEntry.worthIt == .no {
+                        vm.updateOutcome(for: entry.id, outcome: nil)
+                    } else {
+                        vm.updateOutcome(for: entry.id, outcome: .no)
+                    }
                 }
 
-                OutcomeButton(title: "maybe", selected: currentEntry.didHappen == .maybe, color: .orange) {
-                    vm.updateOutcome(for: entry.id, outcome: .maybe)
+                OutcomeButton(title: "maybe", selected: currentEntry.worthIt == .maybe, color: .orange) {
+
+                    if currentEntry.worthIt == .maybe {
+                        vm.updateOutcome(for: entry.id, outcome: nil)
+                    } else {
+                        vm.updateOutcome(for: entry.id, outcome: .maybe)
+                    }
                 }
 
-                OutcomeButton(title: "yes", selected: currentEntry.didHappen == .yes, color: .red) {
-                    vm.updateOutcome(for: entry.id, outcome: .yes)
+                OutcomeButton(title: "yes", selected: currentEntry.worthIt == .yes, color: .red) {
+
+                    if currentEntry.worthIt == .yes {
+                        vm.updateOutcome(for: entry.id, outcome: nil)
+                    } else {
+                        vm.updateOutcome(for: entry.id, outcome: .yes)
+                    }
                 }
             }
-            .frame(maxWidth: .infinity)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.6))
+        .padding(20)
+        .background(Color.white.opacity(0.75))
         .cornerRadius(cardRadius)
     }
 
-    private func detailCard(title: String, text: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.black)
-
-            Text(text)
-                .font(.system(size: 17))
-                .foregroundColor(.gray)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.72))
-        .cornerRadius(22)
+    private var thoughtCard: some View {
+        premiumTextCard(
+            eyebrow: "your thought",
+            title: "What was on your mind",
+            text: currentEntry.thought,
+            icon: "quote.opening",
+            color: orange
+        )
     }
 
     private var analysisCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Analysis")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.black)
+        VStack(alignment: .leading, spacing: 14) {
+        
+                Text("What your mind was doing")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
 
             ForEach(Array(currentEntry.ai.analysis.prefix(3).enumerated()), id: \.offset) { index, item in
                 HStack(alignment: .top, spacing: 14) {
                     ZStack {
                         Circle()
-                            .fill(orange.opacity(0.14))
+                            .fill(orange.opacity(0.12))
                             .frame(width: 42, height: 42)
 
                         Image(systemName: analysisIcon(for: index))
-                            .font(.system(size: 18, weight: .medium))
+                            .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(orange)
                     }
 
                     VStack(alignment: .leading, spacing: 5) {
                         Text(item.label)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.black)
 
                         Text(item.sub)
@@ -202,46 +225,64 @@ struct MomentDetailScreen: View {
 
                     Spacer()
                 }
+
+                if index < min(currentEntry.ai.analysis.count, 3) - 1 {
+                    Divider().opacity(0.16)
+                }
             }
         }
         .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.72))
-        .cornerRadius(22)
+        .background(Color.white.opacity(0.78))
+        .cornerRadius(cardRadius)
+    }
+
+    private var reframeCard: some View {
+        premiumTextCard(
+            eyebrow: "chosen reframe",
+            title: "A more realistic thought",
+            text: currentEntry.selectedReframe ?? "No reframe saved",
+            icon: "lightbulb",
+            color: orange
+        )
     }
 
     private var noteCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Note")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.black)
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader(
+                eyebrow: "note",
+                title: "What did you learn?",
+                icon: "pencil",
+                color: orange
+            )
 
             ZStack(alignment: .topLeading) {
                 if noteText.isEmpty {
-                    Text("what did you learn from this?")
+                    Text("write a small note...")
+                        .font(.system(size: 15))
                         .foregroundColor(.gray)
-                        .autocorrectionDisabled()
-                        .padding(.top, 20)
+                        .padding(.top, 18)
                         .padding(.leading, 16)
+                        .allowsHitTesting(false)
                 }
 
                 TextEditor(text: $noteText)
+                    .font(.system(size: 15))
+                    .foregroundColor(.black.opacity(0.82))
                     .padding(12)
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
             }
-            .frame(minHeight: 110)
-            .background(Color.white)
-            .cornerRadius(14)
+            .frame(minHeight: 120)
+            .background(Color.white.opacity(0.82))
+            .cornerRadius(18)
             .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(Color.black.opacity(0.05), lineWidth: 1)
             )
         }
-        .padding(16)
-        .background(Color.white.opacity(0.9))
-        .cornerRadius(18)
-        .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
+        .padding(20)
+        .background(Color.white.opacity(0.78))
+        .cornerRadius(cardRadius)
     }
 
     private var deleteButton: some View {
@@ -252,11 +293,133 @@ struct MomentDetailScreen: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(.red)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(Color.white.opacity(0.8))
-                .cornerRadius(14)
+                .padding(.vertical, 15)
+                .background(Color.white.opacity(0.75))
+                .cornerRadius(18)
         }
         .buttonStyle(.plain)
+    }
+
+    private func premiumTextCard(
+        eyebrow: String,
+        title: String,
+        text: String,
+        icon: String,
+        color: Color
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader(
+                eyebrow: eyebrow,
+                title: title,
+                icon: icon,
+                color: color
+            )
+
+            Text(text)
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(.black.opacity(0.78))
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white.opacity(0.78))
+        .cornerRadius(cardRadius)
+    }
+
+    private func sectionHeader(
+        eyebrow: String,
+        title: String,
+        icon: String,
+        color: Color
+    ) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.12))
+                    .frame(width: 42, height: 42)
+
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(color)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(eyebrow)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.gray)
+
+                Text(title)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+            }
+
+            Spacer()
+        }
+    }
+
+    private func miniStat(icon: String, value: String, label: String) -> some View {
+        VStack(spacing: 7) {
+            Image(systemName: icon)
+                .font(.system(size: 21))
+                .foregroundColor(orange)
+
+            Text(value)
+                .font(.system(size: 17, weight: .bold))
+                .foregroundColor(.black)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+
+            Text(label)
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var verticalDivider: some View {
+        Rectangle()
+            .fill(Color.black.opacity(0.08))
+            .frame(width: 1, height: 62)
+    }
+
+    private var statusText: String {
+        switch currentEntry.worthIt {
+        case .no:
+            return "didn't come true"
+        case .maybe:
+            return "maybe"
+        case .yes:
+            return "came true"
+        case .none:
+            return "waiting for outcome"
+        }
+    }
+
+    private var statusColor: Color {
+        switch currentEntry.worthIt {
+        case .no:
+            return .green
+        case .maybe:
+            return .orange
+        case .yes:
+            return .red
+        case .none:
+            return orange
+        }
+    }
+
+    private var outcomeShortText: String {
+        switch currentEntry.worthIt {
+        case .no:
+            return "no"
+        case .maybe:
+            return "maybe"
+        case .yes:
+            return "yes"
+        case .none:
+            return "open"
+        }
     }
 
     private func formattedDate(_ date: Date) -> String {
@@ -278,5 +441,4 @@ struct MomentDetailScreen: View {
         }
     }
 }
-
 

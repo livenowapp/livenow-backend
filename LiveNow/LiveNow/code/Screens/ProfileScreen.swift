@@ -67,35 +67,24 @@ struct ProfilePlaceholderScreen: View {
 
     @State private var showSettings = false
     
-                                                            @State private var showPaywallPreview = false
-    
     var body: some View {
         GeometryReader { geo in
-            let screenWidth = geo.size.width
-            let screenHeight = geo.size.height
 
-            let horizontalPadding = min(screenWidth * 0.06, 24)
-            let topPadding = min(screenHeight * 0.025, 18)
+            let horizontalPadding = min(geo.size.width * 0.06, 24)
+            let topPadding = min(geo.size.height * 0.025, 18)
 
             VStack(spacing: 0) {
                 
-                HStack {
-                    Circle()
-                        .fill(Color.clear)
-                        .frame(width: topButtonSize, height: topButtonSize)
-
-                    Spacer()
-
+                ZStack {
                     Text("LiveNow")
                         .font(.system(size: logoSize, weight: .semibold))
                         .foregroundColor(.black)
-
-                    Spacer()
-
-                    Circle()
-                        .fill(Color.clear)
-                        .frame(width: topButtonSize, height: topButtonSize)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
+                .frame(maxWidth: .infinity)
+                .frame(height: topButtonSize)
+                .padding(.horizontal, horizontalPadding)
                 .padding(.top, topPadding)
                 
                 ScrollView(showsIndicators: false) {
@@ -131,19 +120,7 @@ struct ProfilePlaceholderScreen: View {
                     .sheet(isPresented: $showSettings) {
                         SettingsScreen(authVM: authVM, orange: orange)
                     }
-                                                            .sheet(isPresented: $showPaywallPreview) {
-                                                                PaywallScreen(
-                                                                    orange: orange,
-                                                                    lightOrange: Color(red: 1.0, green: 0.66, blue: 0.32),
-                                                                    onSubscribe: { plan in
-                                                                        print("Preview selected plan:", plan)
-                                                                    },
-                                                                    onRestore: {},
-                                                                    onClose: {
-                                                                        showPaywallPreview = false
-                                                                    }
-                                                                )
-                                                            }
+                                                            
             }
             
             
@@ -209,7 +186,7 @@ struct ProfilePlaceholderScreen: View {
             let statHeight: CGFloat = isSmall ? 118 : 132
 
             VStack(alignment: .leading, spacing: 12) {
-                Text("Your progress")
+                Text("This month progress")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.black)
                 
@@ -223,14 +200,14 @@ struct ProfilePlaceholderScreen: View {
 
                     statItem(
                         icon: "arrow.clockwise",
-                        value: "\(vm.thisMonthDidntHappenCount)",
+                        value: "\(vm.thisMonthNotWorthItCount)",
                         title: "worries released"
                     )
 
                     Divider().padding(.vertical, 8)
 
                     statItem(
-                        icon: "leaf",
+                        icon: "star",
                         value: "\(vm.thisMonthActiveDaysCount)",
                         title: "active days"
                     )
@@ -238,7 +215,7 @@ struct ProfilePlaceholderScreen: View {
                     Divider().padding(.vertical, 8)
 
                     statItem(
-                        icon: "star",
+                        icon: "sparkles",
                         value: "\(vm.thisMonthEntries.count)",
                         title: "moments"
                     )
@@ -265,7 +242,7 @@ struct ProfilePlaceholderScreen: View {
                     .frame(width: circleSize, height: circleSize)
 
                 Circle()
-                    .trim(from: 0, to: CGFloat(vm.thisMonthDidNotHappenPercent) / 100)
+                    .trim(from: 0, to: CGFloat(vm.thisMonthNotWorthItPercent) / 100)
                     .stroke(
                         orange,
                         style: StrokeStyle(
@@ -277,7 +254,7 @@ struct ProfilePlaceholderScreen: View {
                     .rotationEffect(.degrees(-90))
 
                 HStack(alignment: .firstTextBaseline, spacing: 1) {
-                    Text("\(vm.thisMonthDidNotHappenPercent)")
+                    Text("\(vm.thisMonthNotWorthItPercent)")
                         .font(.system(size: percentSize, weight: .bold))
                         .foregroundColor(.black)
 
@@ -288,17 +265,13 @@ struct ProfilePlaceholderScreen: View {
             }
 
             VStack(spacing: 1) {
-                Text("thoughts")
-                Text("didn't come true")
+                Text("of your thoughts")
+                Text("weren't worth")
+                Text("overthinking")
             }
-            .font(.system(size: 12, weight: .medium))
-            .foregroundColor(.black)
-            .multilineTextAlignment(.center)
-
-            Text("this month")
-                .font(.system(size: 12))
-                .foregroundColor(.gray)
-                .frame(height: 18)
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundColor(.black)
+        .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
     }
@@ -346,19 +319,6 @@ struct ProfilePlaceholderScreen: View {
                 menuRow(icon: "gearshape", title: "Settings", subtitle: "Manage your account and app")
             }
             .buttonStyle(.plain)
-
-                                                        Divider().padding(.leading, 74)
-
-                                                        Button {
-                                                            showPaywallPreview = true
-                                                        } label: {
-                                                            menuRow(
-                                                                icon: "creditcard",
-                                                                title: "Preview Paywall",
-                                                                subtitle: "View the subscription screen"
-                                                            )
-                                                        }
-                                                        .buttonStyle(.plain)
             
             Divider().padding(.leading, 74)
 
@@ -400,7 +360,9 @@ struct ProfilePlaceholderScreen: View {
             Spacer()
 
             Image(systemName: "chevron.right")
+                .font(.system(size: 20, weight: .regular))
                 .foregroundColor(.gray)
+                .frame(width: 44, height: 44)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 18)

@@ -9,6 +9,8 @@ import SwiftUI
 import Combine
 import FirebaseAuth
 import FirebaseFirestore
+import AuthenticationServices
+import CryptoKit
 
 final class AuthViewModel: ObservableObject {
     
@@ -16,6 +18,80 @@ final class AuthViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var isLoggedIn: Bool = Auth.auth().currentUser != nil
     @Published var showSignup: Bool = false
+    @Published var currentNonce: String?
+
+    func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+
+        let charset = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+
+        var result = ""
+        var remainingLength = length
+
+        while remainingLength > 0 {
+            var randoms = [UInt8](repeating: 0, count: 16)
+            let errorCode = SecRandomCopyBytes(kSecRandomDefault, randoms.count, &randoms)
+
+            if errorCode != errSecSuccess {
+                fatalError("Unable to generate nonce.")
+            }
+
+            randoms.forEach { random in
+                if remainingLength == 0 { return }
+
+                if random < charset.count {
+                    result.append(charset[Int(random)])
+                    remainingLength -= 1
+                }
+            }
+        }
+
+        return result
+    }
+
+    func sha256(_ input: String) -> String {
+        let inputData = Data(input.utf8)
+        let hashedData = SHA256.hash(data: inputData)
+
+        return hashedData.compactMap {
+            String(format: "%02x", $0)
+        }.joined()
+    }
+
+    func handleAppleSignIn(result: Result<ASAuthorization, Error>) {
+        switch result {
+        case .success(let authorization):
+            guard
+                let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                let nonce = currentNonce,
+                let appleIDToken = appleIDCredential.identityToken,
+                let idTokenString = String(data: appleIDToken, encoding: .utf8)
+            else {
+                errorMessage = "Apple Sign In failed."
+                return
+            }
+
+            let credential = OAuthProvider.appleCredential(
+                withIDToken: idTokenString,
+                rawNonce: nonce,
+                fullName: appleIDCredential.fullName
+            )
+
+            Auth.auth().signIn(with: credential) { result, error in
+                DispatchQueue.main.async {
+                    if let error {
+                        self.errorMessage = error.localizedDescription
+                        return
+                    }
+
+                    self.isLoggedIn = true
+                }
+            }
+
+        case .failure(let error):
+            errorMessage = error.localizedDescription
+        }
+    }
     
     var displayName: String {
         Auth.auth().currentUser?.displayName ?? ""
