@@ -17,6 +17,8 @@ struct ProfilePlaceholderScreen: View {
 
     private let orange = Color(red: 1.0, green: 0.43, blue: 0.10)
 
+    let isSmall = UIScreen.main.bounds.width < 380
+    
     private let calmMessages = [
         "Focus on what matters.",
         "Come back to the present.",
@@ -107,7 +109,7 @@ struct ProfilePlaceholderScreen: View {
                 .padding(.horizontal, horizontalPadding)
                 .padding(.top, topPadding)
 
-                    VStack(spacing: 18) {
+                    VStack(spacing: 12) {
                         progressCard
                         Spacer()
                         menuCard
@@ -160,8 +162,6 @@ struct ProfilePlaceholderScreen: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                         progressCard
-                        
-                        Spacer()
 
                         menuCard
                     }
@@ -178,105 +178,97 @@ struct ProfilePlaceholderScreen: View {
     }
 
     private var progressCard: some View {
-        GeometryReader { geo in
-            let cardWidth = geo.size.width
-            let isSmall = cardWidth < 350
-            let circleColumnWidth: CGFloat = isSmall ? 105 : 120
-            let cardPadding: CGFloat = isSmall ? 14 : 18
-            let statHeight: CGFloat = isSmall ? 118 : 132
-
-            VStack(alignment: .leading, spacing: 12) {
-                Text("This month progress")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.black)
+        
+        VStack(alignment: .leading, spacing: 10) {
+            Text("This month progress")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.black)
+            
+            Spacer()
+            
+            HStack(spacing: 1) {
+                progressCircle
+                    .frame(width: 120)
                 
-                Spacer()
-
-                HStack(spacing: 0) {
-                    progressCircle(cardWidth: cardWidth)
-                        .frame(width: circleColumnWidth)
-
-                    Divider().padding(.vertical, 8)
-
-                    statItem(
-                        icon: "arrow.clockwise",
-                        value: "\(vm.thisMonthNotWorthItCount)",
-                        title: "worries released"
-                    )
-
-                    Divider().padding(.vertical, 8)
-
-                    statItem(
-                        icon: "star",
-                        value: "\(vm.thisMonthActiveDaysCount)",
-                        title: "active days"
-                    )
-
-                    Divider().padding(.vertical, 8)
-
-                    statItem(
-                        icon: "sparkles",
-                        value: "\(vm.thisMonthEntries.count)",
-                        title: "moments"
-                    )
-                }
-                .frame(height: statHeight)
+                Divider()
+                    .padding(.vertical, 8)
+                
+                statItem(
+                    icon: "arrow.clockwise",
+                    value: "\(vm.thisMonthNotWorthItCount)",
+                    title: "worries released"
+                )
+                
+                Divider()
+                    .padding(.vertical, 8)
+                
+                statItem(
+                    icon: "star",
+                    value: "\(vm.thisMonthActiveDaysCount)",
+                    title: "active days"
+                )
+                
+                Divider()
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, isSmall ? 1 : 0)
+                
+                statItem(
+                    icon: "sparkles",
+                    value: "\(vm.thisMonthEntries.count)",
+                    title: "moments"
+                )
             }
-            .padding(cardPadding)
-            .background(Color.white.opacity(0.78))
-            .cornerRadius(24)
+            .frame(height: 130)
         }
+        .padding(22)
+        .background(Color.white.opacity(0.78))
+        .cornerRadius(24)
         .frame(height: 205)
     }
 
-    private func progressCircle(cardWidth: CGFloat) -> some View {
-        let isSmall = cardWidth < 350
-        let circleSize: CGFloat = isSmall ? 78 : 96
-        let percentSize: CGFloat = isSmall ? 25 : 31
-        let percentSymbolSize: CGFloat = isSmall ? 14 : 17
-
-        return VStack(spacing: isSmall ? 6 : 8) {
+    private var progressCircle: some View {
+        VStack(spacing: 10) {
             ZStack {
                 Circle()
-                    .stroke(orange.opacity(0.16), lineWidth: isSmall ? 7 : 8)
-                    .frame(width: circleSize, height: circleSize)
+                    .stroke(orange.opacity(0.16), lineWidth: 8)
+                    .frame(width: 96, height: 96)
 
                 Circle()
                     .trim(from: 0, to: CGFloat(vm.thisMonthNotWorthItPercent) / 100)
                     .stroke(
                         orange,
                         style: StrokeStyle(
-                            lineWidth: isSmall ? 7 : 8,
+                            lineWidth: 8,
                             lineCap: .round
                         )
                     )
-                    .frame(width: circleSize, height: circleSize)
+                    .frame(width: 96, height: 96)
                     .rotationEffect(.degrees(-90))
 
                 HStack(alignment: .firstTextBaseline, spacing: 1) {
                     Text("\(vm.thisMonthNotWorthItPercent)")
-                        .font(.system(size: percentSize, weight: .bold))
+                        .font(.system(size: 31, weight: .bold))
                         .foregroundColor(.black)
 
                     Text("%")
-                        .font(.system(size: percentSymbolSize, weight: .bold))
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundColor(.black)
                 }
             }
 
             VStack(spacing: 1) {
-                Text("of your thoughts")
-                Text("weren't worth")
+                Text("not worth")
                 Text("overthinking")
             }
-        .font(.system(size: 12, weight: .semibold))
-        .foregroundColor(.black)
-        .multilineTextAlignment(.center)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(.black)
+            .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
     }
 
     private func statItem(icon: String, value: String, title: String) -> some View {
+        
         VStack(spacing: 0) {
             Image(systemName: icon)
                 .font(.system(size: 25, weight: .regular))
@@ -284,7 +276,7 @@ struct ProfilePlaceholderScreen: View {
                 .frame(height: 30)
 
             Text(value)
-                .font(.system(size: 26, weight: .bold))
+                .font(.system(size: isSmall ? 22 : 26, weight: .bold))
                 .foregroundColor(.black)
                 .frame(height: 36)
 
@@ -301,14 +293,12 @@ struct ProfilePlaceholderScreen: View {
                         .hidden()
                 }
             }
-            .font(.system(size: 13, weight: .medium))
+            .font(.system(size: isSmall ? 11 : 13, weight: .medium))
             .foregroundColor(.black)
             .multilineTextAlignment(.center)
             .frame(height: 34)
         }
         .frame(maxWidth: .infinity)
-        
-        
     }
 
     private var menuCard: some View {

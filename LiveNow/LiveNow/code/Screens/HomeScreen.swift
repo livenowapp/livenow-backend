@@ -16,29 +16,55 @@ struct HomeScreen: View {
     var onStart: () -> Void
 
     @State private var isBreathing = false
-    
+
     @ScaledMetric private var logoSize: CGFloat = 24
     @ScaledMetric private var heroSize: CGFloat = 43
     @ScaledMetric private var subtitleSize: CGFloat = 16
     @ScaledMetric private var topButtonSize: CGFloat = 40
+    
+    
 
     var body: some View {
         GeometryReader { geo in
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
 
-            let horizontalPadding = min(geo.size.width * 0.06, 24)
-            let topPadding = min(geo.size.height * 0.025, 18)
+            let widthScale = min(max(screenWidth / 393, 0.88), 1.16)
+            let heightScale = min(max(screenHeight / 852, 0.88), 1.12)
+            let scale = min(widthScale, heightScale)
 
-            let resetSize = min(screenWidth * 0.50, screenHeight * 0.23, 210)
+            let horizontalPadding = min(screenWidth * 0.06, 24)
+            let topPadding = min(screenHeight * 0.025, 18)
 
-            let spacingAfterHeader = min(screenHeight * 0.035, 30)
-            let spacingAfterSubtitle = min(screenHeight * 0.04, 34)
-            let spacingAfterReset = min(screenHeight * 0.035, 28)
+            let adjustedHeroSize = heroSize * scale
+            let adjustedSubtitleSize = subtitleSize * min(max(scale, 0.92), 1.08)
+
+            let resetSize = min(
+                screenWidth * 0.48,
+                screenHeight * 0.22,
+                210 * scale
+            )
+
+            let spacingAfterHeader = min(max(screenHeight * 0.018, 10), 18)
+            let spacingAfterSubtitle = min(max(screenHeight * 0.032, 20), 36)
+            let spacingAfterReset = min(max(screenHeight * 0.026, 16), 30)
+
+            let last7CircleSize = min(max(screenWidth * 0.26, 86), 126)
+            let last7LineWidth = min(max(screenWidth * 0.019, 7), 9)
+            let last7PercentSize = min(max(screenWidth * 0.082, 30), 40)
+            let last7PercentSymbolSize = min(max(screenWidth * 0.036, 12), 16)
+            let last7TextSize = min(max(screenWidth * 0.036, 13), 16)
+            let last7RowValueSize = min(max(screenWidth * 0.055, 20), 25)
+            let last7RowLabelSize = min(max(screenWidth * 0.038, 14), 17)
+            let last7CardPadding = min(max(screenWidth * 0.041, 15), 20)
+            let last7RowVerticalPadding = min(max(screenHeight * 0.009, 7), 9)
+            let last7DotSize = min(max(screenWidth * 0.024, 8), 10)
+            
+            let isGuestAfterFirstReset = vm.isGuestUser && vm.hasCompletedGuestReset
 
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
-                
+
                     ZStack {
                         Text("LiveNow")
                             .font(.system(size: logoSize, weight: .semibold))
@@ -54,14 +80,14 @@ struct HomeScreen: View {
                     Spacer().frame(height: spacingAfterHeader)
 
                     VStack(spacing: 0) {
-                        Text("get out of")
-                            .font(.system(size: heroSize, weight: .bold))
+                        Text(isGuestAfterFirstReset ? "your first reset" : "get out of")
+                            .font(.system(size: adjustedHeroSize, weight: .bold))
                             .foregroundColor(.black)
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
 
-                        Text("your head")
-                            .font(.system(size: heroSize, weight: .bold))
+                        Text(isGuestAfterFirstReset ? "is complete." : "your head.")
+                            .font(.system(size: adjustedHeroSize, weight: .bold))
                             .foregroundColor(orange)
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
@@ -74,7 +100,7 @@ struct HomeScreen: View {
                         Text("you don’t need to figure")
                         Text("everything out right now.")
                     }
-                    .font(.system(size: subtitleSize))
+                    .font(.system(size: adjustedSubtitleSize))
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
                     .lineLimit(1)
@@ -82,7 +108,7 @@ struct HomeScreen: View {
 
                     Spacer().frame(height: spacingAfterSubtitle)
 
-                     Button(action: onStart) {
+                    Button(action: onStart) {
                         ZStack {
                             Circle()
                                 .fill(orange.opacity(0.16))
@@ -99,7 +125,12 @@ struct HomeScreen: View {
                                     )
                                 )
                                 .frame(width: resetSize, height: resetSize)
-                                .shadow(color: orange.opacity(isBreathing ? 0.38 : 0.22), radius: isBreathing ? 26 : 16, x: 0, y: 9)
+                                .shadow(
+                                    color: orange.opacity(isBreathing ? 0.38 : 0.22),
+                                    radius: isBreathing ? 26 : 16,
+                                    x: 0,
+                                    y: 9
+                                )
                                 .scaleEffect(isBreathing ? 1.055 : 0.975)
 
                             VStack(spacing: resetSize * 0.035) {
@@ -128,59 +159,95 @@ struct HomeScreen: View {
                             isBreathing = true
                         }
                     }
-                    
 
                     Spacer().frame(height: spacingAfterReset)
 
-                    VStack(spacing: min(screenHeight * 0.014, 12)) {
+                    VStack(alignment: .leading, spacing: min(max(screenHeight * 0.012, 9), 12)) {
                         Text("last 7 days")
-                            .font(.system(size: 12))
+                            .font(.system(size: 14))
                             .foregroundColor(.gray)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
 
-                        HStack(spacing: 6) {
-                            Text("\(vm.last7DaysNotWorthItPercent)%")
-                                .font(.system(size: min(screenWidth * 0.075, 28), weight: .bold))
-                                .foregroundColor(orange)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.75)
+                        HStack(spacing: 0) {
+                            VStack(spacing: min(max(screenHeight * 0.011, 8), 11)) {
+                                ZStack {
+                                    Circle()
+                                        .stroke(orange.opacity(0.16), lineWidth: last7LineWidth)
+                                        .frame(width: last7CircleSize, height: last7CircleSize)
 
-                            Text("of your thoughts weren´t worth overhinking")
-                                .font(.system(size: min(screenWidth * 0.04, 15)))
-                                .foregroundColor(.gray)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.65)
-                        }
+                                    Circle()
+                                        .trim(from: 0, to: CGFloat(vm.last7DaysNotWorthItPercent) / 100)
+                                        .stroke(
+                                            orange,
+                                            style: StrokeStyle(
+                                                lineWidth: last7LineWidth,
+                                                lineCap: .round
+                                            )
+                                        )
+                                        .frame(width: last7CircleSize, height: last7CircleSize)
+                                        .rotationEffect(.degrees(-90))
 
-                        VStack(spacing: min(screenHeight * 0.009, 8)) {
-                            OutcomeRow(
-                                label: "Not worth it",
-                                value: vm.last7DaysNotWorthItCount,
-                                color: Color.green,
-                                dotSize: min(screenWidth * 0.018, 7)
-                            )
+                                    HStack(alignment: .firstTextBaseline, spacing: 1) {
+                                        Text("\(vm.last7DaysNotWorthItPercent)")
+                                            .font(.system(size: last7PercentSize, weight: .bold))
 
-                            OutcomeRow(
-                                label: "Maybe",
-                                value: vm.last7DaysMaybeCount,
-                                color: Color.orange,
-                                dotSize: min(screenWidth * 0.018, 7)
-                            )
+                                        Text("%")
+                                            .font(.system(size: last7PercentSymbolSize, weight: .bold))
+                                    }
+                                    .foregroundColor(.black)
+                                }
 
-                            OutcomeRow(
-                                label: "Worth it",
-                                value: vm.last7DaysWorthItCount,
-                                color: Color.red,
-                                dotSize: min(screenWidth * 0.018, 7)
-                            )
+                                Text("not worth\noverthinking")
+                                    .font(.system(size: last7TextSize, weight: .semibold))
+                                    .foregroundColor(.black)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+
+                            Divider()
+                                .padding(.vertical, 6)
+
+                            VStack(spacing: 0) {
+                                homeOutcomeRow(
+                                    label: "Not\nworth it",
+                                    value: vm.last7DaysNotWorthItCount,
+                                    color: .green,
+                                    showDivider: true,
+                                    dotSize: last7DotSize,
+                                    labelSize: last7RowLabelSize,
+                                    valueSize: last7RowValueSize,
+                                    verticalPadding: last7RowVerticalPadding
+                                )
+
+                                homeOutcomeRow(
+                                    label: "Maybe",
+                                    value: vm.last7DaysMaybeCount,
+                                    color: .orange,
+                                    showDivider: true,
+                                    dotSize: last7DotSize,
+                                    labelSize: last7RowLabelSize,
+                                    valueSize: last7RowValueSize,
+                                    verticalPadding: last7RowVerticalPadding
+                                )
+
+                                homeOutcomeRow(
+                                    label: "Worth it",
+                                    value: vm.last7DaysWorthItCount,
+                                    color: .red,
+                                    showDivider: false,
+                                    dotSize: last7DotSize,
+                                    labelSize: last7RowLabelSize,
+                                    valueSize: last7RowValueSize,
+                                    verticalPadding: last7RowVerticalPadding
+                                )
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.leading, min(max(screenWidth * 0.026, 9), 16))
                         }
                     }
-                    .padding(.vertical, min(screenHeight * 0.018, 16))
-                    .padding(.horizontal, min(screenWidth * 0.045, 16))
+                    .padding(last7CardPadding)
                     .frame(maxWidth: .infinity)
-                    .background(Color.white.opacity(0.6))
-                    .cornerRadius(18)
+                    .background(Color.white.opacity(0.78))
+                    .cornerRadius(22)
                     .padding(.horizontal, horizontalPadding)
 
                     Spacer(minLength: min(screenHeight * 0.015, 12))
@@ -194,27 +261,39 @@ struct HomeScreen: View {
             }
         }
     }
-    struct OutcomeRow: View {
-        let label: String
-        let value: Int
-        let color: Color
-        let dotSize: CGFloat
 
-        var body: some View {
-            HStack(spacing: 10) {
+    private func homeOutcomeRow(
+        label: String,
+        value: Int,
+        color: Color,
+        showDivider: Bool,
+        dotSize: CGFloat,
+        labelSize: CGFloat,
+        valueSize: CGFloat,
+        verticalPadding: CGFloat
+    ) -> some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 12) {
                 Circle()
                     .fill(color)
                     .frame(width: dotSize, height: dotSize)
 
                 Text(label)
-                    .font(.system(size: 14))
-                    .foregroundColor(.black.opacity(0.8))
+                    .font(.system(size: labelSize, weight: .medium))
+                    .foregroundColor(.black)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                Spacer()
+                Spacer(minLength: 8)
 
                 Text("\(value)")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: valueSize, weight: .bold))
                     .foregroundColor(.black)
+            }
+            .padding(.vertical, verticalPadding)
+
+            if showDivider {
+                Divider()
             }
         }
     }

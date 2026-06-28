@@ -7,6 +7,14 @@
 
 import SwiftUI
 
+// MARK: - RESPONSIVE HELPERS
+
+private func screenScales(_ geo: GeometryProxy) -> (width: CGFloat, height: CGFloat, scale: CGFloat) {
+    let widthScale = min(max(geo.size.width / 393, 0.88), 1.16)
+    let heightScale = min(max(geo.size.height / 852, 0.88), 1.12)
+    return (widthScale, heightScale, min(widthScale, heightScale))
+}
+
 // MARK: - INPUT
 
 struct InputScreen: View {
@@ -27,14 +35,22 @@ struct InputScreen: View {
 
     var body: some View {
         GeometryReader { geo in
-            let horizontalPadding = min(geo.size.width * 0.06, 28)
-            let topPadding = min(max(geo.size.height * 0.028, 22), 26)
-            let editorHeight = min(max(geo.size.height * 0.18, 170), 220)
-            let buttonVerticalPadding = min(geo.size.height * 0.022, 17)
-            let bottomSpacing = min(geo.size.height * 0.025, 22)
+            let scales = screenScales(geo)
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
+
+            let horizontalPadding = min(screenWidth * 0.06, 28)
+            let topPadding = min(max(screenHeight * 0.025, 18), 24)
+            let titleTopSpacing = min(max(screenHeight * 0.04, 26), 42)
+            let editorHeight = min(max(screenHeight * 0.19, 150), 220)
+            let buttonVerticalPadding = min(max(screenHeight * 0.02, 13), 17)
+            let bottomSpacing = min(max(screenHeight * 0.018, 12), 22)
+
+            let editorFontSize = 18 * scales.scale
+            let exampleIconSize = 18 * scales.scale
+            let exampleTextSize = 15 * scales.scale
 
             VStack(alignment: .leading, spacing: 0) {
-
                 TopProgressRow(
                     stepText: "1 of 4",
                     progress: 0.25,
@@ -45,8 +61,7 @@ struct InputScreen: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-
-                        Spacer().frame(height: min(geo.size.height * 0.055, 48))
+                        Spacer().frame(height: titleTopSpacing)
 
                         FlowTitleHeader(
                             title: "what’s on\nyour mind?",
@@ -54,7 +69,7 @@ struct InputScreen: View {
                         )
                         .frame(maxWidth: .infinity, alignment: .center)
 
-                        Spacer().frame(height: min(max(geo.size.height * 0.02, 12), 24))
+                        Spacer().frame(height: min(max(screenHeight * 0.02, 12), 22))
 
                         ZStack(alignment: .topLeading) {
                             RoundedRectangle(cornerRadius: 16)
@@ -63,15 +78,15 @@ struct InputScreen: View {
                             TextEditor(text: $vm.thought)
                                 .scrollContentBackground(.hidden)
                                 .background(Color.clear)
-                                .padding(18)
-                                .font(.system(size: 18))
+                                .padding(min(max(screenWidth * 0.045, 14), 18))
+                                .font(.system(size: editorFontSize))
                                 .foregroundColor(.black.opacity(0.82))
 
                             if vm.thought.isEmpty {
                                 Text("type your thought...")
                                     .foregroundColor(.black.opacity(0.30))
                                     .autocorrectionDisabled()
-                                    .font(.system(size: 18))
+                                    .font(.system(size: editorFontSize))
                                     .padding(.top, 25)
                                     .padding(.leading, 24)
                                     .allowsHitTesting(false)
@@ -79,32 +94,32 @@ struct InputScreen: View {
                         }
                         .frame(height: editorHeight)
 
-                        Spacer().frame(height: 30)
+                        Spacer().frame(height: min(max(screenHeight * 0.025, 18), 30))
 
                         Text("examples")
-                            .font(.system(size: 15))
+                            .font(.system(size: 15 * scales.scale))
                             .foregroundColor(.gray)
 
-                        Spacer().frame(height: 12)
+                        Spacer().frame(height: min(max(screenHeight * 0.012, 8), 12))
 
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: min(max(screenHeight * 0.012, 8), 12)) {
                             ForEach(examples, id: \.self) { example in
                                 Button {
                                     vm.thought = example
                                 } label: {
                                     HStack(spacing: 14) {
                                         Image(systemName: "bubble.left")
-                                            .font(.system(size: 18))
+                                            .font(.system(size: exampleIconSize))
                                             .foregroundColor(.orange)
 
                                         Text(example)
-                                            .font(.system(size: 15))
+                                            .font(.system(size: exampleTextSize))
                                             .foregroundColor(.black.opacity(0.72))
 
                                         Spacer()
                                     }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 14)
+                                    .padding(.horizontal, min(max(screenWidth * 0.045, 16), 20))
+                                    .padding(.vertical, min(max(screenHeight * 0.014, 11), 14))
                                     .frame(maxWidth: .infinity)
                                     .background(Color.white.opacity(0.55))
                                     .cornerRadius(16)
@@ -125,17 +140,18 @@ struct InputScreen: View {
                     }
                 }
                 .frame(maxHeight: .infinity)
-                
-                HStack(spacing: 7){
+
+                HStack(spacing: 7) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 13))
                         .foregroundColor(.gray)
+
                     Text("AI-generated reflection. Not professional advice.")
                         .font(.system(size: 12))
                         .foregroundColor(.gray)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 10)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 10)
 
                 Button(action: onAnalyze) {
                     HStack(spacing: 12) {
@@ -156,7 +172,6 @@ struct InputScreen: View {
                     .padding(.vertical, buttonVerticalPadding)
                     .background(orange)
                     .cornerRadius(16)
-                    
                 }
                 .buttonStyle(.plain)
                 .disabled(vm.isLoading || vm.thought.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -191,12 +206,24 @@ struct ThinkingScreen: View {
 
     var body: some View {
         GeometryReader { geo in
-            let horizontalPadding = min(geo.size.width * 0.06, 28)
-            let topPadding = min(max(geo.size.height * 0.028, 22), 26)
+            let scales = screenScales(geo)
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
+
+            let horizontalPadding = min(screenWidth * 0.06, 28)
+            let topPadding = min(max(screenHeight * 0.025, 18), 24)
+
+            let outerCircleSize = min(max(screenWidth * 0.30, 104), 128)
+            let innerCircleSize = outerCircleSize * 0.74
+            let sparkleSize = min(max(screenWidth * 0.085, 30), 36)
+
+            let titleFont = titleSize * scales.scale
+            let bodyFont = bodySize * scales.scale
+            let stepFont = min(max(screenWidth * 0.038, 14), 16)
+            let stepPaddingY = min(max(screenHeight * 0.012, 9), 12)
 
             VStack(alignment: .leading, spacing: 0) {
-
-                HStack(spacing: 14) {
+                HStack {
                     Button(action: onBack) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 18, weight: .regular))
@@ -206,47 +233,45 @@ struct ThinkingScreen: View {
                     .buttonStyle(.plain)
 
                     Spacer()
-                    
                 }
                 .padding(.top, topPadding)
 
                 Spacer()
 
-                VStack(spacing: 26) {
+                VStack(spacing: min(max(screenHeight * 0.028, 22), 28)) {
                     ZStack {
                         Circle()
                             .fill(orange.opacity(0.10))
-                            .frame(width: 122, height: 122)
+                            .frame(width: outerCircleSize, height: outerCircleSize)
                             .scaleEffect(pulse ? 1.12 : 0.92)
                             .opacity(pulse ? 0.45 : 0.9)
 
                         Circle()
                             .fill(orange.opacity(0.16))
-                            .frame(width: 90, height: 90)
+                            .frame(width: innerCircleSize, height: innerCircleSize)
 
                         Image(systemName: "sparkles")
-                            .font(.system(size: 34, weight: .medium))
+                            .font(.system(size: sparkleSize, weight: .medium))
                             .foregroundColor(orange)
                     }
 
                     VStack(spacing: 6) {
-
                         Text("your thought")
-                            .font(.system(size: titleSize, weight: .bold))
+                            .font(.system(size: titleFont, weight: .bold))
                             .foregroundColor(.black)
 
                         Text("is being analyzed\(dots)")
-                            .font(.system(size: titleSize, weight: .bold))
+                            .font(.system(size: titleFont, weight: .bold))
                             .foregroundColor(orange)
 
                         Text("we’re turning it into something clearer")
-                            .font(.system(size: bodySize))
+                            .font(.system(size: bodyFont))
                             .foregroundColor(.gray)
                             .padding(.top, 4)
                     }
                     .multilineTextAlignment(.center)
 
-                    VStack(spacing: 12) {
+                    VStack(spacing: min(max(screenHeight * 0.012, 9), 12)) {
                         ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
                             HStack(spacing: 12) {
                                 ZStack {
@@ -270,13 +295,13 @@ struct ThinkingScreen: View {
                                 }
 
                                 Text(step)
-                                    .font(.system(size: 15, weight: index == activeIndex ? .semibold : .regular))
+                                    .font(.system(size: stepFont, weight: index == activeIndex ? .semibold : .regular))
                                     .foregroundColor(index <= activeIndex ? .black.opacity(0.82) : .gray)
 
                                 Spacer()
                             }
                             .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
+                            .padding(.vertical, stepPaddingY)
                             .background(Color.white.opacity(index == activeIndex ? 0.82 : 0.55))
                             .cornerRadius(16)
                         }
@@ -289,7 +314,7 @@ struct ThinkingScreen: View {
                     .font(.system(size: 12))
                     .foregroundColor(.gray)
                     .frame(maxWidth: .infinity)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, min(max(screenHeight * 0.02, 14), 20))
             }
             .padding(.horizontal, horizontalPadding)
             .onAppear {
@@ -299,7 +324,7 @@ struct ThinkingScreen: View {
             }
             .animation(
                 .easeInOut(duration: 1.25)
-                .repeatForever(autoreverses: true),
+                    .repeatForever(autoreverses: true),
                 value: pulse
             )
         }
@@ -339,18 +364,20 @@ struct AnalyzeScreen: View {
     var body: some View {
         GeometryReader { geo in
             let ai = vm.aiResponse
+            let scales = screenScales(geo)
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
 
-            let horizontalPadding = min(geo.size.width * 0.06, 28)
-            let topPadding = min(max(geo.size.height * 0.028, 22), 26)
-            let titleTopSpacing = min(geo.size.height * 0.045, 36)
-            let sectionSpacing = min(geo.size.height * 0.026, 22)
-            let cardSpacing = min(geo.size.height * 0.018, 16)
-            let cardPadding = min(geo.size.width * 0.055, 22)
-            let buttonVerticalPadding = min(geo.size.height * 0.022, 17)
-            let bottomSpacing = min(geo.size.height * 0.025, 20)
+            let horizontalPadding = min(screenWidth * 0.06, 28)
+            let topPadding = min(max(screenHeight * 0.025, 18), 24)
+            let titleTopSpacing = min(max(screenHeight * 0.038, 26), 36)
+            let sectionSpacing = min(max(screenHeight * 0.024, 16), 22)
+            let cardSpacing = min(max(screenHeight * 0.016, 12), 16)
+            let cardPadding = min(max(screenWidth * 0.052, 18), 22)
+            let buttonVerticalPadding = min(max(screenHeight * 0.02, 13), 17)
+            let bottomSpacing = min(max(screenHeight * 0.018, 12), 20)
 
             VStack(alignment: .leading, spacing: 0) {
-
                 TopProgressRow(
                     stepText: "2 of 4",
                     progress: 0.50,
@@ -360,43 +387,34 @@ struct AnalyzeScreen: View {
                 .padding(.top, topPadding)
 
                 ScrollView(showsIndicators: false) {
-
                     VStack(spacing: 0) {
-
-                        Spacer()
-                            .frame(height: titleTopSpacing)
+                        Spacer().frame(height: titleTopSpacing)
 
                         FlowTitleHeader(
                             title: "let’s analyze\nthis thought",
                             subtitle: "this helps you see clearly."
                         )
 
-                        Spacer()
-                            .frame(height: sectionSpacing)
+                        Spacer().frame(height: sectionSpacing)
 
                         VStack(alignment: .leading, spacing: 12) {
-
                             Text("your thought")
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.system(size: 13 * scales.scale, weight: .medium))
                                 .foregroundColor(.black.opacity(0.45))
 
                             Text(vm.thought)
-                                .font(.system(size: 22, weight: .semibold))
+                                .font(.system(size: min(max(screenWidth * 0.052, 20), 23), weight: .semibold))
                                 .foregroundColor(orange)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .padding(cardPadding)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            Color(red: 0.95, green: 0.89, blue: 0.84)
-                        )
+                        .background(Color(red: 0.95, green: 0.89, blue: 0.84))
                         .cornerRadius(22)
 
-                        Spacer()
-                            .frame(height: cardSpacing)
+                        Spacer().frame(height: cardSpacing)
 
                         VStack(spacing: cardSpacing) {
-
                             ForEach(Array((ai?.analysis ?? []).prefix(3).enumerated()), id: \.offset) { index, item in
                                 AnalysisCard(
                                     title: item.label,
@@ -407,28 +425,22 @@ struct AnalyzeScreen: View {
                             }
                         }
 
-                        Spacer()
-                            .frame(height: sectionSpacing)
+                        Spacer().frame(height: sectionSpacing)
 
                         VStack(alignment: .leading, spacing: 14) {
-
                             Text("evidence check")
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.system(size: 13 * scales.scale, weight: .medium))
                                 .foregroundColor(.black.opacity(0.55))
 
                             VStack(spacing: 0) {
-
                                 ForEach(Array((ai?.evidence ?? []).enumerated()), id: \.offset) { index, item in
-
                                     VStack(spacing: 0) {
-
                                         EvidenceRow(
                                             question: item.q,
                                             answer: item.a
                                         )
 
                                         if index < (ai?.evidence.count ?? 0) - 1 {
-
                                             Divider()
                                                 .opacity(0.12)
                                                 .padding(.horizontal, 18)
@@ -442,14 +454,12 @@ struct AnalyzeScreen: View {
                             .cornerRadius(22)
                         }
 
-                        Spacer()
-                            .frame(height: 28)
+                        Spacer().frame(height: 28)
                     }
                 }
                 .frame(maxHeight: .infinity)
 
                 Button(action: onContinue) {
-
                     Text("continue")
                         .font(.system(size: buttonSize, weight: .semibold))
                         .foregroundColor(.white)
@@ -460,26 +470,20 @@ struct AnalyzeScreen: View {
                 }
                 .buttonStyle(.plain)
 
-                Spacer()
-                    .frame(height: bottomSpacing)
+                Spacer().frame(height: bottomSpacing)
             }
             .padding(.horizontal, horizontalPadding)
         }
     }
 
     private func analysisIcon(for index: Int) -> String {
-
         switch index {
-
         case 0:
             return "magnifyingglass"
-
         case 1:
             return "brain.head.profile"
-
         case 2:
             return "heart"
-
         default:
             return "sparkles"
         }
@@ -494,22 +498,22 @@ struct ReframeScreen: View {
     var onBack: () -> Void
     var onContinue: () -> Void
 
-    @ScaledMetric private var titleSize: CGFloat = 29
-    @ScaledMetric private var bodySize: CGFloat = 14
     @ScaledMetric private var buttonSize: CGFloat = 18
 
     var body: some View {
         GeometryReader { geo in
             let ai = vm.aiResponse
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
 
-            let horizontalPadding = min(geo.size.width * 0.06, 28)
-            let topPadding = min(max(geo.size.height * 0.028, 22), 26)
-            let titleTopSpacing = min(geo.size.height * 0.045, 36)
-            let mediumSpacing = min(geo.size.height * 0.03, 24)
-            let optionSpacing = min(geo.size.height * 0.018, 14)
-            let cardPadding = min(geo.size.width * 0.05, 20)
-            let buttonVerticalPadding = min(geo.size.height * 0.022, 17)
-            let bottomSpacing = min(geo.size.height * 0.025, 20)
+            let horizontalPadding = min(screenWidth * 0.06, 28)
+            let topPadding = min(max(screenHeight * 0.025, 18), 24)
+            let titleTopSpacing = min(max(screenHeight * 0.038, 26), 36)
+            let mediumSpacing = min(max(screenHeight * 0.026, 18), 24)
+            let optionSpacing = min(max(screenHeight * 0.014, 10), 14)
+            let cardPadding = min(max(screenWidth * 0.048, 16), 20)
+            let buttonVerticalPadding = min(max(screenHeight * 0.02, 13), 17)
+            let bottomSpacing = min(max(screenHeight * 0.018, 12), 20)
 
             VStack(alignment: .leading, spacing: 0) {
                 TopProgressRow(
@@ -531,14 +535,6 @@ struct ReframeScreen: View {
 
                         Spacer().frame(height: mediumSpacing)
 
-                        /*
-                         Text("choose one that feels true:")
-                            .font(.system(size: bodySize))
-                            .foregroundColor(.gray)
-
-                        Spacer().frame(height: optionSpacing)
-                         */
-
                         VStack(spacing: optionSpacing) {
                             ForEach(Array((ai?.reframes ?? []).enumerated()), id: \.offset) { index, line in
                                 Button {
@@ -546,11 +542,11 @@ struct ReframeScreen: View {
                                 } label: {
                                     HStack(alignment: .center, spacing: 14) {
                                         Image(systemName: vm.selectedReframeIndex == index ? "checkmark.circle.fill" : "circle")
-                                            .font(.system(size: 24, weight: .regular))
+                                            .font(.system(size: min(max(screenWidth * 0.058, 22), 25), weight: .regular))
                                             .foregroundColor(vm.selectedReframeIndex == index ? orange : Color.gray.opacity(0.35))
 
                                         Text(line)
-                                            .font(.system(size: 17, weight: vm.selectedReframeIndex == index ? .semibold : .regular))
+                                            .font(.system(size: min(max(screenWidth * 0.041, 15.5), 18), weight: vm.selectedReframeIndex == index ? .semibold : .regular))
                                             .foregroundColor(.black.opacity(0.86))
                                             .multilineTextAlignment(.leading)
                                             .fixedSize(horizontal: false, vertical: true)
@@ -569,11 +565,11 @@ struct ReframeScreen: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                        
+
                         Spacer()
-                        
+
                         Text("Choose the response that feels most believable right now.")
-                            .font(.system(size: 13))
+                            .font(.system(size: min(max(screenWidth * 0.033, 12), 13.5)))
                             .foregroundColor(.gray)
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
@@ -608,23 +604,23 @@ struct ActionScreen: View {
     var onBack: () -> Void
     var onFinish: () -> Void
 
-    @ScaledMetric private var titleSize: CGFloat = 29
-    @ScaledMetric private var bodySize: CGFloat = 14
     @ScaledMetric private var buttonSize: CGFloat = 18
-    @ScaledMetric private var checkSize: CGFloat = 20
     @ScaledMetric private var iconSize: CGFloat = 60
 
     var body: some View {
         GeometryReader { geo in
             let actions = vm.aiResponse?.actions ?? []
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
 
-            let horizontalPadding = min(geo.size.width * 0.06, 28)
-            let topPadding = min(max(geo.size.height * 0.028, 22), 26)
-            let titleTopSpacing = min(geo.size.height * 0.045, 36)
-            let mediumSpacing = min(geo.size.height * 0.03, 24)
-            let itemSpacing = min(geo.size.height * 0.018, 12)
-            let buttonVerticalPadding = min(geo.size.height * 0.022, 17)
-            let bottomSpacing = min(geo.size.height * 0.025, 20)
+            let horizontalPadding = min(screenWidth * 0.06, 28)
+            let topPadding = min(max(screenHeight * 0.025, 18), 24)
+            let titleTopSpacing = min(max(screenHeight * 0.038, 26), 36)
+            let mediumSpacing = min(max(screenHeight * 0.026, 18), 24)
+            let itemSpacing = min(max(screenHeight * 0.012, 9), 12)
+            let buttonVerticalPadding = min(max(screenHeight * 0.02, 13), 17)
+            let bottomSpacing = min(max(screenHeight * 0.018, 12), 20)
+            let actionIconSize = min(max(screenWidth * 0.14, 52), 62)
 
             VStack(alignment: .leading, spacing: 0) {
                 TopProgressRow(
@@ -653,28 +649,29 @@ struct ActionScreen: View {
                                 } label: {
                                     HStack(spacing: 14) {
                                         Image(systemName: vm.selectedActionIndex == index ? "checkmark.circle.fill" : "circle")
-                                            .font(.system(size: 24, weight: .regular))
+                                            .font(.system(size: min(max(screenWidth * 0.058, 22), 25), weight: .regular))
                                             .foregroundColor(vm.selectedActionIndex == index ? orange : Color.gray.opacity(0.35))
 
                                         Circle()
                                             .fill(ActionStyle.color(item.icon))
-                                            .frame(width: iconSize, height: iconSize)
+                                            .frame(width: actionIconSize, height: actionIconSize)
                                             .overlay(
                                                 MomentIconImage(
                                                     icon: ActionStyle.iconName(item.icon),
-                                                    size: iconSize * 0.76
+                                                    size: actionIconSize * 0.76
                                                 )
                                             )
 
                                         Text(item.label)
-                                            .font(.system(size: 15))
+                                            .font(.system(size: min(max(screenWidth * 0.038, 14), 16)))
                                             .foregroundColor(.black.opacity(0.82))
                                             .multilineTextAlignment(.leading)
                                             .fixedSize(horizontal: false, vertical: true)
 
                                         Spacer()
-                                    }                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 14)
+                                    }
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, min(max(screenHeight * 0.014, 11), 14))
                                     .background(vm.selectedActionIndex == index ? Color.white.opacity(0.82) : Color.white.opacity(0.54))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12)
@@ -711,8 +708,6 @@ struct ActionScreen: View {
 
 // MARK: - COMPLETE
 
-// MARK: - COMPLETE
-
 struct CompleteScreen: View {
     @ObservedObject var vm: AppViewModel
     let orange: Color
@@ -722,12 +717,18 @@ struct CompleteScreen: View {
 
     @State private var animateComplete = false
     @State private var particles: [SparkleParticle] = []
+    @State private var burstParticles: [BurstParticle] = []
+    @State private var showBurst = false
 
     @ScaledMetric private var iconCircleSize: CGFloat = 142
     @ScaledMetric private var titleSize: CGFloat = 32
     @ScaledMetric private var buttonSize: CGFloat = 18
     @ScaledMetric private var logoSize: CGFloat = 24
     @ScaledMetric private var topButtonSize: CGFloat = 40
+    
+    private var isGuestFirstReset: Bool {
+        vm.isGuestUser && vm.hasCompletedGuestReset
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -735,12 +736,15 @@ struct CompleteScreen: View {
             ? vm.aiResponse?.actions[vm.selectedActionIndex]
             : nil
 
-            let horizontalPadding = min(geo.size.width * 0.06, 24)
-            let topPadding = min(geo.size.height * 0.025, 18)
-            let iconSize = min(iconCircleSize, geo.size.width * 0.38)
-            let sectionSpacing = min(geo.size.height * 0.025, 20)
-            let buttonVerticalPadding = min(geo.size.height * 0.022, 17)
-            let bottomSpacing = min(geo.size.height * 0.025, 20)
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
+
+            let horizontalPadding = min(screenWidth * 0.06, 24)
+            let topPadding = min(max(screenHeight * 0.025, 18), 18)
+            let iconSize = min(iconCircleSize, screenWidth * 0.38)
+            let sectionSpacing = min(max(screenHeight * 0.025, 18), 20)
+            let buttonVerticalPadding = min(screenHeight * 0.022, 17)
+            let bottomSpacing = screenHeight < 760 ? 8 : min(max(screenHeight * 0.018, 12), 22)
 
             VStack(spacing: 0) {
                 header(
@@ -763,8 +767,14 @@ struct CompleteScreen: View {
                 }
                 .frame(maxHeight: .infinity)
 
-                Button(action: onNewReset) {
-                    Text("new reset")
+                Button(action: {
+                    if isGuestFirstReset {
+                        onClose()
+                    } else {
+                        onNewReset()
+                    }
+                }) {
+                    Text(isGuestFirstReset ? "Continue" : "New Reset")
                         .font(.system(size: buttonSize, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -777,25 +787,33 @@ struct CompleteScreen: View {
 
                 Spacer().frame(height: 12)
                 
-                Button(action: {
-                    vm.step = .home
-                    vm.currentTab = .moments
-                }) {
-                    Text("view moments")
-                        .font(.system(size: 16))
-                        .foregroundColor(orange)
+                if !isGuestFirstReset {
+                    Button(action: {
+                        vm.step = .home
+                        vm.currentTab = .moments
+                    }) {
+                        Text("view moments")
+                            .font(.system(size: 16))
+                            .foregroundColor(orange)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 Spacer().frame(height: bottomSpacing)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear {
                 particles = SparkleParticle.makeParticles(iconSize: iconSize)
+                burstParticles = BurstParticle.makeParticles(iconSize: iconSize)
 
-                withAnimation(.spring(response: 0.38, dampingFraction: 0.58)) {
+                animateComplete = false
+                showBurst = false
+
+                withAnimation(.spring(response: 0.16, dampingFraction: 0.78)) {
                     animateComplete = true
                 }
+
+                showBurst = true
             }
         }
     }
@@ -807,25 +825,49 @@ struct CompleteScreen: View {
                 .foregroundColor(.black)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-
-            HStack {
-                Spacer()
-
-                Button("Done") {
-                    onClose()
-                }
-                .font(.system(size: 17, weight: .medium))
-                .foregroundColor(orange)
-            }
         }
         .frame(maxWidth: .infinity)
         .frame(height: topButtonSize)
         .padding(.horizontal, horizontalPadding)
         .padding(.top, topPadding)
+        
+        .overlay(alignment: .topTrailing) {
+            if !isGuestFirstReset {
+                Button("Done") {
+                    onClose()
+                }
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(orange)
+                .padding(.trailing, horizontalPadding)
+                .padding(.top, topPadding + 9)
+            }
+        }
     }
 
     private func completeAnimation(iconSize: CGFloat) -> some View {
         ZStack {
+            
+            ForEach(0..<3, id: \.self) { index in
+                Circle()
+                    .stroke(orange.opacity(showBurst ? 0 : 0.28), lineWidth: index == 0 ? 8 : 4)
+                    .frame(width: iconSize, height: iconSize)
+                    .scaleEffect(showBurst ? 1.85 + CGFloat(index) * 0.22 : 0.65)
+                    .opacity(showBurst ? 0 : 0.55)
+                    .animation(
+                        .easeOut(duration: 0.72)
+                        .delay(Double(index) * 0.06),
+                        value: showBurst
+                    )
+            }
+
+            ForEach(burstParticles) { particle in
+                CompleteBurstSparkle(
+                    particle: particle,
+                    orange: orange,
+                    trigger: showBurst
+                )
+            }
+            
             ForEach(particles) { particle in
                 CompleteSparkle(
                     particle: particle,
@@ -844,7 +886,7 @@ struct CompleteScreen: View {
                 )
                 .frame(width: iconSize, height: iconSize)
                 .shadow(color: orange.opacity(0.32), radius: 22, x: 0, y: 12)
-                .scaleEffect(animateComplete ? 1.0 : 0.72)
+                .scaleEffect(animateComplete ? 1.0 : 0.82)
 
             Image(systemName: "checkmark")
                 .font(.system(size: iconSize * 0.37, weight: .medium))
@@ -858,15 +900,23 @@ struct CompleteScreen: View {
 
     private var titleSection: some View {
         VStack(spacing: 10) {
-            Text("you’re back in control")
-                .font(.system(size: titleSize, weight: .bold))
-                .foregroundColor(.black)
-                .multilineTextAlignment(.center)
+            Text(
+                isGuestFirstReset
+                ? "your first reset is complete"
+                : "you’re back in control"
+            )
+            .font(.system(size: titleSize, weight: .bold))
+            .foregroundColor(.black)
+            .multilineTextAlignment(.center)
 
-            Text("keep going")
-                .font(.system(size: 18))
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
+            Text(
+                isGuestFirstReset
+                ? "one small reset can change your day"
+                : "keep going"
+            )
+            .font(.system(size: 16))
+            .foregroundColor(.gray)
+            .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
     }
@@ -1026,5 +1076,58 @@ struct FlowTitleHeader: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, alignment: .top)
+    }
+}
+
+struct BurstParticle: Identifiable {
+    let id = UUID()
+    let angle: Double
+    let distance: CGFloat
+    let size: CGFloat
+    let delay: Double
+    let rotation: Double
+
+    static func makeParticles(iconSize: CGFloat) -> [BurstParticle] {
+        (0..<24).map { _ in
+            BurstParticle(
+                angle: Double.random(in: 0...(Double.pi * 2)),
+                distance: CGFloat.random(in: iconSize * 0.95...iconSize * 1.85),
+                size: CGFloat.random(in: 9...24),
+                delay: Double.random(in: 0...0.16),
+                rotation: Double.random(in: -35...35)
+            )
+        }
+    }
+}
+
+struct CompleteBurstSparkle: View {
+    let particle: BurstParticle
+    let orange: Color
+    let trigger: Bool
+
+    @State private var explode = false
+
+    var body: some View {
+        Image(systemName: "sparkles")
+            .font(.system(size: particle.size, weight: .semibold))
+            .foregroundColor(Color(red: 1.0, green: 0.34, blue: 0.05))
+            .offset(
+                x: explode ? cos(particle.angle) * particle.distance : 0,
+                y: explode ? sin(particle.angle) * particle.distance : 0
+            )
+            .scaleEffect(explode ? 1.4 : 0.15)
+            .rotationEffect(.degrees(explode ? particle.rotation : 0))
+            .opacity(explode ? 0 : 1)
+            .onChange(of: trigger) { _, newValue in
+                guard newValue else { return }
+
+                explode = false
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + particle.delay) {
+                    withAnimation(.easeOut(duration: 0.75)) {
+                        explode = true
+                    }
+                }
+            }
     }
 }

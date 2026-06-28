@@ -21,10 +21,37 @@ struct MomentsScreen: View {
 
     var body: some View {
         GeometryReader { geo in
-            let horizontalPadding = min(geo.size.width * 0.055, 24)
-            let topPadding = min(geo.size.height * 0.025, 22)
+            
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
+
+            let widthScale = min(max(screenWidth / 393, 0.88), 1.16)
+            let heightScale = min(max(screenHeight / 852, 0.88), 1.12)
+            let scale = min(widthScale, heightScale)
+            
+            let adjustedTitleSize = titleSize * scale
+            let subtitleSize = min(max(screenWidth * 0.038, 14), 16)
+            
+            let horizontalPadding = min(screenWidth * 0.055, 24)
+            let topPadding = min(screenHeight * 0.025, 22)
             
             VStack(spacing: 0) {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Moments")
+                            .font(.system(size: adjustedTitleSize, weight: .bold))
+                            .foregroundColor(.black)
+
+                        Text("Real moments. Real progress.")
+                            .font(.system(size: subtitleSize))
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.top, topPadding)
+            
+            
+            /*VStack(spacing: 0) {
                 ScrollView(showsIndicators: false) {
                 HStack {
                     VStack(alignment: .leading, spacing: 6) {
@@ -40,7 +67,7 @@ struct MomentsScreen: View {
                     Spacer()
                 }
                 .padding(.horizontal, horizontalPadding)
-                .padding(.top, topPadding)
+                .padding(.top, topPadding)*/
 
                     VStack(spacing: 18) {
 

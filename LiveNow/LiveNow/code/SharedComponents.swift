@@ -46,7 +46,18 @@ struct TabItem: View {
 
     var body: some View {
         Button(action: {
-            vm.currentTab = tab
+            if vm.isGuestUser && vm.hasCompletedGuestReset {
+                switch tab {
+                case .moments, .insights:
+                    vm.requestPremiumAccess()
+                    return
+
+                case .home, .profile:
+                    vm.currentTab = tab
+                }
+            } else {
+                vm.currentTab = tab
+            }
         }) {
             VStack(spacing: 4) {
                 Image(systemName: icon)

@@ -8,6 +8,25 @@
 import SwiftUI
 import AuthenticationServices
 
+// MARK: - AUTH FIELD STYLE
+
+struct AuthTextFieldBackground: View {
+    let isFocused: Bool
+    let orange: Color
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 18)
+            .fill(Color.white.opacity(0.82))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(
+                        isFocused ? orange.opacity(0.45) : Color.black.opacity(0.05),
+                        lineWidth: isFocused ? 1.5 : 1
+                    )
+            )
+    }
+}
+
 // MARK: - LOGIN
 
 struct LoginScreen: View {
@@ -20,13 +39,13 @@ struct LoginScreen: View {
     @ScaledMetric private var buttonTextSize: CGFloat = 17
     
     @FocusState private var focusedField: Field?
-    
     @State private var showForgotPassword = false
 
     enum Field {
         case email
         case password
     }
+
     private var canSubmit: Bool {
         !authVM.email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !authVM.password.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
@@ -54,6 +73,9 @@ struct LoginScreen: View {
 
                     VStack(spacing: 12) {
                         TextField("email", text: $authVM.email)
+                            .font(.system(size: fieldTextSize))
+                            .foregroundColor(.black.opacity(0.82))
+                            .tint(orange)
                             .focused($focusedField, equals: .email)
                             .submitLabel(.next)
                             .onSubmit {
@@ -62,21 +84,19 @@ struct LoginScreen: View {
                             .textInputAutocapitalization(.never)
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.white.opacity(0.75))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .stroke(
-                                        focusedField == .email
-                                        ? orange.opacity(0.45)
-                                        : Color.clear,
-                                        lineWidth: 1.5
-                                    )
+                            .padding(.horizontal, 16)
+                            .frame(height: 56)
+                            .background(
+                                AuthTextFieldBackground(
+                                    isFocused: focusedField == .email,
+                                    orange: orange
+                                )
                             )
-                            .cornerRadius(14)
 
                         SecureField("password", text: $authVM.password)
+                            .font(.system(size: fieldTextSize))
+                            .foregroundColor(.black.opacity(0.82))
+                            .tint(orange)
                             .focused($focusedField, equals: .password)
                             .submitLabel(.done)
                             .onSubmit {
@@ -84,19 +104,14 @@ struct LoginScreen: View {
                             }
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.white.opacity(0.75))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .stroke(
-                                        focusedField == .password
-                                        ? orange.opacity(0.45)
-                                        : Color.clear,
-                                        lineWidth: 1.5
-                                    )
+                            .padding(.horizontal, 16)
+                            .frame(height: 56)
+                            .background(
+                                AuthTextFieldBackground(
+                                    isFocused: focusedField == .password,
+                                    orange: orange
+                                )
                             )
-                            .cornerRadius(14)
                         
                         Button(action: {
                             showForgotPassword = true
@@ -165,7 +180,6 @@ struct LoginScreen: View {
                     .cornerRadius(14)
                     
                     Spacer().frame(height: 40)
-                    
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, horizontalPadding)
@@ -181,6 +195,7 @@ struct LoginScreen: View {
 }
 
 // MARK: - SIGNUP
+
 struct SignupScreen: View {
     @ObservedObject var authVM: AuthViewModel
     let orange: Color
@@ -189,6 +204,14 @@ struct SignupScreen: View {
     @ScaledMetric private var subtitleSize: CGFloat = 15
     @ScaledMetric private var fieldTextSize: CGFloat = 16
     @ScaledMetric private var buttonTextSize: CGFloat = 17
+
+    @FocusState private var focusedField: Field?
+
+    enum Field {
+        case name
+        case email
+        case password
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -209,14 +232,66 @@ struct SignupScreen: View {
 
                     VStack(spacing: 12) {
                         TextField("name", text: $authVM.name)
+                            .font(.system(size: fieldTextSize))
+                            .foregroundColor(.black.opacity(0.82))
+                            .tint(orange)
+                            .focused($focusedField, equals: .name)
+                            .submitLabel(.next)
+                            .onSubmit {
+                                focusedField = .email
+                            }
+                            .textInputAutocapitalization(.words)
+                            .autocorrectionDisabled()
+                            .padding(.horizontal, 16)
+                            .frame(height: 56)
+                            .background(
+                                AuthTextFieldBackground(
+                                    isFocused: focusedField == .name,
+                                    orange: orange
+                                )
+                            )
 
                         TextField("email", text: $authVM.email)
+                            .font(.system(size: fieldTextSize))
+                            .foregroundColor(.black.opacity(0.82))
+                            .tint(orange)
+                            .focused($focusedField, equals: .email)
+                            .submitLabel(.next)
+                            .onSubmit {
+                                focusedField = .password
+                            }
+                            .textInputAutocapitalization(.never)
+                            .keyboardType(.emailAddress)
+                            .autocorrectionDisabled()
+                            .padding(.horizontal, 16)
+                            .frame(height: 56)
+                            .background(
+                                AuthTextFieldBackground(
+                                    isFocused: focusedField == .email,
+                                    orange: orange
+                                )
+                            )
 
                         SecureField("password", text: $authVM.password)
+                            .font(.system(size: fieldTextSize))
+                            .foregroundColor(.black.opacity(0.82))
+                            .tint(orange)
+                            .focused($focusedField, equals: .password)
+                            .submitLabel(.done)
+                            .onSubmit {
+                                authVM.signUp()
+                            }
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .padding(.horizontal, 16)
+                            .frame(height: 56)
+                            .background(
+                                AuthTextFieldBackground(
+                                    isFocused: focusedField == .password,
+                                    orange: orange
+                                )
+                            )
                     }
-                    .font(.system(size: fieldTextSize))
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
                     .padding(.top, 18)
                     
                     if let error = authVM.errorMessage {

@@ -33,12 +33,32 @@ final class AppViewModel: ObservableObject {
     private var lastAIResponse: AIResponse? = nil
 
     private let db = Firestore.firestore()
+    var isGuestUser: Bool {
+        Auth.auth().currentUser == nil
+    }
+    private let guestFirstResetKey = "livenow_guest_first_reset_v1"
+
+    @Published var guestFirstReset: ThoughtEntry? = nil
+    @Published var hasCompletedGuestReset = false
+    @Published var showPaywall = false
     
+    init() {
+        loadGuestFirstReset()
+
+        if Auth.auth().currentUser != nil {
+            loadEntries()
+        }
+    }
     
 
     // MARK: - Navigation
 
     func goToInput() {
+        if isGuestUser && hasCompletedGuestReset {
+            showPaywall = true
+            return
+        }
+
         currentTab = .home
         step = .input
         thought = ""
@@ -55,7 +75,12 @@ final class AppViewModel: ObservableObject {
         case .thinking: step = .analyze
         case .analyze: step = .reframe
         case .reframe: step = .action
-        case .action: completeReset()
+        case .action:
+            if isGuestUser {
+                completeGuestReset()
+            } else {
+                completeReset()
+            }
         case .complete: step = .home
         }
     }
@@ -80,6 +105,19 @@ final class AppViewModel: ObservableObject {
         selectedActionIndex = 0
         errorMessage = nil
         currentTab = .home
+    }
+    
+    func requestPremiumAccess() {
+        showPaywall = true
+    }
+    
+    func migrateGuestFirstResetToFirestoreIfNeeded() {
+        guard Auth.auth().currentUser != nil else { return }
+        guard let guestEntry = guestFirstReset else { return }
+
+        entries.insert(guestEntry, at: 0)
+        saveEntry(guestEntry)
+        clearGuestFirstReset()
     }
 
     // MARK: - Analyze
@@ -211,6 +249,30 @@ final class AppViewModel: ObservableObject {
     func symbolName(for icon: String?) -> String {
         icon ?? "sparkles"
     }
+    
+    func completeGuestReset() {
+        guard let ai = aiResponse else { return }
+
+        let action = ai.actions.indices.contains(selectedActionIndex) ? ai.actions[selectedActionIndex] : nil
+        let reframe = ai.reframes.indices.contains(selectedReframeIndex) ? ai.reframes[selectedReframeIndex] : nil
+
+        let entry = ThoughtEntry(
+            id: UUID(),
+            date: Date(),
+            thought: thought,
+            ai: ai,
+            selectedActionLabel: action?.label,
+            selectedActionIcon: action?.icon,
+            selectedReframe: reframe,
+            worthIt: nil
+        )
+
+        guestFirstReset = entry
+        hasCompletedGuestReset = true
+        saveGuestFirstReset(entry)
+
+        step = .complete
+    }
 
     // MARK: - General Stats
 
@@ -242,44 +304,46 @@ final class AppViewModel: ObservableObject {
         percent(part: notWorthItCount, total: totalResolvedCount)
     }
 
-    // MARK: - Week Stats
+    // MARK: - Last 7 Days Stats
 
-    var thisWeekEntries: [ThoughtEntry] {
-        let calendar = Calendar.current
-
-        guard let startOfWeek = calendar.date(
-            from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())
+    var last7DaysEntries: [ThoughtEntry] {
+        guard let sevenDaysAgo = Calendar.current.date(
+            byAdding: .day,
+            value: -7,
+            to: Date()
         ) else {
             return []
         }
 
-        return entries.filter { $0.date >= startOfWeek }
+        return entries.filter { $0.date >= sevenDaysAgo }
     }
 
-    var thisWeekResetCount: Int {
-        thisWeekEntries.count
+    var last7DaysResetCount: Int {
+        last7DaysEntries.count
     }
 
-    var thisWeekNotWorthItCount: Int {
-        thisWeekEntries.filter { $0.worthIt == .no }.count
+    var last7DaysNotWorthItCount: Int {
+        last7DaysEntries.filter { $0.worthIt == .no }.count
     }
 
-    var thisWeekMaybeCount: Int {
-        thisWeekEntries.filter { $0.worthIt == .maybe }.count
+    var last7DaysMaybeCount: Int {
+        last7DaysEntries.filter { $0.worthIt == .maybe }.count
     }
 
-    var thisWeekWorthItCount: Int {
-        thisWeekEntries.filter { $0.worthIt == .yes }.count
+    var last7DaysWorthItCount: Int {
+        last7DaysEntries.filter { $0.worthIt == .yes }.count
     }
 
-    var thisWeekResolvedCount: Int {
-        thisWeekEntries.filter { $0.worthIt != nil }.count
+    var last7DaysResolvedCount: Int {
+        last7DaysEntries.filter { $0.worthIt != nil }.count
     }
 
-    var thisWeekNotWorthItPercent: Int {
-        percent(part: thisWeekNotWorthItCount, total: thisWeekResolvedCount)
+    var last7DaysNotWorthItPercent: Int {
+        percent(
+            part: last7DaysNotWorthItCount,
+            total: last7DaysResolvedCount
+        )
     }
-
     // MARK: - Month Stats
 
     var thisMonthEntries: [ThoughtEntry] {
@@ -329,14 +393,6 @@ final class AppViewModel: ObservableObject {
 
         return uniqueDays.count
     }
-
-    // MARK: - Compatibility aliases
-
-    var last7DaysNotWorthItCount: Int { thisWeekNotWorthItCount }
-    var last7DaysMaybeCount: Int { thisWeekMaybeCount }
-    var last7DaysWorthItCount: Int { thisWeekWorthItCount }
-    var last7DaysResolvedCount: Int { thisWeekResolvedCount }
-    var last7DaysNotWorthItPercent: Int { thisWeekNotWorthItPercent }
 
     // MARK: - Streak / Most Used
 
@@ -565,5 +621,38 @@ final class AppViewModel: ObservableObject {
     private func percent(part: Int, total: Int) -> Int {
         guard total > 0 else { return 0 }
         return Int((Double(part) / Double(total) * 100).rounded())
+    }
+    
+    private func saveGuestFirstReset(_ entry: ThoughtEntry) {
+        do {
+            let data = try JSONEncoder().encode(entry)
+            UserDefaults.standard.set(data, forKey: guestFirstResetKey)
+        } catch {
+            print("Guest reset save error:", error)
+        }
+    }
+
+    private func loadGuestFirstReset() {
+        guard let data = UserDefaults.standard.data(forKey: guestFirstResetKey) else {
+            guestFirstReset = nil
+            hasCompletedGuestReset = false
+            return
+        }
+
+        do {
+            let entry = try JSONDecoder().decode(ThoughtEntry.self, from: data)
+            guestFirstReset = entry
+            hasCompletedGuestReset = true
+        } catch {
+            print("Guest reset load error:", error)
+            guestFirstReset = nil
+            hasCompletedGuestReset = false
+        }
+    }
+
+    func clearGuestFirstReset() {
+        guestFirstReset = nil
+        hasCompletedGuestReset = false
+        UserDefaults.standard.removeObject(forKey: guestFirstResetKey)
     }
 }
