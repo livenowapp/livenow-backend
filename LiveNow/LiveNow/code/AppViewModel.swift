@@ -129,7 +129,10 @@ final class AppViewModel: ObservableObject {
         guard !cleanedThought.isEmpty else { return }
 
         // Če je user že analiziral isti tekst, ne kličemo API-ja ponovno
-        if cleanedThought == lastAnalyzedThought, let cachedResponse = lastAIResponse {
+        if isSimilarThought(cleanedThought, lastAnalyzedThought),
+           let cachedResponse = lastAIResponse {
+
+            thought = cleanedThought
             aiResponse = cachedResponse
             step = .analyze
             return
@@ -618,6 +621,64 @@ final class AppViewModel: ObservableObject {
 
     // MARK: - Helpers
 
+    private func normalizedThought(_ text: String) -> String {
+        text
+            .lowercased()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "[^a-z0-9 ]", with: "", options: .regularExpression)
+    }
+
+    private func isSimilarThought(_ current: String, _ previous: String) -> Bool {
+        let a = normalizedThought(current)
+        let b = normalizedThought(previous)
+
+        guard !a.isEmpty, !b.isEmpty else { return false }
+
+        if a == b { return true }
+
+        let distance = levenshteinDistance(a, b)
+        let maxLength = max(a.count, b.count)
+
+        let similarity = 1.0 - (Double(distance) / Double(maxLength))
+
+        return similarity >= 0.88
+    }
+
+    private func levenshteinDistance(_ lhs: String, _ rhs: String) -> Int {
+        let lhs = Array(lhs)
+        let rhs = Array(rhs)
+
+        var matrix = Array(
+            repeating: Array(repeating: 0, count: rhs.count + 1),
+            count: lhs.count + 1
+        )
+
+        for i in 0...lhs.count {
+            matrix[i][0] = i
+        }
+
+        for j in 0...rhs.count {
+            matrix[0][j] = j
+        }
+
+        for i in 1...lhs.count {
+            for j in 1...rhs.count {
+                if lhs[i - 1] == rhs[j - 1] {
+                    matrix[i][j] = matrix[i - 1][j - 1]
+                } else {
+                    matrix[i][j] = min(
+                        matrix[i - 1][j] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j - 1] + 1
+                    )
+                }
+            }
+        }
+
+        return matrix[lhs.count][rhs.count]
+    }
+    
     private func percent(part: Int, total: Int) -> Int {
         guard total > 0 else { return 0 }
         return Int((Double(part) / Double(total) * 100).rounded())

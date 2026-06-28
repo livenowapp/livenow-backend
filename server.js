@@ -18,12 +18,85 @@ function cleanClaudeJson(text) {
     .trim();
 }
 
+// ----------------------------
+// Basic protection
+// ----------------------------
+
+const userLimits = new Map();
+
+const COOLDOWN_MS = 10 * 1000;
+const DAILY_LIMIT = 100;
+const MAX_THOUGHT_LENGTH = 800;
+
+function getTodayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function checkRateLimit(userKey) {
+  const today = getTodayKey();
+  const now = Date.now();
+
+  const current = userLimits.get(userKey) || {
+    date: today,
+    count: 0,
+    lastRequestAt: 0,
+  };
+
+  if (current.date !== today) {
+    current.date = today;
+    current.count = 0;
+    current.lastRequestAt = 0;
+  }
+
+  if (now - current.lastRequestAt < COOLDOWN_MS) {
+    return {
+      allowed: false,
+      status: 429,
+      message: "Please wait a few seconds before analyzing again.",
+    };
+  }
+
+  if (current.count >= DAILY_LIMIT) {
+    return {
+      allowed: false,
+      status: 429,
+      message: "Daily analysis limit reached.",
+    };
+  }
+
+  current.count += 1;
+  current.lastRequestAt = now;
+
+  userLimits.set(userKey, current);
+
+  return { allowed: true };
+}
+
 app.post("/analyze", async (req, res) => {
   const thought = req.body.thought || "";
 
+  // Empty thought
   if (!thought.trim()) {
     return res.status(400).json({
       error: "No thought provided",
+    });
+  }
+
+  // Too long
+  if (thought.length > MAX_THOUGHT_LENGTH) {
+    return res.status(400).json({
+      error: "Thought is too long",
+    });
+  }
+
+  // Temporary protection by IP
+  const userKey = req.ip;
+
+  const limitCheck = checkRateLimit(userKey);
+
+  if (!limitCheck.allowed) {
+    return res.status(limitCheck.status).json({
+      error: limitCheck.message,
     });
   }
 
@@ -115,6 +188,7 @@ The icon value must match exactly:
     const parsed = JSON.parse(jsonText);
 
     return res.json(parsed);
+
   } catch (err) {
     console.error("AI ERROR:", err);
 
