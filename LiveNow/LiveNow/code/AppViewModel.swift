@@ -28,6 +28,7 @@ final class AppViewModel: ObservableObject {
     @Published var showAllTodayEntries = false
     @Published var selectedDate = Date()
     @Published var showSelectedDateEntries = false
+    @Published var showWelcomeBack = false
     
     private var lastAnalyzedThought: String = ""
     private var lastAIResponse: AIResponse? = nil
@@ -144,23 +145,40 @@ final class AppViewModel: ObservableObject {
 
         do {
             
-            /*let response = try await AIService.shared.analyzeThought(thought: cleanedThought)
+            /* let response = try await AIService.shared.analyzeThought(thought: cleanedThought)
 
             aiResponse = response
             lastAnalyzedThought = cleanedThought
             lastAIResponse = response
 
-            step = .analyze
-             */
+            step = .analyze*/
+             
             
             let response = AIResponse(
+                shortTitle: "feeling judged",
                 analysis: [
-                    AIAnalysisItem(label: "possible overthinking", sub: "Your mind may be assuming the worst too quickly."),
-                    AIAnalysisItem(label: "what your brain is doing", sub: "You are trying to predict danger before it happens.")
+                    AIAnalysisItem(
+                        label: "possible overthinking",
+                        sub: "Your mind may be assuming the worst too quickly."
+                    ),
+                    AIAnalysisItem(
+                        label: "what your brain is doing",
+                        sub: "You are trying to predict danger before it happens."
+                    ),
+                    AIAnalysisItem(
+                        label: "thinking trap",
+                        sub: "You're predicting what others think without evidence."
+                    )
                 ],
                 evidence: [
-                    AIEvidenceItem(q: "Do you have clear proof?", a: "Not really"),
-                    AIEvidenceItem(q: "Could there be another explanation?", a: "Yes")
+                    AIEvidenceItem(
+                        q: "Do you have clear proof?",
+                        a: "Not really"
+                    ),
+                    AIEvidenceItem(
+                        q: "Could there be another explanation?",
+                        a: "Yes"
+                    )
                 ],
                 reframes: [
                     "This thought is not necessarily true.",
@@ -171,15 +189,7 @@ final class AppViewModel: ObservableObject {
                     AIActionItem(icon: "action_leaf", label: "take 3 deep breaths"),
                     AIActionItem(icon: "action_nophone", label: "go for a short walk"),
                     AIActionItem(icon: "action_book", label: "write down the thought"),
-                    AIActionItem(icon: "action_sleep", label: "rest for a moment"),
-                   /* AIActionItem(icon: "action_walk", label: "take a short walk"),
-                    AIActionItem(icon: "action_sunlight", label: "step into sunlight"),
-                    AIActionItem(icon: "action_music", label: "listen to calming music"),
-                    AIActionItem(icon: "action_handraised", label: "pause and breathe"),
-                    AIActionItem(icon: "action_chat", label: "talk to someone"),
-                    AIActionItem(icon: "action_pencil", label: "write it down"),
-                    AIActionItem(icon: "action_breath", label: "slow your breathing"),
-                    AIActionItem(icon: "action_meditation", label: "sit quietly")*/
+                    AIActionItem(icon: "action_sleep", label: "rest for a moment")
                 ],
                 insight: "You often assume the worst before having evidence."
             )

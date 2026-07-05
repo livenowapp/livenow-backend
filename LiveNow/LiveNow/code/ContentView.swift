@@ -17,17 +17,22 @@ struct ContentView:
     @StateObject private var vm = AppViewModel()
     @StateObject private var authVM = AuthViewModel()
     @StateObject private var purchaseManager = PurchaseManager.shared
+    
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    
     @State private var paywallFromAlreadySubscribed = false
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var showLoginAfterLogout = false
+    @State private var didCheckPremiumStatus = false
+    @State private var lastWelcomeShown = Date.distantPast
+    @State private var welcomeHideTask: Task<Void, Never>?
+    @State private var backgroundDate: Date?
     
     private let bgColor = Color(red: 0.97, green: 0.96, blue: 0.94)
     private let orange = Color(red: 1.0, green: 0.43, blue: 0.10)
     private let lightOrange = Color(red: 1.0, green: 0.66, blue: 0.32)
+    private let welcomeBackgroundDelay: TimeInterval = 300
     
-    private func debugPremium(){
-        print("isLoggedIn:", authVM.isLoggedIn)
-        print("isPremium:", purchaseManager.isPremium)
-    }
     var body: some View {
         ZStack {
             bgColor
@@ -55,6 +60,17 @@ struct ContentView:
                         }
                     }
                 )
+                
+            } else if authVM.isLoggedIn && !didCheckPremiumStatus {
+                bgColor
+                    .ignoresSafeArea()
+                
+            } else if showLoginAfterLogout {
+                if authVM.showSignup {
+                    SignupScreen(authVM: authVM, orange: orange)
+                } else {
+                    LoginScreen(authVM: authVM, orange: orange)
+                }
 
             } else if purchaseManager.isPremium && !authVM.isLoggedIn {
 
@@ -65,10 +81,21 @@ struct ContentView:
                 }
 
             } else if purchaseManager.isPremium && authVM.isLoggedIn {
-                mainAppContent
-                    .onAppear {
-                        vm.reloadEntriesForCurrentUser()
-                    }
+
+                if vm.showWelcomeBack {
+                    WelcomeBackScreen(
+                        name: authVM.displayName,
+                        orange: orange,
+                        lightOrange: lightOrange
+                    )
+                    .transition(.opacity)
+                } else {
+                    mainAppContent
+                        .transition(.opacity)
+                        .onAppear {
+                            vm.reloadEntriesForCurrentUser()
+                        }
+                }
 
             } else {
                 mainAppContent
@@ -77,6 +104,34 @@ struct ContentView:
                             vm.goToInput()
                         }
                     }
+            }
+        }
+        .task {
+            if !hasSeenOnboarding && authVM.isLoggedIn {
+                authVM.logout()
+                showLoginAfterLogout = false
+                didCheckPremiumStatus = true
+                vm.resetToHome()
+                return
+            }
+
+            refreshPremiumStatus(showWelcome: true)
+        }
+        .onChange(of: authVM.isLoggedIn) { _, isLoggedIn in
+            if isLoggedIn {
+                showLoginAfterLogout = false
+                didCheckPremiumStatus = false
+                vm.migrateGuestFirstResetToFirestoreIfNeeded()
+                vm.resetToHome()
+
+                refreshPremiumStatus(showWelcome: false)
+
+            } else {
+                if authVM.hasAuthenticatedBefore {
+                    showLoginAfterLogout = true
+                    authVM.showSignup = false
+                    vm.resetToHome()
+                }
             }
         }
         .sheet(isPresented: $vm.showPaywall) {
@@ -121,8 +176,65 @@ struct ContentView:
                 }
             )
         }
+        .onChange(of: scenePhase) { _, phase in
+
+            switch phase {
+
+            case .background:
+                backgroundDate = Date()
+
+            case .active:
+                if let backgroundDate,
+                   Date().timeIntervalSince(backgroundDate) > welcomeBackgroundDelay {
+
+                    self.backgroundDate = nil
+
+                    Task {
+                        refreshPremiumStatus(showWelcome: true)
+                    }
+                }
+
+            default:
+                break
+            }
+        }
+        .animation(.easeInOut(duration: 0.55), value: vm.showWelcomeBack)
+    }
+    
+    private func refreshPremiumStatus(showWelcome: Bool = false) {
+        Task {
+            await purchaseManager.checkPremiumStatus()
+            didCheckPremiumStatus = true
+
+            if showWelcome {
+                showWelcomeBackIfNeeded()
+            }
+        }
     }
         
+    private func showWelcomeBackIfNeeded() {
+        guard authVM.isLoggedIn && purchaseManager.isPremium else { return }
+
+        let now = Date()
+        guard now.timeIntervalSince(lastWelcomeShown) > 2 else { return }
+
+        lastWelcomeShown = now
+        welcomeHideTask?.cancel()
+
+        withAnimation(.easeInOut(duration: 0.2)) {
+            vm.showWelcomeBack = true
+        }
+
+        welcomeHideTask = Task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+
+            await MainActor.run {
+                withAnimation(.easeInOut(duration: 0.55)) {
+                    vm.showWelcomeBack = false
+                }
+            }
+        }
+    }
         
     @ViewBuilder
     private var mainAppContent: some View {
@@ -170,7 +282,8 @@ struct ContentView:
                 orange: orange,
                 onBack: {
                     vm.goBack()
-                }
+                },
+                vm: vm
             )
             
         case .analyze:

@@ -55,6 +55,7 @@ struct InputScreen: View {
                     stepText: "1 of 4",
                     progress: 0.25,
                     orange: orange,
+                    showBackButton: !vm.isGuestUser,
                     onBack: onBack
                 )
                 .padding(.top, topPadding)
@@ -188,6 +189,7 @@ struct InputScreen: View {
 struct ThinkingScreen: View {
     let orange: Color
     var onBack: () -> Void
+    @ObservedObject var vm: AppViewModel
 
     @State private var activeIndex = 0
     @State private var pulse = false
@@ -224,13 +226,15 @@ struct ThinkingScreen: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Button(action: onBack) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 18, weight: .regular))
-                            .foregroundColor(.black.opacity(0.7))
-                            .frame(width: 32, height: 32)
+                    if !vm.isGuestUser {
+                        Button(action: onBack) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 18, weight: .regular))
+                                .foregroundColor(.black.opacity(0.7))
+                                .frame(width: 32, height: 32)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
 
                     Spacer()
                 }
@@ -382,6 +386,7 @@ struct AnalyzeScreen: View {
                     stepText: "2 of 4",
                     progress: 0.50,
                     orange: orange,
+                    showBackButton: !vm.isGuestUser,
                     onBack: onBack
                 )
                 .padding(.top, topPadding)
@@ -402,10 +407,27 @@ struct AnalyzeScreen: View {
                                 .font(.system(size: 13 * scales.scale, weight: .medium))
                                 .foregroundColor(.black.opacity(0.45))
 
+                            Text(ai?.shortTitle ?? vm.thought)
+                                .font(.system(size: min(max(screenWidth * 0.058, 22), 26), weight: .bold))
+                                .foregroundColor(orange)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            Text(vm.thought)
+                                .font(.system(size: min(max(screenWidth * 0.036, 13), 15)))
+                                .foregroundColor(.black.opacity(0.48))
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.85)
+                                .padding(.top, 2)
+                            
+                          /*  Text("your thought")
+                                .font(.system(size: 13 * scales.scale, weight: .medium))
+                                .foregroundColor(.black.opacity(0.45))
+
                             Text(vm.thought)
                                 .font(.system(size: min(max(screenWidth * 0.052, 20), 23), weight: .semibold))
                                 .foregroundColor(orange)
-                                .fixedSize(horizontal: false, vertical: true)
+                                .fixedSize(horizontal: false, vertical: true)*/
                         }
                         .padding(cardPadding)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -520,6 +542,7 @@ struct ReframeScreen: View {
                     stepText: "3 of 4",
                     progress: 0.75,
                     orange: orange,
+                    showBackButton: !vm.isGuestUser,
                     onBack: onBack
                 )
                 .padding(.top, topPadding)
@@ -627,6 +650,7 @@ struct ActionScreen: View {
                     stepText: "4 of 4",
                     progress: 1.0,
                     orange: orange,
+                    showBackButton: !vm.isGuestUser,
                     onBack: onBack
                 )
                 .padding(.top, topPadding)

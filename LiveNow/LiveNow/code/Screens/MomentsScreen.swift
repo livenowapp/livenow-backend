@@ -109,7 +109,6 @@ struct CalendarMiniCard: View {
     @ScaledMetric private var monthTitleSize: CGFloat = 20
     @ScaledMetric private var dayTextSize: CGFloat = 15
     @ScaledMetric private var dotSize: CGFloat = 5
-    @ScaledMetric private var previewIconSize: CGFloat = 40
 
     var body: some View {
         let cellSize: CGFloat = 40
@@ -230,11 +229,14 @@ struct CalendarMiniCard: View {
                             }) {
                                 Circle()
                                     .fill(ActionStyle.color(entry.selectedActionIcon))
-                                    .frame(width: previewIconSize, height: previewIconSize)
+                                    .frame(
+                                        width: ActionIconStyle.previewSize,
+                                        height: ActionIconStyle.previewSize
+                                    )
                                     .overlay(
                                         MomentIconImage(
                                             icon: ActionStyle.iconName(entry.selectedActionIcon),
-                                            size: previewIconSize * 0.92
+                                            size: ActionIconStyle.previewSize * ActionIconStyle.imageScale
                                         )
                                     )
                             }
@@ -244,10 +246,16 @@ struct CalendarMiniCard: View {
                         if selectedEntries.count > 3 {
                             Circle()
                                 .fill(Color.gray.opacity(0.2))
-                                .frame(width: previewIconSize, height: previewIconSize)
+                                .frame(
+                                    width: ActionIconStyle.previewSize,
+                                    height: ActionIconStyle.previewSize
+                                )
                                 .overlay(
                                     Text("+\(selectedEntries.count - 3)")
-                                        .font(.system(size: previewIconSize * 0.35, weight: .semibold))
+                                        .font(.system(
+                                            size: ActionIconStyle.previewSize * 0.35,
+                                            weight: .semibold
+                                        ))
                                         .foregroundColor(.black.opacity(0.7))
                                 )
                         }
@@ -349,8 +357,6 @@ struct SelectedDateEntriesSheet: View {
 
     @State private var path: [ThoughtEntry] = []
 
-    @ScaledMetric private var iconSize: CGFloat = 72
-
     private var selectedEntries: [ThoughtEntry] {
         vm.entries(for: vm.selectedDate)
     }
@@ -359,49 +365,66 @@ struct SelectedDateEntriesSheet: View {
         NavigationStack(path: $path) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 14) {
-                    ForEach(selectedEntries) { entry in
-                        Button(action: {
-                            path.append(entry)
-                        }) {
-                            HStack(alignment: .top, spacing: 14) {
-                                Circle()
-                                    .fill(ActionStyle.color(entry.selectedActionIcon))
-                                    .frame(width: iconSize, height: iconSize)
-                                    .overlay(
-                                        MomentIconImage(
-                                            icon: ActionStyle.iconName(entry.selectedActionIcon),
-                                            size: iconSize * 0.92
-                                        )
-                                    )
+                    if selectedEntries.isEmpty {
+                        VStack(spacing: 8) {
+                            Text("No resets left for today.")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(.black.opacity(0.75))
 
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(timeString(entry.date))
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.gray)
-
-                                    Text(entry.selectedActionLabel ?? entry.thought)
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.black)
-                                        .multilineTextAlignment(.leading)
-                                        .fixedSize(horizontal: false, vertical: true)
-
-                                    Text(shortTag(entry))
-                                        .font(.system(size: 13))
-                                        .foregroundColor(outcomeColor(entry))
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 4)
-                                        .background(outcomeColor(entry).opacity(0.12))
-                                        .cornerRadius(10)
-                                }
-
-                                Spacer()
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.white.opacity(0.9))
-                            .cornerRadius(18)
+                            Text("All resets have been deleted.")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
                         }
-                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 60)
+                    } else {
+                        ForEach(selectedEntries) { entry in
+                            Button(action: {
+                                path.append(entry)
+                            }) {
+                                HStack(alignment: .top, spacing: 14) {
+                                    Circle()
+                                        .fill(ActionStyle.color(entry.selectedActionIcon))
+                                        .frame(
+                                            width: ActionIconStyle.size,
+                                            height: ActionIconStyle.size
+                                        )
+                                        .overlay(
+                                            MomentIconImage(
+                                                icon: ActionStyle.iconName(entry.selectedActionIcon),
+                                                size: ActionIconStyle.size * ActionIconStyle.imageScale
+                                            )
+                                        )
+
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(timeString(entry.date))
+                                            .font(.system(size: 13))
+                                            .foregroundColor(.gray)
+
+                                        Text(entry.selectedActionLabel ?? entry.thought)
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.black)
+                                            .multilineTextAlignment(.leading)
+                                            .fixedSize(horizontal: false, vertical: true)
+
+                                        Text(shortTag(entry))
+                                            .font(.system(size: 13))
+                                            .foregroundColor(outcomeColor(entry))
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 4)
+                                            .background(outcomeColor(entry).opacity(0.12))
+                                            .cornerRadius(10)
+                                    }
+
+                                    Spacer()
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.white.opacity(0.9))
+                                .cornerRadius(18)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
                 .padding(22)
@@ -505,7 +528,6 @@ struct DaySectionView: View {
     var showViewMore: Bool = false
     var onViewMore: (() -> Void)? = nil
 
-    @ScaledMetric private var iconSize: CGFloat = 72
     @ScaledMetric private var titleSize: CGFloat = 18
     @ScaledMetric private var bodySize: CGFloat = 16
 
@@ -541,11 +563,12 @@ struct DaySectionView: View {
                     HStack(alignment: .top, spacing: 14) {
                         Circle()
                             .fill(ActionStyle.color(entry.selectedActionIcon))
-                            .frame(width: iconSize, height: iconSize)
+                            .frame(width: ActionIconStyle.size,
+                                   height: ActionIconStyle.size)
                             .overlay(
                                 MomentIconImage(
                                     icon: ActionStyle.iconName(entry.selectedActionIcon),
-                                    size: iconSize * 0.92
+                                    size: ActionIconStyle.size * ActionIconStyle.imageScale
                                 )
                             )
 

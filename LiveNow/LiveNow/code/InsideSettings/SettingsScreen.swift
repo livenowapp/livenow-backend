@@ -17,6 +17,8 @@ struct SettingsScreen: View {
 
     @State private var showDeleteAlert = false
     @State private var deleteError: String?
+    
+    @ScaledMetric private var cardRadius: CGFloat = 24
 
     private let privacyURL = URL(string: "https://www.notion.so/Privacy-Policy-3496f514da4380bfba2bdbdbd6289377?source=copy_link")!
     private let termsURL = URL(string: "https://www.notion.so/Terms-Of-Use-3566f514da438019836cf4da4e5f68cc?source=copy_link")!
@@ -28,20 +30,25 @@ struct SettingsScreen: View {
                 let horizontalPadding = min(geo.size.width * 0.055, 24)
                 let topPadding = min(geo.size.height * 0.025, 18)
 
-                VStack(spacing: 0) {
-                    header(horizontalPadding: horizontalPadding, topPadding: topPadding)
+                ZStack {
+                    Color(red: 0.97, green: 0.96, blue: 0.94)
+                        .ignoresSafeArea()
 
-                    ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 28) {
-                            accountSection
-                            preferencesSection
-                            supportSection
-                            legalSection
-                            logoutButton
+                    VStack(spacing: 0) {
+                        header(horizontalPadding: horizontalPadding, topPadding: topPadding)
+
+                        ScrollView(showsIndicators: false) {
+                            VStack(alignment: .leading, spacing: 28) {
+                                accountSection
+                                preferencesSection
+                                supportSection
+                                legalSection
+                                logoutButton
+                            }
+                            .padding(.horizontal, horizontalPadding)
+                            .padding(.top, 28)
+                            .padding(.bottom, 24)
                         }
-                        .padding(.horizontal, horizontalPadding)
-                        .padding(.top, 28)
-                        .padding(.bottom, 24)
                     }
                 }
             }
@@ -215,7 +222,7 @@ struct SettingsScreen: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 22)
             .background(Color.white.opacity(0.72))
-            .cornerRadius(22)
+            .cornerRadius(cardRadius)
         }
         .buttonStyle(.plain)
     }
@@ -237,7 +244,7 @@ struct SettingsScreen: View {
                 content()
             }
             .background(Color.white.opacity(0.72))
-            .cornerRadius(22)
+            .cornerRadius(cardRadius)
         }
     }
 

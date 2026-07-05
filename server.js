@@ -110,6 +110,7 @@ Respond in VALID JSON only (no markdown, no text outside JSON).
 
 Format:
 {
+  "shortTitle": "...",
   "analysis": [
     { "label": "...", "sub": "..." },
     { "label": "...", "sub": "..." },
@@ -130,6 +131,10 @@ Format:
 }
 
 Rules:
+- shortTitle must summarize the thought in 2 to 5 words.
+- shortTitle must be lowercase.
+- shortTitle must not end with punctuation.
+- shortTitle must be calm and simple.
 - Return EXACTLY 3 analysis items.
 - Return EXACTLY 2 evidence items.
 - Return EXACTLY 3 reframes.

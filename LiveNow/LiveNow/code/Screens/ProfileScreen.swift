@@ -66,6 +66,7 @@ struct ProfilePlaceholderScreen: View {
     @ScaledMetric private var topButtonSize: CGFloat = 40
     @ScaledMetric private var nameSize: CGFloat = 34
     @ScaledMetric private var titleSize: CGFloat = 34
+    @ScaledMetric private var cardRadius: CGFloat = 24
 
     @State private var showSettings = false
     
@@ -222,7 +223,7 @@ struct ProfilePlaceholderScreen: View {
         }
         .padding(22)
         .background(Color.white.opacity(0.78))
-        .cornerRadius(24)
+        .cornerRadius(cardRadius)
         .frame(height: 205)
     }
 
@@ -327,7 +328,7 @@ struct ProfilePlaceholderScreen: View {
             .buttonStyle(.plain)
         }
         .background(Color.white.opacity(0.75))
-        .cornerRadius(22)
+        .cornerRadius(cardRadius)
     }
 
     private func menuRow(icon: String, title: String, subtitle: String) -> some View {

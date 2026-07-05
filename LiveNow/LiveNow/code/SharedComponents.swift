@@ -104,6 +104,7 @@ struct TopProgressRow: View {
     let stepText: String
     let progress: CGFloat
     let orange: Color
+    let showBackButton: Bool
     var onBack: () -> Void
 
     @ScaledMetric private var iconSize: CGFloat = 18
@@ -111,13 +112,18 @@ struct TopProgressRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: iconSize, weight: .regular))
-                    .foregroundColor(.black.opacity(0.7))
+            if showBackButton {
+                Button(action: onBack) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: iconSize, weight: .regular))
+                        .foregroundColor(.black.opacity(0.7))
+                        .frame(width: 32, height: 32)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Color.clear
                     .frame(width: 32, height: 32)
             }
-            .buttonStyle(.plain)
 
             RoundedRectangle(cornerRadius: 2)
                 .fill(Color.black.opacity(0.08))

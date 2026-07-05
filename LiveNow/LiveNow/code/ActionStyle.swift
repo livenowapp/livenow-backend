@@ -7,22 +7,31 @@
 
 import SwiftUI
 
+// MARK: - ACTION ICON STYLE
+
+enum ActionIconStyle {
+    static let size: CGFloat = 72
+    static let previewSize: CGFloat = 48
+    static let imageScale: CGFloat = 0.82
+}
+
+// MARK: - ACTION STYLE
+
 struct ActionStyle {
 
     private static let colorMap: [String: Color] = [
         "action_breath": .yellow.opacity(0.33),
         "action_walk": .orange.opacity(0.22),
-        "action_chat": .teal.opacity(0.22),
-        "action_pencil": .indigo.opacity(0.33),
+        "action_chat": .indigo.opacity(0.22),
+        "action_pencil": .teal.opacity(0.22),
         "action_leaf": .blue.opacity(0.11),
-        "action_music": .purple.opacity(0.22),
+        "action_music": .cyan.opacity(0.22),
         "action_sleep": .pink.opacity(0.16),
         "action_sunlight": .blue.opacity(0.22),
         "action_handraised": .red.opacity(0.33),
         "action_meditation": .purple.opacity(0.11),
         "action_nophone": .gray.opacity(0.33),
-        "action_book": .cyan.opacity(0.16),
-        "action_coldshower": .mint.opacity(0.22)
+        "action_book": .purple.opacity(0.16),
     ]
 
     static func iconName(_ icon: String?) -> String {
@@ -34,21 +43,19 @@ struct ActionStyle {
     }
 }
 
+// MARK: - MOMENT ICON IMAGE
+
 struct MomentIconImage: View {
 
     let icon: String
     let size: CGFloat
 
     var body: some View {
-
         if icon == "sparkles" {
-
             Image(systemName: "sparkles")
                 .font(.system(size: size * 0.42))
                 .foregroundColor(.orange)
-
         } else {
-
             Image(icon)
                 .resizable()
                 .scaledToFit()

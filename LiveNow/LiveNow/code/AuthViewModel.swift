@@ -19,6 +19,8 @@ final class AuthViewModel: ObservableObject {
     @Published var isLoggedIn: Bool = Auth.auth().currentUser != nil
     @Published var showSignup: Bool = false
     @Published var currentNonce: String?
+    @AppStorage("hasAuthenticatedBefore")
+    var hasAuthenticatedBefore = false
 
     func randomNonceString(length: Int = 32) -> String {
         precondition(length > 0)
@@ -160,6 +162,7 @@ final class AuthViewModel: ObservableObject {
                             for: nil
                         )
 
+                        self.hasAuthenticatedBefore = true
                         self.isLoggedIn = true
                     }
                 }
@@ -201,6 +204,7 @@ final class AuthViewModel: ObservableObject {
                     for: nil
                 )
                 
+                self.hasAuthenticatedBefore = true
                 self.isLoggedIn = true
             }
         }
