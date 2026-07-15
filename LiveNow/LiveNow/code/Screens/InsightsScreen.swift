@@ -16,7 +16,7 @@ struct InsightsScreen: View {
 
     @State private var showingLastMonth = false
     @ScaledMetric private var titleSize: CGFloat = 34
-    @ScaledMetric private var cardRadius: CGFloat = 24
+    @ScaledMetric private var cardRadius: CGFloat = 22
 
     private var currentPercent: Int {
         showingLastMonth ? vm.lastMonthNotWorthItPercent : vm.thisMonthNotWorthItPercent
@@ -78,7 +78,7 @@ struct InsightsScreen: View {
             let bottomStatHeight = min(max(screenHeight * 0.12, 105), 126)
 
             let mostUsedCardWidth = min(max(screenWidth * 0.28, 105), 120)
-            let mostUsedCardHeight = min(max(screenWidth * 0.35, 125), 145)
+            let mostUsedCardHeight = min(max(screenWidth * 0.18, 145), 165)
             let mostUsedTitleSize = min(max(screenWidth * 0.038, 14), 16)
             let mostUsedLabelSize = min(max(screenWidth * 0.05, 18), 22)
             let mostUsedTextSize = min(max(screenWidth * 0.040, 16), 19)
@@ -131,8 +131,6 @@ struct InsightsScreen: View {
                     .padding(.top, min(max(screenHeight * 0.026, 18), 24))
                     .padding(.bottom, 24)
                 }
-
-                BottomTabBar(vm: vm, orange: orange)
             }
         }
     }
@@ -417,8 +415,8 @@ struct InsightsScreen: View {
             }
             .frame(width: cardWidth,
                    height: cardHeight)
-            .background(Color.white.opacity(0.82))
-            .cornerRadius(18)
+            .background(Color.white.opacity(0.78))
+            .cornerRadius(cardRadius)
 
             VStack(alignment: .leading, spacing: 10) {
                 Text("Positive effect")
@@ -436,59 +434,11 @@ struct InsightsScreen: View {
             .frame(maxWidth: .infinity,
                    maxHeight: .infinity,
                    alignment: .leading)
-            .background(Color.white.opacity(0.82))
-            .cornerRadius(18)
+            .background(Color.white.opacity(0.78))
+            .cornerRadius(cardRadius)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
-    /*private func mostUsedResetCard(
-        iconSize: CGFloat,
-        titleSize: CGFloat,
-        labelSize: CGFloat,
-        cardPadding: CGFloat
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("most used reset")
-                .font(.system(size: titleSize))
-                .foregroundColor(.gray)
-
-            HStack(spacing: 14) {
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.white.opacity(0.82))
-                    .frame(width: iconSize + 22, height: iconSize + 22)
-                    .overlay(
-                        Circle()
-                            .fill(ActionStyle.color(vm.mostUsedAction.icon))
-                            .frame(width: iconSize, height: iconSize)
-                            .overlay(
-                                MomentIconImage(
-                                    icon: ActionStyle.iconName(vm.mostUsedAction.icon),
-                                    size: iconSize * 0.92
-                                )
-                            )
-                    )
-
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.white.opacity(0.82))
-                    .overlay(
-                        Text(mostUsedPositiveText(for: vm.mostUsedAction.icon))
-                            .font(.system(size: min(labelSize * 0.72, 15), weight: .semibold))
-                            .foregroundColor(.black.opacity(0.78))
-                            .multilineTextAlignment(.leading)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 14),
-                        alignment: .leading
-                    )
-                    .frame(maxWidth: .infinity, minHeight: iconSize + 22)
-            }
-        }
-        .padding(cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.78))
-        .cornerRadius(cardRadius)
-    }*/
     
     private func mostUsedPositiveText(for icon: String) -> String {
         switch icon {

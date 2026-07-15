@@ -19,6 +19,8 @@ struct ContentView:
     @StateObject private var purchaseManager = PurchaseManager.shared
     
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @AppStorage("didAskNotificationPermission")
+    private var didAskNotificationPermission = false
     
     @State private var paywallFromAlreadySubscribed = false
     @Environment(\.scenePhase) private var scenePhase
@@ -27,11 +29,12 @@ struct ContentView:
     @State private var lastWelcomeShown = Date.distantPast
     @State private var welcomeHideTask: Task<Void, Never>?
     @State private var backgroundDate: Date?
+    @State private var isCheckingPremiumStatus = false
     
     private let bgColor = Color(red: 0.97, green: 0.96, blue: 0.94)
     private let orange = Color(red: 1.0, green: 0.43, blue: 0.10)
     private let lightOrange = Color(red: 1.0, green: 0.66, blue: 0.32)
-    private let welcomeBackgroundDelay: TimeInterval = 300
+    private let welcomeBackgroundDelay: TimeInterval = 600
     
     var body: some View {
         ZStack {
@@ -42,13 +45,16 @@ struct ContentView:
                 OnboardingScreen(
                     orange: orange,
                     lightOrange: lightOrange,
-                    onGetStarted: {
+                    onGetStarted: { answers in
                         hasSeenOnboarding = true
+
+                        vm.saveOnboardingAnswers(answers)
+
                         vm.goToInput()
                     },
                     onAlreadySubscribed: {
                         Task {
-                            await purchaseManager.checkPremiumStatus()
+                            await refreshPremiumStatus(showWelcome: false)
 
                             if purchaseManager.isPremium {
                                 hasSeenOnboarding = true
@@ -60,7 +66,6 @@ struct ContentView:
                         }
                     }
                 )
-                
             } else if authVM.isLoggedIn && !didCheckPremiumStatus {
                 bgColor
                     .ignoresSafeArea()
@@ -115,25 +120,53 @@ struct ContentView:
                 return
             }
 
-            refreshPremiumStatus(showWelcome: true)
+            await refreshPremiumStatus(showWelcome: true)
         }
+        
         .onChange(of: authVM.isLoggedIn) { _, isLoggedIn in
             if isLoggedIn {
                 showLoginAfterLogout = false
                 didCheckPremiumStatus = false
+
                 vm.migrateGuestFirstResetToFirestoreIfNeeded()
                 vm.resetToHome()
 
-                refreshPremiumStatus(showWelcome: false)
-
-            } else {
-                if authVM.hasAuthenticatedBefore {
-                    showLoginAfterLogout = true
-                    authVM.showSignup = false
-                    vm.resetToHome()
+                guard let user = Auth.auth().currentUser else {
+                    print("LOGIN LOAD: Firebase user is missing")
+                    return
                 }
+
+                user.getIDTokenForcingRefresh(true) { token, error in
+                    if let error {
+                        print(
+                            "LOGIN TOKEN REFRESH ERROR:",
+                            error.localizedDescription
+                        )
+                        return
+                    }
+
+                    print("LOGIN LOAD UID:", user.uid)
+                    print("LOGIN LOAD: Auth token refreshed")
+
+                    Task {
+                        if vm.hasOnboardingAnswers {
+                            await vm.saveCurrentOnboardingAnswersForLoggedInUser()
+                        }
+
+                        await vm.loadOnboardingAnswersAsync()
+
+                        vm.reloadEntriesForCurrentUser()
+                        await refreshPremiumStatus(showWelcome: false)
+                    }
+                }
+
+            } else if authVM.hasAuthenticatedBefore {
+                showLoginAfterLogout = true
+                authVM.showSignup = false
+                vm.resetToHome()
             }
         }
+        
         .sheet(isPresented: $vm.showPaywall) {
             PaywallScreen(
                 orange: orange,
@@ -141,7 +174,7 @@ struct ContentView:
                 onSubscribe: { plan in
                     Task {
                         await purchaseManager.purchase(plan: plan)
-                        await purchaseManager.checkPremiumStatus()
+                        await refreshPremiumStatus()
 
                         if purchaseManager.isPremium {
                             vm.showPaywall = false
@@ -157,7 +190,7 @@ struct ContentView:
                 onRestore: {
                     Task {
                         await purchaseManager.restore()
-                        await purchaseManager.checkPremiumStatus()
+                        await refreshPremiumStatus()
 
                         if purchaseManager.isPremium {
                             vm.showPaywall = false
@@ -189,8 +222,10 @@ struct ContentView:
 
                     self.backgroundDate = nil
 
+                    vm.resetToHome()
+
                     Task {
-                        refreshPremiumStatus(showWelcome: true)
+                        await refreshPremiumStatus(showWelcome: true)
                     }
                 }
 
@@ -201,14 +236,25 @@ struct ContentView:
         .animation(.easeInOut(duration: 0.55), value: vm.showWelcomeBack)
     }
     
-    private func refreshPremiumStatus(showWelcome: Bool = false) {
-        Task {
-            await purchaseManager.checkPremiumStatus()
-            didCheckPremiumStatus = true
+    @MainActor
+    private func refreshPremiumStatus(
+        showWelcome: Bool = false
+    ) async {
+        guard !isCheckingPremiumStatus else {
+            return
+        }
 
-            if showWelcome {
-                showWelcomeBackIfNeeded()
-            }
+        isCheckingPremiumStatus = true
+        defer {
+            isCheckingPremiumStatus = false
+        }
+
+        await purchaseManager.checkPremiumStatus()
+
+        didCheckPremiumStatus = true
+
+        if showWelcome {
+            showWelcomeBackIfNeeded()
         }
     }
         
@@ -235,9 +281,71 @@ struct ContentView:
             }
         }
     }
-        
+    
+    private func requestNotificationsAfterUserActionIfNeeded() {
+        guard authVM.isLoggedIn else { return }
+        guard !didAskNotificationPermission else { return }
+
+        let hasPersonalization =
+            !vm.onboardingReason.isEmpty ||
+            !vm.onboardingThinkerType.isEmpty ||
+            !vm.onboardingNeed.isEmpty
+
+        guard hasPersonalization else { return }
+
+        Task {
+            await NotificationManager.shared.configureNotifications(
+                reason: vm.onboardingReason,
+                thinkerType: vm.onboardingThinkerType,
+                need: vm.onboardingNeed
+            )
+
+            let status =
+                await NotificationManager.shared.authorizationStatus()
+
+            await MainActor.run {
+                switch status {
+                case .authorized,
+                     .provisional,
+                     .ephemeral,
+                     .denied:
+
+                    didAskNotificationPermission = true
+
+                case .notDetermined:
+                    // Uporabnik še ni odgovoril.
+                    // Ob naslednjem kliku lahko vprašamo ponovno.
+                    didAskNotificationPermission = false
+
+                @unknown default:
+                    didAskNotificationPermission = false
+                }
+            }
+        }
+    }
+    
     @ViewBuilder
     private var mainAppContent: some View {
+        mainScreen
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if shouldShowTabBar {
+                    BottomTabBar(
+                        vm: vm,
+                        orange: orange,
+                        onTabInteraction: {
+                            requestNotificationsAfterUserActionIfNeeded()
+                        }
+                    )
+                }
+            }
+    }
+
+    private var shouldShowTabBar: Bool {
+        vm.step == .home
+    }
+
+    @ViewBuilder
+    private var mainScreen: some View {
         if vm.currentTab == .home {
             homeFlow
         } else if vm.currentTab == .moments {
@@ -261,7 +369,11 @@ struct ContentView:
         switch vm.step {
             
         case .home:
-            HomeScreen( vm: vm, orange: orange, lightOrange: lightOrange) {
+            HomeScreen(
+                vm: vm,
+                orange: orange,
+                lightOrange: lightOrange
+            ) {
                 vm.goToInput()
             }
             

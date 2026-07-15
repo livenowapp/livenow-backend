@@ -12,25 +12,53 @@ import SwiftUI
 struct BottomTabBar: View {
     @ObservedObject var vm: AppViewModel
     let orange: Color
+    let onTabInteraction: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
-            TabItem(icon: "house", label: "home", tab: .home, vm: vm, orange: orange)
-            TabItem(icon: "sparkles", label: "moments", tab: .moments, vm: vm, orange: orange)
-            TabItem(icon: "chart.bar", label: "insights", tab: .insights, vm: vm, orange: orange)
-            TabItem(icon: "person", label: "profile", tab: .profile, vm: vm, orange: orange)
+            TabItem(
+                icon: "house",
+                label: "home",
+                tab: .home,
+                vm: vm,
+                orange: orange,
+                onTap: onTabInteraction
+            )
+
+            TabItem(
+                icon: "sparkles",
+                label: "moments",
+                tab: .moments,
+                vm: vm,
+                orange: orange,
+                onTap: onTabInteraction
+            )
+
+            TabItem(
+                icon: "chart.bar",
+                label: "insights",
+                tab: .insights,
+                vm: vm,
+                orange: orange,
+                onTap: onTabInteraction
+            )
+
+            TabItem(
+                icon: "person",
+                label: "profile",
+                tab: .profile,
+                vm: vm,
+                orange: orange,
+                onTap: onTabInteraction
+            )
         }
-        .padding(.top, 12)
-        .padding(.bottom, 12)
-        .padding(.horizontal, 10)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 26)
-                .fill(Color.white.opacity(0.95))
-                .shadow(color: Color.black.opacity(0.06), radius: 14, x: 0, y: 4)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
+        .background(Color.white)
+        .overlay(
+            Divider(),
+            alignment: .top
         )
-        .padding(.horizontal, 22)
-        .padding(.bottom, 8)
     }
 }
 
@@ -38,14 +66,18 @@ struct TabItem: View {
     let icon: String
     let label: String
     let tab: MainTab
+
     @ObservedObject var vm: AppViewModel
     let orange: Color
+    let onTap: () -> Void
 
     @ScaledMetric private var iconSize: CGFloat = 18
     @ScaledMetric private var labelSize: CGFloat = 11
 
     var body: some View {
-        Button(action: {
+        Button {
+            onTap()
+
             if vm.isGuestUser && vm.hasCompletedGuestReset {
                 switch tab {
                 case .moments, .insights:
@@ -53,22 +85,25 @@ struct TabItem: View {
                     return
 
                 case .home, .profile:
-                    vm.currentTab = tab
+                    break
                 }
-            } else {
-                vm.currentTab = tab
             }
-        }) {
+
+            vm.currentTab = tab
+
+        } label: {
+
             VStack(spacing: 4) {
+
                 Image(systemName: icon)
-                    .font(.system(size: iconSize))
+                    .font(.system(size: iconSize, weight: .regular))
 
                 Text(label)
-                    .font(.system(size: labelSize))
+                    .font(.system(size: labelSize, weight: .medium))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
-            .foregroundColor(vm.currentTab == tab ? orange : .gray)
+            .foregroundStyle(vm.currentTab == tab ? orange : .gray)
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
         }

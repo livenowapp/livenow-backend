@@ -13,6 +13,8 @@ import FirebaseAuth
 struct SettingsScreen: View {
     @ObservedObject var authVM: AuthViewModel
     let orange: Color
+    let isGuestUser: Bool
+    
     @Environment(\.dismiss) private var dismiss
 
     @State private var showDeleteAlert = false
@@ -23,6 +25,8 @@ struct SettingsScreen: View {
     private let privacyURL = URL(string: "https://www.notion.so/Privacy-Policy-3496f514da4380bfba2bdbdbd6289377?source=copy_link")!
     private let termsURL = URL(string: "https://www.notion.so/Terms-Of-Use-3566f514da438019836cf4da4e5f68cc?source=copy_link")!
     private let faqURL = URL(string: "https://www.notion.so/LiveNow-Help-FAQ-3496f514da438035bcdef3ef1bca01e7?source=copy_link")!
+    private let subscriptionURL = URL(string:
+        "https://apps.apple.com/account/subscriptions")!
 
     var body: some View {
         NavigationStack {
@@ -39,11 +43,18 @@ struct SettingsScreen: View {
 
                         ScrollView(showsIndicators: false) {
                             VStack(alignment: .leading, spacing: 28) {
-                                accountSection
-                                preferencesSection
+                                if !isGuestUser {
+                                    accountSection
+                                    subscriptionSection
+                                    preferencesSection
+                                }
+
                                 supportSection
                                 legalSection
-                                logoutButton
+
+                                if !isGuestUser {
+                                    logoutButton
+                                }
                             }
                             .padding(.horizontal, horizontalPadding)
                             .padding(.top, 28)
@@ -144,13 +155,28 @@ struct SettingsScreen: View {
         }
     }
 
+    private var subscriptionSection: some View {
+        settingsGroup(title: "SUBSCRIPTION") {
+            Link(destination: subscriptionURL) {
+                settingsRow(
+                    icon: "creditcard",
+                    title: "Manage subscription",
+                    subtitle: "View, change, or cancel your plan"
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
     private var preferencesSection: some View {
         settingsGroup(title: "PREFERENCES") {
-            Button(action: {}) {
+            NavigationLink {
+                NotificationSettingsScreen(orange: orange)
+            } label: {
                 settingsRow(
                     icon: "bell",
                     title: "Notifications",
-                    subtitle: "Choose when and how we remind you"
+                    subtitle: "Manage reminders and permissions"
                 )
             }
             .buttonStyle(.plain)

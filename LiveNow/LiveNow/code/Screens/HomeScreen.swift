@@ -21,7 +21,7 @@ struct HomeScreen: View {
     @ScaledMetric private var heroSize: CGFloat = 43
     @ScaledMetric private var subtitleSize: CGFloat = 16
     @ScaledMetric private var topButtonSize: CGFloat = 40
-    @ScaledMetric private var cardRadius: CGFloat = 24
+    @ScaledMetric private var cardRadius: CGFloat = 22
 
     var body: some View {
         GeometryReader { geo in
@@ -38,11 +38,11 @@ struct HomeScreen: View {
             let adjustedHeroSize = heroSize * scale
             let adjustedSubtitleSize = subtitleSize * min(max(scale, 0.92), 1.08)
 
-            let resetSize = min(
-                screenWidth * 0.52,
-                screenHeight * 0.24,
-                230 * scale
-            )
+            let isCompactHeight = screenHeight < 760
+
+            let resetSize = isCompactHeight
+                ? min(screenWidth * 0.46, 185)
+                : min(screenWidth * 0.52, screenHeight * 0.24, 230 * scale)
 
             let spacingAfterHeader = min(max(screenHeight * 0.018, 10), 18)
             let spacingAfterSubtitle = min(max(screenHeight * 0.032, 20), 36)
@@ -173,19 +173,6 @@ struct HomeScreen: View {
                         
                         VStack(alignment: .leading, spacing: 10) {
                             
-                         /*   (
-                                Text("Stop Overthinking. ")
-                                    .foregroundColor(.gray)
-                                +
-                                Text("Start Living.")
-                                    .foregroundColor(orange)
-                            )
-                            .font(.system(size: min(max(screenWidth * 0.034, 13), 15), weight: .medium))
-                            //.padding(.horizontal, 4)
-                            .multilineTextAlignment(.center)
-                          */
-                            //Spacer()
-                            
                             VStack(alignment: .leading, spacing: min(max(screenHeight * 0.012, 9), 12)) {
                                 Text("your first reset")
                                     .font(.system(size: titleSize))
@@ -202,16 +189,21 @@ struct HomeScreen: View {
                                                 size: ActionIconStyle.size * ActionIconStyle.imageScale
                                             )
                                         )
-                                    Text(vm.guestFirstReset?.ai.shortTitle ?? vm.guestFirstReset?.thought ?? "")
-                                        .font(.system(size: last7RowLabelSize, weight: .semibold))
-                                        .foregroundColor(.black)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                    
-                                    Text(vm.guestFirstReset?.thought ?? "")
-                                        .font(.system(size: last7RowLabelSize, weight: .semibold))
-                                        .foregroundColor(.black)
-                                        .lineLimit(4)
-                                        .fixedSize(horizontal: false, vertical: true)
+
+                                    VStack(alignment: .leading, spacing: 6) {
+
+                                        Text(vm.guestFirstReset?.ai.shortTitle ?? "")
+                                            .font(.system(size: last7RowLabelSize, weight: .semibold))
+                                            .foregroundColor(.black)
+                                            .lineLimit(2)
+
+                                        Text(vm.guestFirstReset?.thought ?? "")
+                                            .font(.system(size: last7TextSize))
+                                            .foregroundColor(.gray)
+                                            .lineLimit(3)
+                                    }
+
+                                    Spacer(minLength: 0)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             }
@@ -322,8 +314,6 @@ struct HomeScreen: View {
                 .sheet(isPresented: $vm.showSelectedDateEntries) {
                     SelectedDateEntriesSheet(vm: vm, orange: orange)
                 }
-
-                BottomTabBar(vm: vm, orange: orange)
             }
         }
     }

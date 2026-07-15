@@ -12,7 +12,7 @@ import SwiftUI
 struct OnboardingScreen: View {
     let orange: Color
     let lightOrange: Color
-    var onGetStarted: () -> Void
+    var onGetStarted: ([String: String]) -> Void
     var onAlreadySubscribed: () -> Void
 
     @State private var page = 0
@@ -184,7 +184,7 @@ struct OnboardingScreen: View {
                             page += 1
                         }
                     } else {
-                        onGetStarted()
+                        onGetStarted(onboardingAnswers)
                     }
                 } label: {
                     Text(page == pages.count - 1 ? "Get Started" : "Next")

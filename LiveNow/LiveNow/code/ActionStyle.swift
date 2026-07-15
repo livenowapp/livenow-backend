@@ -12,6 +12,7 @@ import SwiftUI
 enum ActionIconStyle {
     static let size: CGFloat = 72
     static let previewSize: CGFloat = 48
+    static let detailSize: CGFloat = 92
     static let imageScale: CGFloat = 0.82
 }
 

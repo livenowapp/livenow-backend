@@ -47,7 +47,7 @@ struct InputScreen: View {
             let bottomSpacing = min(max(screenHeight * 0.018, 12), 22)
 
             let editorFontSize = 18 * scales.scale
-            let exampleIconSize = 18 * scales.scale
+           // let exampleIconSize = 15 * scales.scale
             let exampleTextSize = 15 * scales.scale
 
             VStack(alignment: .leading, spacing: 0) {
@@ -98,7 +98,7 @@ struct InputScreen: View {
                         Spacer().frame(height: min(max(screenHeight * 0.025, 18), 30))
 
                         Text("examples")
-                            .font(.system(size: 15 * scales.scale))
+                            .font(.system(size: 15 * scales.scale, weight: .medium))
                             .foregroundColor(.gray)
 
                         Spacer().frame(height: min(max(screenHeight * 0.012, 8), 12))
@@ -108,10 +108,16 @@ struct InputScreen: View {
                                 Button {
                                     vm.thought = example
                                 } label: {
-                                    HStack(spacing: 14) {
-                                        Image(systemName: "bubble.left")
-                                            .font(.system(size: exampleIconSize))
-                                            .foregroundColor(.orange)
+                                    HStack(spacing: 12) {
+                                        Circle()
+                                            .fill(Color.orange.opacity(0.12))
+                                            .frame(width: 44, height: 44)
+                                            .overlay(
+                                                Image("cloud")
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 32, height: 32)
+                                            )
 
                                         Text(example)
                                             .font(.system(size: exampleTextSize))
@@ -148,7 +154,7 @@ struct InputScreen: View {
                         .foregroundColor(.gray)
 
                     Text("AI-generated reflection. Not professional advice.")
-                        .font(.system(size: 12))
+                        .font(.system(size: 12 * scales.scale))
                         .foregroundColor(.gray)
                 }
                 .frame(maxWidth: .infinity)
@@ -161,7 +167,7 @@ struct InputScreen: View {
                                 .tint(.white)
                         } else {
                             Image(systemName: "sparkles")
-                                .font(.system(size: 16, weight: .medium))
+                                .font(.system(size: buttonSize, weight: .semibold))
                                 .foregroundColor(.white)
                         }
 
@@ -363,7 +369,9 @@ struct AnalyzeScreen: View {
     var onBack: () -> Void
     var onContinue: () -> Void
 
+    @ScaledMetric private var iconCircleSize: CGFloat = 56
     @ScaledMetric private var buttonSize: CGFloat = 18
+    @ScaledMetric private var cardRadius: CGFloat = 22
 
     var body: some View {
         GeometryReader { geo in
@@ -403,9 +411,6 @@ struct AnalyzeScreen: View {
                         Spacer().frame(height: sectionSpacing)
 
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("your thought")
-                                .font(.system(size: 13 * scales.scale, weight: .medium))
-                                .foregroundColor(.black.opacity(0.45))
 
                             Text(ai?.shortTitle ?? vm.thought)
                                 .font(.system(size: min(max(screenWidth * 0.058, 22), 26), weight: .bold))
@@ -413,27 +418,38 @@ struct AnalyzeScreen: View {
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
 
-                            Text(vm.thought)
-                                .font(.system(size: min(max(screenWidth * 0.036, 13), 15)))
-                                .foregroundColor(.black.opacity(0.48))
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.85)
-                                .padding(.top, 2)
-                            
-                          /*  Text("your thought")
-                                .font(.system(size: 13 * scales.scale, weight: .medium))
-                                .foregroundColor(.black.opacity(0.45))
+                            HStack(alignment: .center, spacing: 14) {
 
-                            Text(vm.thought)
-                                .font(.system(size: min(max(screenWidth * 0.052, 20), 23), weight: .semibold))
-                                .foregroundColor(orange)
-                                .fixedSize(horizontal: false, vertical: true)*/
+                                Circle()
+                                    .fill(Color.white.opacity(0.85))
+                                    .frame(width: iconCircleSize, height: iconCircleSize)
+                                    .overlay(
+                                        Image("cloud")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 42, height: 42)
+                                    )
+
+                                VStack(alignment: .leading, spacing: 7) {
+                                    Text("your thought:")
+                                        .font(.system(size: 15 * scales.scale, weight: .semibold))
+                                        .foregroundColor(.black.opacity(0.78))
+
+                                    Text(vm.thought)
+                                        .font(.system(size: min(max(screenWidth * 0.036, 13), 15)))
+                                        .foregroundColor(.black.opacity(0.48))
+                                        .lineLimit(2)
+                                        .minimumScaleFactor(0.85)
+                                }
+
+                                Spacer()
+                            }
                         }
                         .padding(cardPadding)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color(red: 0.95, green: 0.89, blue: 0.84))
-                        .cornerRadius(22)
-
+                        .cornerRadius(cardRadius)
+                        
                         Spacer().frame(height: cardSpacing)
 
                         VStack(spacing: cardSpacing) {
@@ -450,8 +466,8 @@ struct AnalyzeScreen: View {
                         Spacer().frame(height: sectionSpacing)
 
                         VStack(alignment: .leading, spacing: 14) {
-                            Text("evidence check")
-                                .font(.system(size: 13 * scales.scale, weight: .medium))
+                            Text("Ask yourself")
+                                .font(.system(size: 15 * scales.scale, weight: .medium))
                                 .foregroundColor(.black.opacity(0.55))
 
                             VStack(spacing: 0) {
@@ -473,7 +489,7 @@ struct AnalyzeScreen: View {
                             .padding(.vertical, 6)
                             .frame(maxWidth: .infinity)
                             .background(Color.white.opacity(0.9))
-                            .cornerRadius(22)
+                            .cornerRadius(cardRadius)
                         }
 
                         Spacer().frame(height: 28)
@@ -503,7 +519,7 @@ struct AnalyzeScreen: View {
         case 0:
             return "magnifyingglass"
         case 1:
-            return "brain.head.profile"
+            return "brain"
         case 2:
             return "heart"
         default:
@@ -522,9 +538,12 @@ struct ReframeScreen: View {
 
     @ScaledMetric private var buttonSize: CGFloat = 18
 
+    
+    
     var body: some View {
         GeometryReader { geo in
             let ai = vm.aiResponse
+            let scales = screenScales(geo)
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
 
@@ -592,9 +611,10 @@ struct ReframeScreen: View {
                         Spacer()
 
                         Text("Choose the response that feels most believable right now.")
-                            .font(.system(size: min(max(screenWidth * 0.033, 12), 13.5)))
+                            .font(.system(size: 15 * scales.scale, weight: .medium))
+                        //.font(.system(size: min(max(screenWidth * 0.033, 12), 13.5)))
                             .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
+                           // .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
                             .padding(.top, 10)
                     }
@@ -821,9 +841,10 @@ struct CompleteScreen: View {
                             .foregroundColor(orange)
                     }
                     .buttonStyle(.plain)
-                }
+                
 
                 Spacer().frame(height: bottomSpacing)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear {
@@ -1082,24 +1103,36 @@ struct FlowTitleHeader: View {
     let subtitle: String
 
     @ScaledMetric private var titleSize: CGFloat = 35
-    @ScaledMetric private var subtitleSize: CGFloat = 14
+    @ScaledMetric private var subtitleSize: CGFloat = 15
 
     var body: some View {
-        VStack(spacing: 8) {
-            Text(title)
-                .font(.system(size: titleSize, weight: .bold))
-                .foregroundColor(.black)
-                .multilineTextAlignment(.center)
-                .lineLimit(nil)
-                .minimumScaleFactor(0.75)
-                .frame(maxWidth: .infinity, alignment: .top)
+        GeometryReader { geo in
 
-            Text(subtitle)
-                .font(.system(size: subtitleSize))
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
+
+            let widthScale = min(max(screenWidth / 393, 0.88), 1.16)
+            let heightScale = min(max(screenHeight / 852, 0.88), 1.12)
+            let scale = min(widthScale, heightScale)
+
+            VStack(spacing: 8) {
+
+                Text(title)
+                    .font(.system(size: titleSize * scale, weight: .bold))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .minimumScaleFactor(0.75)
+                    .frame(maxWidth: .infinity, alignment: .top)
+
+                Text(subtitle)
+                    .font(.system(size: subtitleSize * scale))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .frame(maxWidth: .infinity, alignment: .top)
+        .frame(height: 110)
     }
 }
 

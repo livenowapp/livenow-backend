@@ -42,7 +42,7 @@ struct AIActionItem: Codable, Hashable {
 }
 
 struct AIResponse: Codable, Hashable {
-    let shortTitle: String
+    let shortTitle: String?
     let analysis: [AIAnalysisItem]
     let evidence: [AIEvidenceItem]
     let reframes: [String]

@@ -30,6 +30,13 @@ final class AppViewModel: ObservableObject {
     @Published var showSelectedDateEntries = false
     @Published var showWelcomeBack = false
     
+    // MARK: - ONBOARDING PERSONALIZATION
+
+    @Published var onboardingReason = ""
+    @Published var onboardingTime = ""
+    @Published var onboardingThinkerType = ""
+    @Published var onboardingNeed = ""
+    
     private var lastAnalyzedThought: String = ""
     private var lastAIResponse: AIResponse? = nil
 
@@ -45,12 +52,7 @@ final class AppViewModel: ObservableObject {
     
     init() {
         loadGuestFirstReset()
-
-        if Auth.auth().currentUser != nil {
-            loadEntries()
-        }
     }
-    
 
     // MARK: - Navigation
 
@@ -476,6 +478,13 @@ final class AppViewModel: ObservableObject {
     }
 
     // MARK: - Firestore
+    
+    var hasOnboardingAnswers: Bool {
+        !onboardingReason.isEmpty ||
+        !onboardingTime.isEmpty ||
+        !onboardingThinkerType.isEmpty ||
+        !onboardingNeed.isEmpty
+    }
 
     private func userEntriesCollection() -> CollectionReference? {
         guard let uid = Auth.auth().currentUser?.uid else { return nil }
@@ -528,18 +537,25 @@ final class AppViewModel: ObservableObject {
                     return
                 }
 
-                let decodedEntries: [ThoughtEntry] = documents.compactMap { document in
-                    do {
-                        let rawData = try JSONSerialization.data(withJSONObject: document.data())
-                        let decoder = JSONDecoder()
-                        return try decoder.decode(ThoughtEntry.self, from: rawData)
-                    } catch {
-                        print("Decode entry error:", error)
-                        return nil
-                    }
-                }
+                Task { @MainActor in
+                    let decodedEntries: [ThoughtEntry] = documents.compactMap { document in
+                        do {
+                            let rawData = try JSONSerialization.data(
+                                withJSONObject: document.data()
+                            )
 
-                DispatchQueue.main.async {
+                            let decoder = JSONDecoder()
+
+                            return try decoder.decode(
+                                ThoughtEntry.self,
+                                from: rawData
+                            )
+                        } catch {
+                            print("Decode entry error:", error)
+                            return nil
+                        }
+                    }
+
                     self.entries = decodedEntries
                 }
             }
@@ -562,6 +578,112 @@ final class AppViewModel: ObservableObject {
         }
 
         loadEntries()
+    }
+
+    func loadOnboardingAnswersAsync() async {
+        guard let user = Auth.auth().currentUser else {
+            print("PERSONALIZATION: no Firebase user")
+            return
+        }
+
+        print("PERSONALIZATION USER UID:", user.uid)
+
+        do {
+            let snapshot = try await db
+                .collection("users")
+                .document(user.uid)
+                .getDocument()
+
+            guard
+                let data = snapshot.data()?["personalization"] as? [String: Any]
+            else {
+                print("PERSONALIZATION: document has no personalization field")
+                return
+            }
+
+            await MainActor.run {
+                self.onboardingReason =
+                    data["onboardingReason"] as? String ?? ""
+
+                self.onboardingTime =
+                    data["onboardingTime"] as? String ?? ""
+
+                self.onboardingThinkerType =
+                    data["onboardingThinkerType"] as? String ?? ""
+
+                self.onboardingNeed =
+                    data["onboardingNeed"] as? String ?? ""
+            }
+
+            print("PERSONALIZATION LOADED")
+
+        } catch {
+            print(
+                "LOAD ONBOARDING ERROR:",
+                error.localizedDescription
+            )
+        }
+    }
+    
+    func saveOnboardingAnswers(
+        _ answers: [String: String]
+    ) {
+        onboardingReason =
+            answers["onboardingReason"] ?? ""
+
+        onboardingTime =
+            answers["onboardingTime"] ?? ""
+
+        onboardingThinkerType =
+            answers["onboardingThinkerType"] ?? ""
+
+        onboardingNeed =
+            answers["onboardingNeed"] ?? ""
+
+        print("ONBOARDING ANSWERS SAVED LOCALLY")
+    }
+    
+    func saveCurrentOnboardingAnswersForLoggedInUser() async {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("PERSONALIZATION SAVE: no logged-in user")
+            return
+        }
+
+        let hasAnswers =
+            !onboardingReason.isEmpty ||
+            !onboardingTime.isEmpty ||
+            !onboardingThinkerType.isEmpty ||
+            !onboardingNeed.isEmpty
+
+        guard hasAnswers else {
+            print("PERSONALIZATION SAVE: no answers available")
+            return
+        }
+
+        let personalizationData: [String: Any] = [
+            "onboardingReason": onboardingReason,
+            "onboardingTime": onboardingTime,
+            "onboardingThinkerType": onboardingThinkerType,
+            "onboardingNeed": onboardingNeed,
+            "updatedAt": FieldValue.serverTimestamp()
+        ]
+
+        do {
+            try await db
+                .collection("users")
+                .document(uid)
+                .setData(
+                    ["personalization": personalizationData],
+                    merge: true
+                )
+
+            print("PERSONALIZATION SAVED TO FIRESTORE")
+        } catch {
+            print(
+                "PERSONALIZATION SAVE ERROR:",
+                error.localizedDescription
+            )
+        }
     }
     
     // MARK: - Last Month

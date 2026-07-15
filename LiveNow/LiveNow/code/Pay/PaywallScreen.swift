@@ -49,9 +49,6 @@ struct PaywallScreen: View {
             let subtitleSize = min(max(15.5 * scale, 13), 18)
 
             let headerSpacing = min(max(screenHeight * 0.014, 8), 16)
-            let sectionSpacing = isVeryCompact
-                ? min(max(screenHeight * 0.012, 8), 14)
-                : min(max(screenHeight * 0.018, 12), 22)
 
             let featureSpacing = min(max(screenHeight * 0.009, 6), 10)
             let planSpacing = min(max(screenHeight * 0.010, 7), 11)
@@ -108,7 +105,7 @@ struct PaywallScreen: View {
                     }
                     .padding(.horizontal, horizontalPadding)
 
-                    Spacer()//.frame(height: sectionSpacing)
+                    Spacer()
 
                     VStack(spacing: featureSpacing) {
                         PaywallFeatureRow(
@@ -146,7 +143,7 @@ struct PaywallScreen: View {
                     }
                     .padding(.horizontal, horizontalPadding)
 
-                    Spacer()//.frame(height: sectionSpacing)
+                    Spacer()
 
                     VStack(spacing: planSpacing) {
                         PaywallPlanCard(
@@ -208,16 +205,6 @@ struct PaywallScreen: View {
 
                     Spacer().frame(height: min(max(screenHeight * 0.008, 5), 9))
 
-                   /* Text("AI-generated reflection. Not professional advice.")
-                        .font(.system(size: min(max(12.5 * scale, 11), 14)))
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.72)
-                        .padding(.horizontal, horizontalPadding)
-
-                    Spacer().frame(height: 7)*/
-
                     HStack(spacing: 6) {
                         Link(destination: privacyURL) {
                             Text("Privacy Policy")
@@ -235,8 +222,6 @@ struct PaywallScreen: View {
                                 .foregroundColor(.gray)
                         }
                     }
-
-                    //Spacer().frame(height: min(screenHeight * 0.015, 12))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }

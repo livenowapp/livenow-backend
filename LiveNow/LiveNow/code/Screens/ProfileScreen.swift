@@ -66,15 +66,21 @@ struct ProfilePlaceholderScreen: View {
     @ScaledMetric private var topButtonSize: CGFloat = 40
     @ScaledMetric private var nameSize: CGFloat = 34
     @ScaledMetric private var titleSize: CGFloat = 34
-    @ScaledMetric private var cardRadius: CGFloat = 24
+    @ScaledMetric private var cardRadius: CGFloat = 22
 
     @State private var showSettings = false
     
     var body: some View {
         GeometryReader { geo in
 
-            let horizontalPadding = min(geo.size.width * 0.06, 24)
-            let topPadding = min(geo.size.height * 0.025, 18)
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
+
+            let horizontalPadding = min(screenWidth * 0.055, 24)
+            let topPadding = min(screenHeight * 0.025, 22)
+
+            let cardSpacing = min(max(screenHeight * 0.022, 16), 22)
+            let cardPadding = min(max(screenWidth * 0.052, 18), 24)
 
             VStack(spacing: 0) {
                 
@@ -94,9 +100,13 @@ struct ProfilePlaceholderScreen: View {
                 VStack(alignment: .leading, spacing: 6) {
 
                     Text(
-                        authVM.displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        vm.isGuestUser
                         ? "Hey, friend"
-                        : "Hey, \(authVM.displayName)"
+                        : (
+                            authVM.displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            ? "Hey, friend"
+                            : "Hey, \(authVM.displayName)"
+                        )
                     )
                     .font(.system(size: nameSize, weight: .bold))
                     .foregroundColor(.black)
@@ -110,77 +120,91 @@ struct ProfilePlaceholderScreen: View {
                 .padding(.horizontal, horizontalPadding)
                 .padding(.top, topPadding)
 
-                    VStack(spacing: 12) {
-                        progressCard
-                        Spacer()
+                    VStack(spacing: 18) {
+                        if vm.isGuestUser {
+                            guestProgressCard(
+                                cardPadding: cardPadding,
+                                cardSpacing: cardSpacing
+                                )
+                        } else {
+                            progressCard(
+                                cardPadding: cardPadding,
+                                cardSpacing: cardSpacing
+                                )
+                        }
                         menuCard
                     }
                     .padding(.horizontal, horizontalPadding)
-                    .padding(.top, 22)
+                    .padding(.top, min(max(screenHeight * 0.026, 18), 24))
                     .padding(.bottom, 24)
                 }
-                BottomTabBar(vm: vm, orange: orange)
-                    .sheet(isPresented: $showSettings) {
-                        SettingsScreen(authVM: authVM, orange: orange)
-                    }
-                                                            
             }
-            
-            
-            /*(VStack(spacing: 0) {
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 18) {
-
-                        HStack {
-                            Circle()
-                                .fill(Color.clear)
-                                .frame(width: topButtonSize, height: topButtonSize)
-
-                            Spacer()
-
-                            Text("LiveNow")
-                                .font(.system(size: logoSize, weight: .semibold))
-                                .foregroundColor(.black)
-
-                            Spacer()
-
-                            Circle()
-                                .fill(Color.clear)
-                                .frame(width: topButtonSize, height: topButtonSize)
-                        }
-                        .padding(.top, topPadding)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(authVM.displayName.isEmpty ? "LiveNow" : authVM.displayName)
-                                .font(.system(size: nameSize, weight: .bold))
-                                .foregroundColor(.black)
-
-                            Text(dailyCalmMessage)
-                                .font(.system(size: 16))
-                                .foregroundColor(.gray)
-                                .lineLimit(2)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                        progressCard
-
-                        menuCard
-                    }
-                    .padding(.horizontal, horizontalPadding)
-                    .padding(.bottom, 28)
-                }
-
-                BottomTabBar(vm: vm, orange: orange)
-                    .sheet(isPresented: $showSettings) {
-                        SettingsScreen(authVM: authVM, orange: orange)
-                    }
-            }*/
+            .sheet(isPresented: $showSettings) {
+                SettingsScreen(
+                    authVM: authVM,
+                    orange: orange,
+                    isGuestUser: vm.isGuestUser
+                )
+            }
+               
         }
     }
-
-    private var progressCard: some View {
+    
+// MARK: - GUEST CARD
+    private func guestProgressCard(
+        cardPadding: CGFloat,
+        cardSpacing: CGFloat
+    ) -> some View {
         
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: cardSpacing) {
+
+            Button {
+                authVM.showSignup = true
+                vm.requestPremiumAccess()
+            } label: {
+                Text("Create account")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(orange)
+                    .cornerRadius(16)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                authVM.showSignup = false
+                vm.requestPremiumAccess()
+            } label: {
+                Text("I already have an account")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(orange)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.plain)
+
+            if vm.hasCompletedGuestReset {
+                Text("Your first reset will be saved after you create an account.")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white.opacity(0.78))
+        .cornerRadius(cardRadius)
+    }
+    
+// MARK: - PROGRESS CARD
+    
+    private func progressCard(
+        cardPadding: CGFloat,
+        cardSpacing: CGFloat
+    ) -> some View {
+        
+        VStack(alignment: .leading, spacing: cardSpacing) {
             Text("This month progress")
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.black)
@@ -221,12 +245,15 @@ struct ProfilePlaceholderScreen: View {
             }
             .frame(height: 130)
         }
-        .padding(22)
+        .padding(cardPadding)
         .background(Color.white.opacity(0.78))
         .cornerRadius(cardRadius)
-        .frame(height: 205)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        //.frame(height: 205)
     }
 
+// MARK: - PROGRESS CIRCLE
+    
     private var progressCircle: some View {
         VStack(spacing: 10) {
             ZStack {
@@ -268,6 +295,8 @@ struct ProfilePlaceholderScreen: View {
         .frame(maxWidth: .infinity)
     }
 
+// MARK: - STATISTIC
+    
     private func statItem(icon: String, value: String, title: String) -> some View {
         
         VStack(spacing: 0) {
@@ -302,28 +331,48 @@ struct ProfilePlaceholderScreen: View {
         .frame(maxWidth: .infinity)
     }
 
+// MARK: - MENU CARD
+    
     private var menuCard: some View {
         VStack(spacing: 0) {
             Button {
                 showSettings = true
             } label: {
-                menuRow(icon: "gearshape", title: "Settings", subtitle: "Manage your account and app")
-            }
-            .buttonStyle(.plain)
-            
-            Divider().padding(.leading, 74)
-
-            Button {
-                requestReview()
-            } label: {
-                menuRow(icon: "star", title: "Rate LiveNow", subtitle: "If LiveNow helps you, leave a review")
+                menuRow(
+                    icon: "gearshape",
+                    title: "Settings",
+                    subtitle: vm.isGuestUser
+                        ? "Help, privacy and legal information"
+                        : "Manage your account and app"
+                )
             }
             .buttonStyle(.plain)
 
-            Divider().padding(.leading, 74)
+            if !vm.isGuestUser {
+                Divider()
+                    .padding(.leading, 74)
+
+                Button {
+                    requestReview()
+                } label: {
+                    menuRow(
+                        icon: "star",
+                        title: "Rate LiveNow",
+                        subtitle: "If LiveNow helps you, leave a review"
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
+            Divider()
+                .padding(.leading, 74)
 
             ShareLink(item: "Check out LiveNow") {
-                menuRow(icon: "square.and.arrow.up", title: "Share LiveNow", subtitle: "Help others live more in the now")
+                menuRow(
+                    icon: "square.and.arrow.up",
+                    title: "Share LiveNow",
+                    subtitle: "Help others live more in the now"
+                )
             }
             .buttonStyle(.plain)
         }
@@ -331,6 +380,7 @@ struct ProfilePlaceholderScreen: View {
         .cornerRadius(cardRadius)
     }
 
+    
     private func menuRow(icon: String, title: String, subtitle: String) -> some View {
         HStack(spacing: 16) {
             Image(systemName: icon)

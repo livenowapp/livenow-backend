@@ -25,7 +25,7 @@ struct MomentDetailScreen: View {
 
     @ScaledMetric private var titleSize: CGFloat = 30
     @ScaledMetric private var bodySize: CGFloat = 15
-    @ScaledMetric private var cardRadius: CGFloat = 28
+    @ScaledMetric private var cardRadius: CGFloat = 22
 
     var body: some View {
         ZStack {
@@ -33,8 +33,11 @@ struct MomentDetailScreen: View {
                 .ignoresSafeArea()
 
             GeometryReader { geo in
-                let horizontalPadding = min(geo.size.width * 0.055, 24)
-                let topPadding = min(geo.size.height * 0.025, 22)
+                let screenWidth = geo.size.width
+                let screenHeight = geo.size.height
+
+                let horizontalPadding = min(screenWidth * 0.055, 24)
+                let topPadding = min(screenHeight * 0.025, 22)
 
                 VStack(spacing: 0) {
                     header(horizontalPadding: horizontalPadding, topPadding: topPadding)
@@ -42,16 +45,16 @@ struct MomentDetailScreen: View {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 18) {
                             heroCard
-                            thoughtCard
                             outcomeCard
+                            thoughtCard
                             analysisCard
                             reframeCard
                             noteCard
                             deleteButton
                         }
                         .padding(.horizontal, horizontalPadding)
-                        .padding(.top, 18)
-                        .padding(.bottom, 30)
+                        .padding(.top, min(max(screenHeight * 0.026, 18), 24))
+                        .padding(.bottom, 24)
                     }
                 }
             }
@@ -91,11 +94,22 @@ struct MomentDetailScreen: View {
     }
 
     private var heroCard: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: 0) {
+
+            Text(formattedDate(currentEntry.date))
+                .font(.system(size: 14))
+                .foregroundColor(.gray)
+
+            Spacer()
+                .frame(height: 16)
+
             ZStack {
                 Circle()
                     .fill(ActionStyle.color(currentEntry.selectedActionIcon))
-                    .frame(width: 116, height: 116)
+                    .frame(
+                        width: ActionIconStyle.detailSize,
+                        height: ActionIconStyle.detailSize
+                    )
                     .shadow(
                         color: ActionStyle.color(currentEntry.selectedActionIcon).opacity(0.25),
                         radius: 18,
@@ -105,37 +119,47 @@ struct MomentDetailScreen: View {
 
                 MomentIconImage(
                     icon: ActionStyle.iconName(currentEntry.selectedActionIcon),
-                    size: 92
+                    size: ActionIconStyle.detailSize * ActionIconStyle.imageScale
                 )
             }
 
-            VStack(spacing: 6) {
-                Text(formattedDate(currentEntry.date))
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
+            Spacer()
+                .frame(height: 12)
 
-                Text(currentEntry.selectedActionLabel ?? "moment")
-                    .font(.system(size: 26, weight: .bold))
-                    .foregroundColor(.black)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.82)
-                    .frame(maxWidth: 285)
+            Text(currentEntry.selectedActionLabel ?? "")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
 
-                Text(statusText)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(statusColor)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background(statusColor.opacity(0.12))
-                    .cornerRadius(14)
-                    .padding(.top, 4)
-            }
+            Spacer()
+                .frame(height: 8)
+
+            Text(currentEntry.ai.shortTitle ?? currentEntry.thought)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.black)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.82)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 300)
+
+            Spacer()
+                .frame(height: 12)
+
+            Text(statusText)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(statusColor)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(statusColor.opacity(0.12))
+                .cornerRadius(14)
         }
         .padding(24)
         .frame(maxWidth: .infinity)
-        .background(Color.white.opacity(0.9))
-        .cornerRadius(32)
+        .background(Color.white.opacity(0.78))
+        .cornerRadius(cardRadius)
         .shadow(color: Color.black.opacity(0.045), radius: 18, x: 0, y: 8)
     }
 
@@ -143,7 +167,7 @@ struct MomentDetailScreen: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Was it worth overthinking?")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.black)
 
                 Spacer()
@@ -179,7 +203,7 @@ struct MomentDetailScreen: View {
             }
         }
         .padding(20)
-        .background(Color.white.opacity(0.75))
+        .background(Color.white.opacity(0.78))
         .cornerRadius(cardRadius)
     }
 
@@ -294,7 +318,7 @@ struct MomentDetailScreen: View {
                 .foregroundColor(.red)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 15)
-                .background(Color.white.opacity(0.75))
+                .background(Color.white.opacity(0.78))
                 .cornerRadius(18)
         }
         .buttonStyle(.plain)
@@ -433,7 +457,7 @@ struct MomentDetailScreen: View {
         case 0:
             return "magnifyingglass"
         case 1:
-            return "brain.head.profile"
+            return "brain"
         case 2:
             return "heart"
         default:

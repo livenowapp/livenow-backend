@@ -114,6 +114,10 @@ final class PurchaseManager: ObservableObject {
         print("RESTORE TAPPED")
 
         isLoading = true
+        defer {
+            isLoading = false
+        }
+
         errorMessage = nil
 
         do {
@@ -128,7 +132,5 @@ final class PurchaseManager: ObservableObject {
             print("RESTORE ERROR:", error.localizedDescription)
             errorMessage = error.localizedDescription
         }
-
-        isLoading = false
     }
 }
