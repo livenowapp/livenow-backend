@@ -21,6 +21,8 @@ struct ContentView:
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @AppStorage("didAskNotificationPermission")
     private var didAskNotificationPermission = false
+    @AppStorage("lastNotificationScheduleRefresh")
+    private var lastNotificationScheduleRefresh: Double = 0
     
     @State private var paywallFromAlreadySubscribed = false
     @Environment(\.scenePhase) private var scenePhase
@@ -148,16 +150,19 @@ struct ContentView:
                     print("LOGIN LOAD UID:", user.uid)
                     print("LOGIN LOAD: Auth token refreshed")
 
-                    Task {
-                        if vm.hasOnboardingAnswers {
-                            await vm.saveCurrentOnboardingAnswersForLoggedInUser()
-                        }
+                                            Task {
+                                                if vm.hasOnboardingAnswers {
+                                                    await vm
+                                                        .saveCurrentOnboardingAnswersForLoggedInUser()
+                                                }
 
-                        await vm.loadOnboardingAnswersAsync()
+                                                await vm.loadOnboardingAnswersAsync()
 
-                        vm.reloadEntriesForCurrentUser()
-                        await refreshPremiumStatus(showWelcome: false)
-                    }
+                                                await refreshNotificationScheduleIfNeeded()
+
+                                                vm.reloadEntriesForCurrentUser()
+                                                await refreshPremiumStatus(showWelcome: false)
+                                            }
                 }
 
             } else if authVM.hasAuthenticatedBefore {
@@ -324,6 +329,45 @@ struct ContentView:
         }
     }
     
+                        private func refreshNotificationScheduleIfNeeded() async {
+                            let refreshInterval: TimeInterval =
+                                7 * 24 * 60 * 60
+
+                            let lastRefreshDate = Date(
+                                timeIntervalSince1970:
+                                    lastNotificationScheduleRefresh
+                            )
+
+                            guard Date().timeIntervalSince(lastRefreshDate)
+                                    >= refreshInterval
+                            else {
+                                return
+                            }
+
+                            await NotificationManager.shared
+                                .refreshNotificationsIfAuthorized(
+                                    reason: vm.onboardingReason,
+                                    thinkerType: vm.onboardingThinkerType,
+                                    need: vm.onboardingNeed
+                                )
+
+                            let status =
+                                await NotificationManager.shared
+                                    .authorizationStatus()
+
+                            guard status == .authorized ||
+                                  status == .provisional ||
+                                  status == .ephemeral
+                            else {
+                                return
+                            }
+
+                            await MainActor.run {
+                                lastNotificationScheduleRefresh =
+                                    Date().timeIntervalSince1970
+                            }
+                        }
+                        
     @ViewBuilder
     private var mainAppContent: some View {
         mainScreen
