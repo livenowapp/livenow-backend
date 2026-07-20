@@ -2,7 +2,7 @@
 //  AccountScreen.swift
 //  LiveNow
 //
-//  Created by Maja on 16. 5. 2026.
+//  Created by Gregor Cigoj on 16. 5. 2026.
 //
 
 import SwiftUI

@@ -2,7 +2,7 @@
 //  LiveNowApp.swift
 //  LiveNow
 //
-//  Created by Maja on 23. 4. 2026.
+//  Created by Gregor Cigoj on 23. 4. 2026.
 //
 
 import SwiftUI

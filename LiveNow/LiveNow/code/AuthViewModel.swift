@@ -2,7 +2,7 @@
 //  AuthViewModel.swift
 //  LiveNow
 //
-//  Created by Maja on 24. 4. 2026.
+//  Created by Gregor Cigoj on 24. 4. 2026.
 //
 
 import SwiftUI
@@ -18,6 +18,7 @@ final class AuthViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var isLoggedIn: Bool = Auth.auth().currentUser != nil
     @Published var showSignup: Bool = false
+    @Published var confirmPassword = ""
     @Published var currentNonce: String?
     @AppStorage("hasAuthenticatedBefore")
     var hasAuthenticatedBefore = false
@@ -105,25 +106,19 @@ final class AuthViewModel: ObservableObject {
     
     func signUp() {
         errorMessage = nil
-        
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Please enter your name."
-            return
-        }
 
-        guard !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Please enter your email."
-            return
-        }
+        guard password == confirmPassword else {
+                errorMessage = "Passwords don't match."
+                return
+            }
 
-        guard !password.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Please enter your password."
-            return
-        }
-        
         isLoading = true
 
-        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+        Auth.auth().createUser(
+            withEmail: email,
+            password: password
+        ) { result, error in
+            
             DispatchQueue.main.async {
                 self.isLoading = false
 

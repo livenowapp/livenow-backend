@@ -2,11 +2,10 @@
 //  ContentView.swift
 //  LiveNow
 //
-//  Created by Maja on 23. 4. 2026.
+//  Created by Gregor Cigoj on 23. 4. 2026.
 //
 
 import SwiftUI
-import Combine
 import FirebaseAuth
 
 // MARK: - ROOT
@@ -18,9 +17,8 @@ struct ContentView:
     @StateObject private var authVM = AuthViewModel()
     @StateObject private var purchaseManager = PurchaseManager.shared
     
-    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
-    @AppStorage("didAskNotificationPermission")
-    private var didAskNotificationPermission = false
+    @AppStorage("hasSeenOnboarding")
+    private var hasSeenOnboarding = false
     @AppStorage("lastNotificationScheduleRefresh")
     private var lastNotificationScheduleRefresh: Double = 0
     
@@ -43,7 +41,8 @@ struct ContentView:
             bgColor
                 .ignoresSafeArea()
 
-            if !hasSeenOnboarding {
+            Group {
+                if !hasSeenOnboarding {
                 OnboardingScreen(
                     orange: orange,
                     lightOrange: lightOrange,
@@ -107,13 +106,19 @@ struct ContentView:
             } else {
                 mainAppContent
                     .onAppear {
-                        if vm.isGuestUser && !vm.hasCompletedGuestReset && vm.step == .home {
+                        if vm.isGuestUser &&
+                            !vm.hasCompletedGuestReset &&
+                            vm.step == .home {
+
                             vm.goToInput()
                         }
                     }
             }
         }
+    }
         .task {
+            await setupNotificationsIfNeeded()
+
             if !hasSeenOnboarding && authVM.isLoggedIn {
                 authVM.logout()
                 showLoginAfterLogout = false
@@ -150,22 +155,22 @@ struct ContentView:
                     print("LOGIN LOAD UID:", user.uid)
                     print("LOGIN LOAD: Auth token refreshed")
 
-                                            Task {
-                                                if vm.hasOnboardingAnswers {
-                                                    await vm
-                                                        .saveCurrentOnboardingAnswersForLoggedInUser()
-                                                }
+                    Task {
+                        if vm.hasOnboardingAnswers {
+                            await vm.saveCurrentOnboardingAnswersForLoggedInUser()
+                        }
 
-                                                await vm.loadOnboardingAnswersAsync()
+                        await vm.loadOnboardingAnswersAsync()
 
-                                                await refreshNotificationScheduleIfNeeded()
+                        vm.reloadEntriesForCurrentUser()
 
-                                                vm.reloadEntriesForCurrentUser()
-                                                await refreshPremiumStatus(showWelcome: false)
-                                            }
+                        await refreshPremiumStatus(showWelcome: false)
+
+                    }
                 }
 
             } else if authVM.hasAuthenticatedBefore {
+
                 showLoginAfterLogout = true
                 authVM.showSignup = false
                 vm.resetToHome()
@@ -215,7 +220,6 @@ struct ContentView:
             )
         }
         .onChange(of: scenePhase) { _, phase in
-
             switch phase {
 
             case .background:
@@ -223,10 +227,10 @@ struct ContentView:
 
             case .active:
                 if let backgroundDate,
-                   Date().timeIntervalSince(backgroundDate) > welcomeBackgroundDelay {
+                   Date().timeIntervalSince(backgroundDate) >
+                    welcomeBackgroundDelay {
 
                     self.backgroundDate = nil
-
                     vm.resetToHome()
 
                     Task {
@@ -238,7 +242,10 @@ struct ContentView:
                 break
             }
         }
-        .animation(.easeInOut(duration: 0.55), value: vm.showWelcomeBack)
+        .animation(
+            .easeInOut(duration: 0.55),
+            value: vm.showWelcomeBack
+        )
     }
     
     @MainActor
@@ -287,87 +294,83 @@ struct ContentView:
         }
     }
     
-    private func requestNotificationsAfterUserActionIfNeeded() {
-        guard authVM.isLoggedIn else { return }
-        guard !didAskNotificationPermission else { return }
+    @MainActor
+    private func setupNotificationsIfNeeded() async {
+        let status =
+            await NotificationManager.shared.authorizationStatus()
 
-        let hasPersonalization =
-            !vm.onboardingReason.isEmpty ||
-            !vm.onboardingThinkerType.isEmpty ||
-            !vm.onboardingNeed.isEmpty
+        switch status {
 
-        guard hasPersonalization else { return }
-
-        Task {
+        case .notDetermined:
             await NotificationManager.shared.configureNotifications(
                 reason: vm.onboardingReason,
                 thinkerType: vm.onboardingThinkerType,
-                need: vm.onboardingNeed
+                need: vm.onboardingNeed,
+                entries: vm.entries
             )
 
-            let status =
+            let newStatus =
                 await NotificationManager.shared.authorizationStatus()
 
-            await MainActor.run {
-                switch status {
-                case .authorized,
-                     .provisional,
-                     .ephemeral,
-                     .denied:
+            if newStatus == .authorized ||
+               newStatus == .provisional ||
+               newStatus == .ephemeral {
 
-                    didAskNotificationPermission = true
-
-                case .notDetermined:
-                    // Uporabnik še ni odgovoril.
-                    // Ob naslednjem kliku lahko vprašamo ponovno.
-                    didAskNotificationPermission = false
-
-                @unknown default:
-                    didAskNotificationPermission = false
-                }
+                lastNotificationScheduleRefresh =
+                    Date().timeIntervalSince1970
             }
+
+        case .authorized,
+             .provisional,
+             .ephemeral:
+
+            await refreshNotificationScheduleIfNeeded()
+
+        case .denied:
+            break
+
+        @unknown default:
+            break
         }
     }
     
-                        private func refreshNotificationScheduleIfNeeded() async {
-                            let refreshInterval: TimeInterval =
-                                7 * 24 * 60 * 60
+    private func refreshNotificationScheduleIfNeeded() async {
+        let refreshInterval: TimeInterval =
+            7 * 24 * 60 * 60
 
-                            let lastRefreshDate = Date(
-                                timeIntervalSince1970:
-                                    lastNotificationScheduleRefresh
-                            )
+        let lastRefreshDate = Date(
+            timeIntervalSince1970:
+                lastNotificationScheduleRefresh
+        )
 
-                            guard Date().timeIntervalSince(lastRefreshDate)
-                                    >= refreshInterval
-                            else {
-                                return
-                            }
+        guard Date().timeIntervalSince(lastRefreshDate) >= refreshInterval else {
+            return
+        }
 
-                            await NotificationManager.shared
-                                .refreshNotificationsIfAuthorized(
-                                    reason: vm.onboardingReason,
-                                    thinkerType: vm.onboardingThinkerType,
-                                    need: vm.onboardingNeed
-                                )
+        await NotificationManager.shared.configureNotifications(
+            reason: vm.onboardingReason,
+            thinkerType: vm.onboardingThinkerType,
+            need: vm.onboardingNeed,
+            entries: vm.entries
+        )
 
-                            let status =
-                                await NotificationManager.shared
-                                    .authorizationStatus()
+        let status =
+            await NotificationManager.shared
+                .authorizationStatus()
 
-                            guard status == .authorized ||
-                                  status == .provisional ||
-                                  status == .ephemeral
-                            else {
-                                return
-                            }
+        guard status == .authorized ||
+              status == .provisional ||
+              status == .ephemeral
+        else {
+            return
+        }
 
-                            await MainActor.run {
-                                lastNotificationScheduleRefresh =
-                                    Date().timeIntervalSince1970
-                            }
-                        }
-                        
+        await MainActor.run {
+            lastNotificationScheduleRefresh =
+                Date().timeIntervalSince1970
+        }
+    }
+    
     @ViewBuilder
     private var mainAppContent: some View {
         mainScreen
@@ -376,9 +379,6 @@ struct ContentView:
                     BottomTabBar(
                         vm: vm,
                         orange: orange,
-                        onTabInteraction: {
-                            requestNotificationsAfterUserActionIfNeeded()
-                        }
                     )
                 }
             }

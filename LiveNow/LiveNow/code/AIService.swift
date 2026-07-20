@@ -2,7 +2,7 @@
 //  AIService.swift
 //  LiveNow
 //
-//  Created by Maja on 24. 4. 2026.
+//  Created by Gregor Cigoj on 24. 4. 2026.
 //
 
 import Foundation

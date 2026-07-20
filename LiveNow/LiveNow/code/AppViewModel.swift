@@ -2,7 +2,7 @@
 //  AppViewModel.swift
 //  LiveNow
 //
-//  Created by Maja on 24. 4. 2026.
+//  Created by Gregor Cigoj on 24. 4. 2026.
 //
 
 import SwiftUI
@@ -212,8 +212,13 @@ final class AppViewModel: ObservableObject {
     func completeReset() {
         guard let ai = aiResponse else { return }
 
-        let action = ai.actions.indices.contains(selectedActionIndex) ? ai.actions[selectedActionIndex] : nil
-        let reframe = ai.reframes.indices.contains(selectedReframeIndex) ? ai.reframes[selectedReframeIndex] : nil
+        let action = ai.actions.indices.contains(selectedActionIndex)
+            ? ai.actions[selectedActionIndex]
+            : nil
+
+        let reframe = ai.reframes.indices.contains(selectedReframeIndex)
+            ? ai.reframes[selectedReframeIndex]
+            : nil
 
         let entry = ThoughtEntry(
             id: UUID(),
@@ -229,6 +234,15 @@ final class AppViewModel: ObservableObject {
         entries.insert(entry, at: 0)
         saveEntry(entry)
         step = .complete
+
+        Task {
+            await NotificationManager.shared.refreshTonightNotification(
+                reason: onboardingReason,
+                thinkerType: onboardingThinkerType,
+                need: onboardingNeed,
+                entries: entries
+            )
+        }
     }
 
     func updateOutcome(for entryID: UUID, outcome: EntryOutcome?) {

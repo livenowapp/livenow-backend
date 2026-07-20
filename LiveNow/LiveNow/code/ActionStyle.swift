@@ -2,7 +2,7 @@
 //  ActionStyle.swift
 //  LiveNow
 //
-//  Created by Maja on 9. 5. 2026.
+//  Created by Gregor Cigoj on 9. 5. 2026.
 //
 
 import SwiftUI

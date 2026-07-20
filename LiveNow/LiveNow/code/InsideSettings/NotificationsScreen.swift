@@ -32,8 +32,8 @@ struct NotificationSettingsScreen: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 28) {
-                        statusSection
-                        scheduleSection
+                        notificationAccessSection
+                      //  reminderInfoSection
                     }
                     .padding(.horizontal, 22)
                     .padding(.top, 28)
@@ -54,13 +54,15 @@ struct NotificationSettingsScreen: View {
         }
     }
 
+    // MARK: - HEADER
+
     private var header: some View {
         HStack {
             Button {
                 dismiss()
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 20))
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundColor(.black.opacity(0.75))
                     .frame(width: 44, height: 44)
             }
@@ -81,18 +83,24 @@ struct NotificationSettingsScreen: View {
         .padding(.top, 14)
     }
 
-    private var statusSection: some View {
+    // MARK: - NOTIFICATION ACCESS
+
+    private var notificationAccessSection: some View {
         settingsGroup(title: "NOTIFICATION ACCESS") {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 18) {
                 HStack(spacing: 14) {
                     Image(systemName: statusIcon)
-                        .font(.system(size: 24))
+                        .font(.system(size: 23, weight: .medium))
                         .foregroundColor(statusColor)
-                        .frame(width: 42)
+                        .frame(width: 42, height: 42)
+                        .background(
+                            statusColor.opacity(0.12)
+                        )
+                        .clipShape(Circle())
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 5) {
                         Text(statusTitle)
-                            .font(.system(size: 17, weight: .medium))
+                            .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(.black)
 
                         Text(statusSubtitle)
@@ -116,7 +124,12 @@ struct NotificationSettingsScreen: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(orange)
-                        .cornerRadius(16)
+                        .clipShape(
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                        )
                 }
                 .buttonStyle(.plain)
             }
@@ -124,37 +137,51 @@ struct NotificationSettingsScreen: View {
         }
     }
 
-    private var scheduleSection: some View {
+    // MARK: - REMINDER INFO
+
+ /*   private var reminderInfoSection: some View {
         settingsGroup(title: "DAILY REMINDERS") {
             VStack(alignment: .leading, spacing: 18) {
                 reminderRow(
-                    icon: "sun.max",
-                    title: "Morning",
-                    time: "9:30 AM"
+                    icon: "sun.max.fill",
+                    title: "Morning reminder",
+                    subtitle: "Delivered between 8:45 AM and 10:15 AM"
                 )
 
                 Divider()
 
                 reminderRow(
-                    icon: "sun.haze",
-                    title: "Afternoon",
-                    time: "3:00 PM"
+                    icon: "sun.haze.fill",
+                    title: "Afternoon reminder",
+                    subtitle: "Delivered between 1:30 PM and 4:30 PM"
                 )
 
                 Divider()
 
                 reminderRow(
-                    icon: "moon.stars",
-                    title: "Evening",
-                    time: "8:30 PM"
+                    icon: "moon.stars.fill",
+                    title: "Evening reminder",
+                    subtitle: "Delivered between 7:30 PM and 9:30 PM"
                 )
 
-                Text(
-                    "Reminder messages are personalized using your onboarding answers."
-                )
-                .font(.system(size: 13))
-                .foregroundColor(.gray)
-                .fixedSize(horizontal: false, vertical: true)
+                Divider()
+
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundColor(orange)
+                        .frame(width: 24)
+
+                    Text(
+                        "Reminder times and messages vary each day. Messages are personalized using your onboarding answers."
+                    )
+                    .font(.system(size: 13))
+                    .foregroundColor(.gray)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
+                }
             }
             .padding(18)
         }
@@ -163,25 +190,33 @@ struct NotificationSettingsScreen: View {
     private func reminderRow(
         icon: String,
         title: String,
-        time: String
+        subtitle: String
     ) -> some View {
-        HStack(spacing: 14) {
+        HStack(alignment: .top, spacing: 14) {
             Image(systemName: icon)
-                .font(.system(size: 22))
+                .font(.system(size: 21))
                 .foregroundColor(orange)
-                .frame(width: 42)
+                .frame(width: 42, height: 42)
+                .background(
+                    orange.opacity(0.10)
+                )
+                .clipShape(Circle())
 
-            Text(title)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.black)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.black)
+
+                Text(subtitle)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+            }
 
             Spacer()
-
-            Text(time)
-                .font(.system(size: 15))
-                .foregroundColor(.gray)
         }
-    }
+    }*/
+
+    // MARK: - GROUP
 
     private func settingsGroup<Content: View>(
         title: String,
@@ -193,10 +228,19 @@ struct NotificationSettingsScreen: View {
                 .foregroundColor(.gray)
 
             content()
-                .background(Color.white.opacity(0.72))
-                .cornerRadius(cardRadius)
+                .background(
+                    Color.white.opacity(0.72)
+                )
+                .clipShape(
+                    RoundedRectangle(
+                        cornerRadius: cardRadius,
+                        style: .continuous
+                    )
+                )
         }
     }
+
+    // MARK: - STATUS
 
     private var statusTitle: String {
         switch authorizationStatus {
@@ -207,7 +251,7 @@ struct NotificationSettingsScreen: View {
             return "Notifications are off"
 
         case .notDetermined:
-            return "Notifications not enabled"
+            return "Notifications are not enabled"
 
         @unknown default:
             return "Notification status unavailable"
@@ -238,7 +282,10 @@ struct NotificationSettingsScreen: View {
         case .denied:
             return "bell.slash.fill"
 
-        default:
+        case .notDetermined:
+            return "bell"
+
+        @unknown default:
             return "bell"
         }
     }
@@ -251,20 +298,36 @@ struct NotificationSettingsScreen: View {
         case .denied:
             return .red
 
-        default:
+        case .notDetermined:
             return orange
+
+        @unknown default:
+            return .gray
         }
     }
 
     private var settingsButtonTitle: String {
-        authorizationStatus == .authorized
-            ? "Open notification settings"
-            : "Manage notification access"
+        switch authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            return "Open notification settings"
+
+        case .denied:
+            return "Turn on notifications"
+
+        case .notDetermined:
+            return "Manage notification access"
+
+        @unknown default:
+            return "Open notification settings"
+        }
     }
+
+    // MARK: - ACTIONS
 
     private func loadAuthorizationStatus() async {
         let status =
-            await NotificationManager.shared.authorizationStatus()
+            await NotificationManager.shared
+                .authorizationStatus()
 
         await MainActor.run {
             authorizationStatus = status

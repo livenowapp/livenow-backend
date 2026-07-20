@@ -2,7 +2,7 @@
 //  ProfileScreen.swift
 //  LiveNow
 //
-//  Created by Maja on 13. 5. 2026.
+//  Created by Gregor Cigoj on 13. 5. 2026.
 //
 
 import SwiftUI

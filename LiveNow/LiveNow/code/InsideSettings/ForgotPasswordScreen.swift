@@ -2,7 +2,7 @@
 //  ForgotPasswordScreen.swift
 //  LiveNow
 //
-//  Created by Maja on 20. 5. 2026.
+//  Created by Gregor Cigoj on 20. 5. 2026.
 //
 
 import SwiftUI

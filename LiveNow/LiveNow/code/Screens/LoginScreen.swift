@@ -2,7 +2,7 @@
 //  LoginScreen.swift
 //  LiveNow
 //
-//  Created by Maja on 24. 4. 2026.
+//  Created by Gregor Cigoj on 24. 4. 2026.
 //
 
 import SwiftUI
@@ -66,7 +66,7 @@ struct LoginScreen: View {
                         .foregroundColor(.black)
                         .minimumScaleFactor(0.85)
 
-                    Text("Sign in to save your progress.")
+                    Text("Start saving your moments.")
                         .font(.system(size: subtitleSize))
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
@@ -93,25 +93,20 @@ struct LoginScreen: View {
                                 )
                             )
 
-                        SecureField("password", text: $authVM.password)
-                            .font(.system(size: fieldTextSize))
-                            .foregroundColor(.black.opacity(0.82))
-                            .tint(orange)
-                            .focused($focusedField, equals: .password)
-                            .submitLabel(.done)
-                            .onSubmit {
+                        PasswordField(
+                            title: "password",
+                            text: $authVM.password,
+                            orange: orange,
+                            isFocused: focusedField == .password,
+                            fontSize: fieldTextSize
+                        )
+                        .focused($focusedField, equals: .password)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            if canSubmit {
                                 authVM.login()
                             }
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .padding(.horizontal, 16)
-                            .frame(height: 56)
-                            .background(
-                                AuthTextFieldBackground(
-                                    isFocused: focusedField == .password,
-                                    orange: orange
-                                )
-                            )
+                        }
                         
                         Button(action: {
                             showForgotPassword = true
@@ -211,6 +206,15 @@ struct SignupScreen: View {
         case name
         case email
         case password
+        case confirmPassword
+    }
+    
+    private var canSubmit: Bool {
+        !authVM.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !authVM.email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !authVM.password.isEmpty &&
+        !authVM.confirmPassword.isEmpty &&
+        !authVM.isLoading
     }
 
     var body: some View {
@@ -226,7 +230,7 @@ struct SignupScreen: View {
                         .font(.system(size: titleSize, weight: .bold))
                         .foregroundColor(.black)
 
-                    Text("Start saving your moments.")
+                    Text("Sign up to save your progress.")
                         .font(.system(size: subtitleSize))
                         .foregroundColor(.gray)
 
@@ -272,25 +276,33 @@ struct SignupScreen: View {
                                 )
                             )
 
-                        SecureField("password", text: $authVM.password)
-                            .font(.system(size: fieldTextSize))
-                            .foregroundColor(.black.opacity(0.82))
-                            .tint(orange)
-                            .focused($focusedField, equals: .password)
-                            .submitLabel(.done)
-                            .onSubmit {
+                        PasswordField(
+                            title: "password",
+                            text: $authVM.password,
+                            orange: orange,
+                            isFocused: focusedField == .password,
+                            fontSize: fieldTextSize
+                        )
+                        .focused($focusedField, equals: .password)
+                        .submitLabel(.next)
+                        .onSubmit {
+                            focusedField = .confirmPassword
+                        }
+                        
+                        PasswordField(
+                            title: "confirm password",
+                            text: $authVM.confirmPassword,
+                            orange: orange,
+                            isFocused: focusedField == .confirmPassword,
+                            fontSize: fieldTextSize
+                        )
+                        .focused($focusedField, equals: .confirmPassword)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            if canSubmit {
                                 authVM.signUp()
                             }
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .padding(.horizontal, 16)
-                            .frame(height: 56)
-                            .background(
-                                AuthTextFieldBackground(
-                                    isFocused: focusedField == .password,
-                                    orange: orange
-                                )
-                            )
+                        }
                     }
                     .padding(.top, 18)
                     
@@ -318,8 +330,20 @@ struct SignupScreen: View {
                             .background(orange)
                             .cornerRadius(16)
                     }
+                    .scaleEffect(authVM.isLoading ? 0.98 : 1)
+                    .animation(.easeInOut(duration: 0.15), value: authVM.isLoading)
                     .buttonStyle(.plain)
-                    .disabled(authVM.isLoading)
+                    .disabled(!canSubmit)
+                    .opacity(canSubmit ? 1 : 0.55)
+                    
+                    Button(action: {
+                        authVM.showSignup = false
+                    }) {
+                        Text("already have an account? log in")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(orange)
+                    }
+                    .buttonStyle(.plain)
                     
                     SignInWithAppleButton(.signUp) { request in
                         let nonce = authVM.randomNonceString()
@@ -334,16 +358,9 @@ struct SignupScreen: View {
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 52)
                     .cornerRadius(14)
-                    .padding(.top, 8)
+                  //  .padding(.top, 8)
 
-                    Button(action: {
-                        authVM.showSignup = false
-                    }) {
-                        Text("already have an account? log in")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(orange)
-                    }
-                    .buttonStyle(.plain)
+                    
 
                     Spacer().frame(height: 40)
                 }
