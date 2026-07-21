@@ -54,25 +54,25 @@ enum AfternoonNotificationMessages {
             storedValue: need
         ) {
 
-        case .peaceOfMind:
+        case .calm:
             return [
 
                 NotificationMessage(
-                    id: "afternoon_need_peace_001",
-                    title: "Create a little space",
-                    body: "You do not have to carry every thought through the rest of the day."
+                    id: "morning_need_calm_001",
+                    title: "Choose calm first",
+                    body: "A calm mind gives you space to see things more clearly."
                 ),
 
                 NotificationMessage(
-                    id: "afternoon_need_peace_002",
-                    title: "Pause before the rush",
-                    body: "A calmer afternoon begins with one quieter thought."
+                    id: "morning_need_calm_002",
+                    title: "Protect your calm",
+                    body: "Not every thought deserves your attention this morning."
                 ),
 
                 NotificationMessage(
-                    id: "afternoon_need_peace_003",
-                    title: "Choose peace over pressure",
-                    body: "Not everything needs your attention before today ends."
+                    id: "morning_need_calm_003",
+                    title: "Start with a calmer mind",
+                    body: "You don't have to carry yesterday's worries into today."
                 )
             ]
 
@@ -120,25 +120,25 @@ enum AfternoonNotificationMessages {
                 )
             ]
 
-        case .motivation:
+        case .lessOverthinking:
             return [
 
                 NotificationMessage(
-                    id: "afternoon_need_motivation_001",
-                    title: "Choose one doable thing",
-                    body: "Progress can begin with a very small action."
+                    id: "afternoon_need_less_overthinking_001",
+                    title: "Take a break from your thoughts",
+                    body: "You don't have to figure everything out right now."
                 ),
 
                 NotificationMessage(
-                    id: "afternoon_need_motivation_002",
-                    title: "Keep moving gently",
-                    body: "Small actions still move you forward."
+                    id: "afternoon_need_less_overthinking_002",
+                    title: "Pause before you overthink",
+                    body: "One slow breath can interrupt a spiral of thoughts."
                 ),
 
                 NotificationMessage(
-                    id: "afternoon_need_motivation_003",
-                    title: "Finish one small step",
-                    body: "You don't need a burst of motivation to make progress."
+                    id: "afternoon_need_less_overthinking_003",
+                    title: "Come back to the present",
+                    body: "Notice what's happening now instead of what might happen next."
                 )
             ]
 
@@ -392,25 +392,25 @@ enum AfternoonNotificationMessages {
                 )
             ]
 
-        case .understandMyself:
+        case .morePeaceOfMind:
             return [
 
                 NotificationMessage(
-                    id: "afternoon_reason_understand_001",
-                    title: "Notice the pattern",
-                    body: "What does your mind usually do when uncertainty appears?"
+                    id: "afternoon_reason_peace_001",
+                    title: "Choose calm over control",
+                    body: "You don't have to solve every thought to feel at peace."
                 ),
 
                 NotificationMessage(
-                    id: "afternoon_reason_understand_002",
-                    title: "Be curious, not critical",
-                    body: "Your reaction may be trying to protect you from something."
+                    id: "afternoon_reason_peace_002",
+                    title: "Give your mind a moment",
+                    body: "A short pause can create more peace than another hour of overthinking."
                 ),
 
                 NotificationMessage(
-                    id: "afternoon_reason_understand_003",
-                    title: "Listen to what is underneath",
-                    body: "Notice the need behind the thought before judging yourself for it."
+                    id: "afternoon_reason_peace_003",
+                    title: "Protect your peace",
+                    body: "Not every thought deserves your time or energy."
                 )
             ]
 

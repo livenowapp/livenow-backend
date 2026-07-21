@@ -60,25 +60,25 @@ enum MorningNotificationMessages {
             storedValue: need
         ) {
 
-        case .peaceOfMind:
+        case .calm:
             return [
 
                 NotificationMessage(
-                    id: "morning_need_peace_001",
-                    title: "Protect your peace",
-                    body: "You don’t need every answer before the day begins."
+                    id: "morning_need_calm_001",
+                    title: "Protect your calm",
+                    body: "You don't need every answer before the day begins."
                 ),
 
                 NotificationMessage(
-                    id: "morning_need_peace_002",
+                    id: "morning_need_calm_002",
                     title: "Let this morning stay gentle",
                     body: "Choose calm before your thoughts begin asking for more."
                 ),
 
                 NotificationMessage(
-                    id: "morning_need_peace_003",
+                    id: "morning_need_calm_003",
                     title: "Start with a quieter mind",
-                    body: "Peace often begins by letting one thought go."
+                    body: "Calm often begins by letting one thought go."
                 )
             ]
 
@@ -126,25 +126,25 @@ enum MorningNotificationMessages {
                 )
             ]
 
-        case .motivation:
+        case .lessOverthinking:
             return [
 
                 NotificationMessage(
-                    id: "morning_need_motivation_001",
-                    title: "Begin with something small",
-                    body: "A little movement is still progress."
+                    id: "morning_need_less_overthinking_001",
+                    title: "You don't have to solve everything",
+                    body: "Focus on today. The rest can wait."
                 ),
 
                 NotificationMessage(
-                    id: "morning_need_motivation_002",
-                    title: "Start before you feel ready",
-                    body: "Small actions often create the motivation you are waiting for."
+                    id: "morning_need_less_overthinking_002",
+                    title: "Let your mind slow down",
+                    body: "Not every thought deserves your attention."
                 ),
 
                 NotificationMessage(
-                    id: "morning_need_motivation_003",
-                    title: "Momentum starts now",
-                    body: "One small step can change the direction of your day."
+                    id: "morning_need_less_overthinking_003",
+                    title: "Start with a calmer mind",
+                    body: "The quieter your mind, the clearer your day becomes."
                 )
             ]
 
@@ -398,25 +398,25 @@ enum MorningNotificationMessages {
                 )
             ]
 
-        case .understandMyself:
+        case .morePeaceOfMind:
             return [
 
                 NotificationMessage(
-                    id: "morning_reason_understand_001",
-                    title: "Notice without judging",
-                    body: "Understanding yourself begins with paying gentle attention."
+                    id: "morning_reason_peace_001",
+                    title: "Start with a calmer mind",
+                    body: "You don't have to carry yesterday's worries into today."
                 ),
 
                 NotificationMessage(
-                    id: "morning_reason_understand_002",
-                    title: "Be curious about your mind",
-                    body: "Notice what your thoughts are trying to protect you from."
+                    id: "morning_reason_peace_002",
+                    title: "Protect your peace today",
+                    body: "Not every thought needs your attention this morning."
                 ),
 
                 NotificationMessage(
-                    id: "morning_reason_understand_003",
-                    title: "Your patterns can teach you",
-                    body: "Observe what appears without deciding that it defines you."
+                    id: "morning_reason_peace_003",
+                    title: "Choose calm first",
+                    body: "A peaceful mind makes room for a better day."
                 )
             ]
 

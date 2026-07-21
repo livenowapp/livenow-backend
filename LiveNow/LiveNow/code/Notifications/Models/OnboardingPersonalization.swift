@@ -14,7 +14,7 @@ enum OnboardingReason: String, Codable, CaseIterable {
     case anxietyOften = "anxiety_often"
     case moreClarity = "more_clarity"
     case healthierHabits = "healthier_habits"
-    case understandMyself = "understand_myself"
+    case morePeaceOfMind = "more_peace_of_mind"
 
     var title: String {
         switch self {
@@ -30,8 +30,8 @@ enum OnboardingReason: String, Codable, CaseIterable {
         case .healthierHabits:
             return "I want healthier habits"
 
-        case .understandMyself:
-            return "I want to understand myself"
+        case .morePeaceOfMind:
+            return "I want more peace of mind"
         }
     }
 
@@ -61,8 +61,8 @@ enum OnboardingReason: String, Codable, CaseIterable {
         case "i want healthier habits":
             self = .healthierHabits
 
-        case "i want to understand myself":
-            self = .understandMyself
+        case "i want more peace of mind":
+            self = .morePeaceOfMind
 
         default:
             return nil
@@ -136,16 +136,16 @@ enum OnboardingThinkerType: String, Codable, CaseIterable {
 // MARK: - ONBOARDING NEED
 
 enum OnboardingNeed: String, Codable, CaseIterable {
-    case peaceOfMind = "peace_of_mind"
+    case calm = "calm"
     case confidence = "confidence"
     case clarity = "clarity"
-    case motivation = "motivation"
+    case lessOverthinking = "less_overthinking"
     case betterHabits = "better_habits"
 
     var title: String {
         switch self {
-        case .peaceOfMind:
-            return "Peace of mind"
+        case .calm:
+            return "Calm"
 
         case .confidence:
             return "Confidence"
@@ -153,8 +153,8 @@ enum OnboardingNeed: String, Codable, CaseIterable {
         case .clarity:
             return "Clarity"
 
-        case .motivation:
-            return "Motivation"
+        case .lessOverthinking:
+            return "Less overthinking"
 
         case .betterHabits:
             return "Better habits"
@@ -175,8 +175,8 @@ enum OnboardingNeed: String, Codable, CaseIterable {
         }
 
         switch value.lowercased() {
-        case "peace of mind":
-            self = .peaceOfMind
+        case "calm":
+            self = .calm
 
         case "confidence":
             self = .confidence
@@ -184,8 +184,8 @@ enum OnboardingNeed: String, Codable, CaseIterable {
         case "clarity":
             self = .clarity
 
-        case "motivation":
-            self = .motivation
+        case "less overthinking":
+            self = .lessOverthinking
 
         case "better habits":
             self = .betterHabits

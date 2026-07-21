@@ -49,18 +49,18 @@ struct OnboardingScreen: View {
                 "I feel anxious often",
                 "I want more clarity",
                 "I want healthier habits",
-                "I want to understand myself"
+                "I want more peace of mind"
             ]
         )),
         .question(.init(
             id: "onboardingTime",
             title: "When do you\noverthink most?",
-            subtitle: "this helps personalize reminders",
+            subtitle: "choose the one that fits best",
             options: [
                 "Morning",
                 "During work or school",
                 "Evening",
-                "At night",
+                "Before bed",
                 "It happens all day"
             ]
         )),
@@ -81,10 +81,10 @@ struct OnboardingScreen: View {
             title: "What do you need\nmost right now?",
             subtitle: "LiveNow will feel more personal",
             options: [
-                "Peace of mind",
+                "Calm",
                 "Confidence",
                 "Clarity",
-                "Motivation",
+                "Less overthinking",
                 "Better habits"
             ]
         )),

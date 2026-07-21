@@ -59,24 +59,24 @@ enum EveningNotificationMessages {
             storedValue: need
         ) {
             
-        case .peaceOfMind:
+        case .calm:
             return [
                 NotificationMessage(
-                    id: "evening-need-peace-1",
-                    title: "Peace does not require every answer",
+                    id: "evening_need_calm_001",
+                    title: "Peace doesn't require every answer",
                     body: "Let tonight be quieter than the thoughts you carried today."
                 ),
-                
+
                 NotificationMessage(
-                    id: "evening-need-peace-2",
-                    title: "Choose calm for tonight",
+                    id: "evening_need_calm_002",
+                    title: "Choose calm tonight",
                     body: "You can pause the problem without solving it."
                 ),
-                
+
                 NotificationMessage(
-                    id: "evening-need-peace-3",
+                    id: "evening_need_calm_003",
                     title: "Your mind deserves quiet",
-                    body: "Set down what you cannot control before you rest."
+                    body: "Set down what you can't control before you rest."
                 )
             ]
             
@@ -122,24 +122,24 @@ enum EveningNotificationMessages {
                 )
             ]
             
-        case .motivation:
+        case .lessOverthinking:
             return [
                 NotificationMessage(
-                    id: "evening-need-motivation-1",
-                    title: "Small progress still counts",
-                    body: "You do not need to finish everything to have moved forward."
+                    id: "evening_need_less_overthinking_001",
+                    title: "You don't have to carry today anymore",
+                    body: "Let today's thoughts stay in today. Tomorrow is a new beginning."
                 ),
-                
+
                 NotificationMessage(
-                    id: "evening-need-motivation-2",
-                    title: "Rest is part of progress",
-                    body: "Tomorrow is easier when you let yourself recharge tonight."
+                    id: "evening_need_less_overthinking_002",
+                    title: "Your mind deserves some quiet",
+                    body: "Not every question needs an answer before you fall asleep."
                 ),
-                
+
                 NotificationMessage(
-                    id: "evening-need-motivation-3",
-                    title: "You can begin again tomorrow",
-                    body: "One unfinished day does not mean you are falling behind."
+                    id: "evening_need_less_overthinking_003",
+                    title: "It's okay to let go",
+                    body: "You have done enough for today. Give your mind permission to rest."
                 )
             ]
             
@@ -382,24 +382,24 @@ enum EveningNotificationMessages {
                 )
             ]
             
-        case .understandMyself:
+        case .morePeaceOfMind:
             return [
                 NotificationMessage(
-                    id: "evening-reason-understand-1",
-                    title: "Notice without judging",
-                    body: "What did your mind need from you today?"
+                    id: "evening_reason_peace_001",
+                    title: "Leave today behind",
+                    body: "You don't have to carry today's thoughts into tomorrow."
                 ),
-                
+
                 NotificationMessage(
-                    id: "evening-reason-understand-2",
-                    title: "Your patterns are information",
-                    body: "You can observe them without letting them control the evening."
+                    id: "evening_reason_peace_002",
+                    title: "Peace begins with letting go",
+                    body: "Some thoughts become lighter when you stop holding onto them."
                 ),
-                
+
                 NotificationMessage(
-                    id: "evening-reason-understand-3",
-                    title: "Understanding begins with noticing",
-                    body: "Look at the thought gently, then let it rest."
+                    id: "evening_reason_peace_003",
+                    title: "End the day with calm",
+                    body: "You have done enough for today. Let your mind rest."
                 )
             ]
             

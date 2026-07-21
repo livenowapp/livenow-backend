@@ -26,6 +26,7 @@ struct MomentDetailScreen: View {
     @ScaledMetric private var titleSize: CGFloat = 30
     @ScaledMetric private var bodySize: CGFloat = 15
     @ScaledMetric private var cardRadius: CGFloat = 22
+    @FocusState private var isNoteFocused: Bool
 
     var body: some View {
         ZStack {
@@ -74,6 +75,10 @@ struct MomentDetailScreen: View {
             }
         } message: {
             Text("This reset will be permanently deleted.")
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isNoteFocused = false
         }
     }
 
@@ -290,6 +295,7 @@ struct MomentDetailScreen: View {
                 }
 
                 TextEditor(text: $noteText)
+                    .focused($isNoteFocused)
                     .font(.system(size: 15))
                     .foregroundColor(.black.opacity(0.82))
                     .padding(12)

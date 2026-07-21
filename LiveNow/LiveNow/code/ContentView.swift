@@ -30,6 +30,7 @@ struct ContentView:
     @State private var welcomeHideTask: Task<Void, Never>?
     @State private var backgroundDate: Date?
     @State private var isCheckingPremiumStatus = false
+    @State private var didPrepareCheckInsThisSession = false
     
     private let bgColor = Color(red: 0.97, green: 0.96, blue: 0.94)
     private let orange = Color(red: 1.0, green: 0.43, blue: 0.10)
@@ -43,79 +44,142 @@ struct ContentView:
 
             Group {
                 if !hasSeenOnboarding {
-                OnboardingScreen(
-                    orange: orange,
-                    lightOrange: lightOrange,
-                    onGetStarted: { answers in
-                        hasSeenOnboarding = true
+                    OnboardingScreen(
+                        orange: orange,
+                        lightOrange: lightOrange,
+                        onGetStarted: { answers in
+                            hasSeenOnboarding = true
+                            vm.saveOnboardingAnswers(answers)
+                            vm.goToInput()
+                        },
+                        onAlreadySubscribed: {
+                            Task {
+                                await refreshPremiumStatus(showWelcome: false)
 
-                        vm.saveOnboardingAnswers(answers)
-
-                        vm.goToInput()
-                    },
-                    onAlreadySubscribed: {
-                        Task {
-                            await refreshPremiumStatus(showWelcome: false)
-
-                            if purchaseManager.isPremium {
-                                hasSeenOnboarding = true
-                                authVM.showSignup = false
-                            } else {
-                                paywallFromAlreadySubscribed = true
-                                vm.showPaywall = true
+                                if purchaseManager.isPremium {
+                                    hasSeenOnboarding = true
+                                    authVM.showSignup = false
+                                } else {
+                                    paywallFromAlreadySubscribed = true
+                                    vm.showPaywall = true
+                                }
                             }
+                        }
+                    )
+
+                } else if authVM.isLoggedIn && !didCheckPremiumStatus {
+                    bgColor
+                        .ignoresSafeArea()
+
+                } else if showLoginAfterLogout {
+                    if authVM.showSignup {
+                        SignupScreen(
+                            authVM: authVM,
+                            orange: orange
+                        )
+                    } else {
+                        LoginScreen(
+                            authVM: authVM,
+                            orange: orange
+                        )
+                    }
+
+                } else if purchaseManager.isPremium &&
+                            !authVM.isLoggedIn {
+
+                    if authVM.showSignup {
+                        SignupScreen(
+                            authVM: authVM,
+                            orange: orange
+                        )
+                    } else {
+                        LoginScreen(
+                            authVM: authVM,
+                            orange: orange
+                        )
+                    }
+
+                } else if purchaseManager.isPremium &&
+                            authVM.isLoggedIn {
+
+                    if vm.showWelcomeBack {
+                        WelcomeBackScreen(
+                            name: authVM.displayName,
+                            orange: orange,
+                            lightOrange: lightOrange
+                        )
+                        .transition(.opacity)
+
+                    } else {
+                        mainAppContent
+                            .transition(.opacity)
+                            .onAppear {
+                                vm.reloadEntriesForCurrentUser()
+                            }
+                    }
+
+                } else {
+                    mainAppContent
+                        .onAppear {
+                            if vm.isGuestUser &&
+                                !vm.hasCompletedGuestReset &&
+                                vm.step == .home {
+
+                                vm.goToInput()
+                            }
+                        }
+                }
+            }
+
+            if shouldShowResetCheckIn,
+               let entry = vm.pendingCheckInEntries.first {
+
+                ResetCheckInOverlay(
+                    entry: entry,
+                    remainingCount: vm.pendingCheckInEntries.count,
+                    orange: orange,
+                    onNotWorthIt: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            vm.answerPendingCheckIn(
+                                entryID: entry.id,
+                                outcome: .no
+                            )
+                        }
+                    },
+                    onMaybe: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            vm.answerPendingCheckIn(
+                                entryID: entry.id,
+                                outcome: .maybe
+                            )
+                        }
+                    },
+                    onWorthIt: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            vm.answerPendingCheckIn(
+                                entryID: entry.id,
+                                outcome: .yes
+                            )
+                        }
+                    },
+                    onSkip: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            vm.skipPendingCheckIn(
+                                entryID: entry.id
+                            )
+                        }
+                    },
+                    onSkipAll: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            vm.skipAllPendingCheckIns()
                         }
                     }
                 )
-            } else if authVM.isLoggedIn && !didCheckPremiumStatus {
-                bgColor
-                    .ignoresSafeArea()
-                
-            } else if showLoginAfterLogout {
-                if authVM.showSignup {
-                    SignupScreen(authVM: authVM, orange: orange)
-                } else {
-                    LoginScreen(authVM: authVM, orange: orange)
-                }
-
-            } else if purchaseManager.isPremium && !authVM.isLoggedIn {
-
-                if authVM.showSignup {
-                    SignupScreen(authVM: authVM, orange: orange)
-                } else {
-                    LoginScreen(authVM: authVM, orange: orange)
-                }
-
-            } else if purchaseManager.isPremium && authVM.isLoggedIn {
-
-                if vm.showWelcomeBack {
-                    WelcomeBackScreen(
-                        name: authVM.displayName,
-                        orange: orange,
-                        lightOrange: lightOrange
-                    )
-                    .transition(.opacity)
-                } else {
-                    mainAppContent
-                        .transition(.opacity)
-                        .onAppear {
-                            vm.reloadEntriesForCurrentUser()
-                        }
-                }
-
-            } else {
-                mainAppContent
-                    .onAppear {
-                        if vm.isGuestUser &&
-                            !vm.hasCompletedGuestReset &&
-                            vm.step == .home {
-
-                            vm.goToInput()
-                        }
-                    }
+                .transition(.opacity)
+                .zIndex(20)
             }
         }
-    }
+        
         .task {
             await setupNotificationsIfNeeded()
 
@@ -177,6 +241,18 @@ struct ContentView:
             }
         }
         
+        .onChange(of: vm.entries) { _, _ in
+            prepareCheckInsIfPossible()
+        }
+        
+        .onChange(of: vm.showWelcomeBack) { _, isShowing in
+            guard !isShowing else {
+                return
+            }
+
+            prepareCheckInsIfPossible()
+        }
+        
         .sheet(isPresented: $vm.showPaywall) {
             PaywallScreen(
                 orange: orange,
@@ -224,6 +300,7 @@ struct ContentView:
 
             case .background:
                 backgroundDate = Date()
+                didPrepareCheckInsThisSession = false
 
             case .active:
                 if let backgroundDate,
@@ -234,7 +311,9 @@ struct ContentView:
                     vm.resetToHome()
 
                     Task {
-                        await refreshPremiumStatus(showWelcome: true)
+                        await refreshPremiumStatus(
+                            showWelcome: true
+                        )
                     }
                 }
 
@@ -267,6 +346,59 @@ struct ContentView:
 
         if showWelcome {
             showWelcomeBackIfNeeded()
+        }
+    }
+    
+    @MainActor
+    private func prepareCheckInsIfPossible() {
+        guard !didPrepareCheckInsThisSession else {
+            return
+        }
+
+        guard hasSeenOnboarding else {
+            return
+        }
+
+        guard authVM.isLoggedIn else {
+            return
+        }
+
+        guard purchaseManager.isPremium else {
+            return
+        }
+
+        guard didCheckPremiumStatus else {
+            return
+        }
+
+        guard !vm.showWelcomeBack else {
+            return
+        }
+
+        guard !vm.showPaywall else {
+            return
+        }
+
+        guard vm.step == .home else {
+            return
+        }
+
+        guard vm.currentTab == .home else {
+            return
+        }
+
+        didPrepareCheckInsThisSession = true
+
+        Task {
+            try? await Task.sleep(
+                nanoseconds: 600_000_000
+            )
+
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.35)) {
+                    vm.preparePendingCheckIns()
+                }
+            }
         }
     }
         
@@ -369,6 +501,16 @@ struct ContentView:
             lastNotificationScheduleRefresh =
                 Date().timeIntervalSince1970
         }
+    }
+    
+    private var shouldShowResetCheckIn: Bool {
+        vm.showResetCheckIn &&
+        authVM.isLoggedIn &&
+        purchaseManager.isPremium &&
+        !vm.showWelcomeBack &&
+        vm.step == .home &&
+        vm.currentTab == .home &&
+        !vm.showPaywall
     }
     
     @ViewBuilder

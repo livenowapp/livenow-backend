@@ -30,7 +30,10 @@ final class AppViewModel: ObservableObject {
     @Published var showSelectedDateEntries = false
     @Published var showWelcomeBack = false
     
-    // MARK: - ONBOARDING PERSONALIZATION
+    @Published var showResetCheckIn = false
+    @Published var pendingCheckInEntries: [ThoughtEntry] = []
+    
+    // MARK: - onboarding personalization
 
     @Published var onboardingReason = ""
     @Published var onboardingTime = ""
@@ -44,7 +47,11 @@ final class AppViewModel: ObservableObject {
     var isGuestUser: Bool {
         Auth.auth().currentUser == nil
     }
-    private let guestFirstResetKey = "livenow_guest_first_reset_v1"
+    private let guestFirstResetKey = 
+        "livenow_guest_first_reset_v1"
+    
+    private let lastCheckInPromptDateKey =
+        "livenow_last_check_in_prompt_date_v1"
 
     @Published var guestFirstReset: ThoughtEntry? = nil
     @Published var hasCompletedGuestReset = false
@@ -52,6 +59,9 @@ final class AppViewModel: ObservableObject {
     
     init() {
         loadGuestFirstReset()
+                                            UserDefaults.standard.removeObject(
+                                                forKey: lastCheckInPromptDateKey
+                                            )
     }
 
     // MARK: - Navigation
@@ -331,6 +341,101 @@ final class AppViewModel: ObservableObject {
 
     var notWorthItPercent: Int {
         percent(part: notWorthItCount, total: totalResolvedCount)
+    }
+    
+    // MARK: - Reset check-in
+
+    func preparePendingCheckIns() {
+        guard !isGuestUser else {
+            pendingCheckInEntries = []
+            showResetCheckIn = false
+            return
+        }
+
+        // Če je check-in že odprt, ga ne pripravljaj ponovno.
+        guard !showResetCheckIn,
+              pendingCheckInEntries.isEmpty else {
+            return
+        }
+
+        // Če je bil danes že prikazan, ga ne pokaži ponovno.
+        guard !didShowCheckInToday else {
+            pendingCheckInEntries = []
+            showResetCheckIn = false
+            return
+        }
+
+        let cutoffDate =
+            Date().addingTimeInterval(-24 * 60 * 60)
+
+        let eligibleEntries = entries
+            .filter { entry in
+                entry.worthIt == nil &&
+                entry.date <= cutoffDate
+            }
+            .sorted { $0.date < $1.date }
+
+        guard !eligibleEntries.isEmpty else {
+            pendingCheckInEntries = []
+            showResetCheckIn = false
+            return
+        }
+
+        pendingCheckInEntries = eligibleEntries
+
+        // Dan označimo šele, ko se ima kartica dejansko kaj prikazati.
+        saveCheckInPromptDate()
+
+        showResetCheckIn = true
+    }
+
+    func answerPendingCheckIn(
+        entryID: UUID,
+        outcome: EntryOutcome
+    ) {
+        updateOutcome(
+            for: entryID,
+            outcome: outcome
+        )
+
+        removePendingCheckIn(entryID: entryID)
+    }
+
+    func skipPendingCheckIn(entryID: UUID) {
+        removePendingCheckIn(entryID: entryID)
+    }
+
+    func skipAllPendingCheckIns() {
+        pendingCheckInEntries.removeAll()
+        showResetCheckIn = false
+    }
+
+    private func removePendingCheckIn(entryID: UUID) {
+        pendingCheckInEntries.removeAll {
+            $0.id == entryID
+        }
+
+        if pendingCheckInEntries.isEmpty {
+            showResetCheckIn = false
+        }
+    }
+    
+    private var didShowCheckInToday: Bool {
+        guard let savedDate =
+            UserDefaults.standard.object(
+                forKey: lastCheckInPromptDateKey
+            ) as? Date else {
+            return false
+        }
+
+        return Calendar.current.isDateInToday(savedDate)
+    }
+
+    private func saveCheckInPromptDate() {
+        UserDefaults.standard.set(
+            Date(),
+            forKey: lastCheckInPromptDateKey
+        )
     }
 
     // MARK: - Last 7 Days Stats
