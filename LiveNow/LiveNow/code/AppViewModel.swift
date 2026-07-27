@@ -29,6 +29,7 @@ final class AppViewModel: ObservableObject {
     @Published var selectedDate = Date()
     @Published var showSelectedDateEntries = false
     @Published var showWelcomeBack = false
+    @Published var homeMessage: String = HomeMessages.random()
     
     @Published var showResetCheckIn = false
     @Published var pendingCheckInEntries: [ThoughtEntry] = []
@@ -64,6 +65,10 @@ final class AppViewModel: ObservableObject {
                                             )
     }
 
+    func refreshHomeMessage() {
+        homeMessage = HomeMessages.random()
+    }
+    
     // MARK: - Navigation
 
     func goToInput() {

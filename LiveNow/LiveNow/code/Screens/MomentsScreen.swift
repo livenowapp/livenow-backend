@@ -419,7 +419,7 @@ struct SelectedDateEntriesSheet: View {
 
     @State private var path: [ThoughtEntry] = []
     @State private var openEntryID: UUID?
-    @State private var isMomentSwipeActive = false
+  //  @State private var isMomentSwipeActive = false
 
     private var selectedEntries: [ThoughtEntry] {
         vm.entries(for: vm.selectedDate)
@@ -459,7 +459,6 @@ struct SelectedDateEntriesSheet: View {
         }
         .onDisappear {
             openEntryID = nil
-            isMomentSwipeActive = false
         }
     }
 
@@ -472,10 +471,8 @@ struct SelectedDateEntriesSheet: View {
                     MomentSwipeRow(
                         entryID: entry.id,
                         openEntryID: $openEntryID,
-                        isSwipeActive: $isMomentSwipeActive,
                         onOpen: {
                             openEntryID = nil
-                            isMomentSwipeActive = false
                             path.append(entry)
                         },
                         onDelete: {
@@ -490,7 +487,6 @@ struct SelectedDateEntriesSheet: View {
             .padding(.top, 15)
             .padding(.bottom, 28)
         }
-        .scrollDisabled(isMomentSwipeActive)
     }
 
     // MARK: - ENTRY CARD
@@ -529,18 +525,15 @@ struct SelectedDateEntriesSheet: View {
                 .font(.system(size: 13))
                 .foregroundColor(.gray)
 
-                Text(
-                    entry.ai.shortTitle ??
-                    entry.thought
-                )
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.black)
-                .multilineTextAlignment(.leading)
-                .lineLimit(2)
-                .fixedSize(
-                    horizontal: false,
-                    vertical: true
-                )
+                Text(entry.ai.shortTitle)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
 
                 Text(tagText)
                     .font(.system(size: 13))
@@ -655,14 +648,12 @@ struct SelectedDateEntriesSheet: View {
     }
 }
 
-
 // MARK: - MOMENT SWIPE ROW
 
 struct MomentSwipeRow<Content: View>: View {
     let entryID: UUID
 
     @Binding var openEntryID: UUID?
-    @Binding var isSwipeActive: Bool
 
     let onOpen: () -> Void
     let onDelete: () -> Void
@@ -681,6 +672,7 @@ struct MomentSwipeRow<Content: View>: View {
     private let revealedWidth: CGFloat = 78
     private let deleteCircleSize: CGFloat = 50
     private let openThreshold: CGFloat = 34
+    private let horizontalDirectionRatio: CGFloat = 1.15
 
     private var rowHeight: CGFloat {
         ActionIconStyle.size + 32
@@ -689,14 +681,12 @@ struct MomentSwipeRow<Content: View>: View {
     init(
         entryID: UUID,
         openEntryID: Binding<UUID?>,
-        isSwipeActive: Binding<Bool>,
         onOpen: @escaping () -> Void,
         onDelete: @escaping () -> Void,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.entryID = entryID
         self._openEntryID = openEntryID
-        self._isSwipeActive = isSwipeActive
         self.onOpen = onOpen
         self.onDelete = onDelete
         self.content = content
@@ -721,7 +711,7 @@ struct MomentSwipeRow<Content: View>: View {
                 minHeight: rowHeight
             )
             .contentShape(Rectangle())
-            .highPriorityGesture(
+            .simultaneousGesture(
                 swipeGesture,
                 including: .all
             )
@@ -734,13 +724,10 @@ struct MomentSwipeRow<Content: View>: View {
                 isPresented: $showDeleteAlert
             ) {
                 Button("Cancel", role: .cancel) {
-                    isSwipeActive = false
                     closeRow()
                 }
 
                 Button("Delete", role: .destructive) {
-                    isSwipeActive = false
-
                     animateDeletion(
                         width: geometry.size.width
                     )
@@ -759,8 +746,6 @@ struct MomentSwipeRow<Content: View>: View {
             if openEntryID == entryID {
                 openEntryID = nil
             }
-
-            isSwipeActive = false
         }
         .onChange(of: openEntryID) { _, newValue in
             guard !isDeleting else { return }
@@ -783,7 +768,6 @@ struct MomentSwipeRow<Content: View>: View {
                 offset = -revealedWidth
                 startingOffset = -revealedWidth
                 openEntryID = entryID
-                isSwipeActive = false
                 showDeleteAlert = true
             } label: {
                 Circle()
@@ -808,9 +792,7 @@ struct MomentSwipeRow<Content: View>: View {
             .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
         }
-        .opacity(
-            hideDeleteButton ? 0 : 1
-        )
+        .opacity(hideDeleteButton ? 0 : 1)
         .allowsHitTesting(
             !isDeleting &&
             offset <= -revealedWidth + 1
@@ -821,22 +803,22 @@ struct MomentSwipeRow<Content: View>: View {
 
     private var swipeGesture: some Gesture {
         DragGesture(
-            minimumDistance: 3,
-            coordinateSpace: .global
+            minimumDistance: 10,
+            coordinateSpace: .local
         )
         .onChanged { value in
             guard !isDeleting else { return }
 
-            let horizontal =
-                value.translation.width
-
-            let vertical =
-                value.translation.height
+            let horizontal = value.translation.width
+            let vertical = value.translation.height
 
             if !dragDirectionLocked {
+                let horizontalDistance = abs(horizontal)
+                let verticalDistance = abs(vertical)
+
                 guard
-                    abs(horizontal) > 3 ||
-                    abs(vertical) > 3
+                    horizontalDistance >= 10 ||
+                    verticalDistance >= 10
                 else {
                     return
                 }
@@ -844,14 +826,13 @@ struct MomentSwipeRow<Content: View>: View {
                 dragDirectionLocked = true
 
                 isHorizontalDrag =
-                    abs(horizontal) > abs(vertical)
-
-                if isHorizontalDrag {
-                    isSwipeActive = true
-                }
+                    horizontalDistance >
+                    verticalDistance * horizontalDirectionRatio
             }
 
-            guard isHorizontalDrag else { return }
+            guard isHorizontalDrag else {
+                return
+            }
 
             let proposedOffset =
                 startingOffset + horizontal
@@ -868,7 +849,6 @@ struct MomentSwipeRow<Content: View>: View {
             defer {
                 dragDirectionLocked = false
                 isHorizontalDrag = false
-                isSwipeActive = false
             }
 
             guard !isDeleting else { return }
@@ -982,13 +962,20 @@ struct MomentSwipeRow<Content: View>: View {
 
     private var snapAnimation: Animation {
         .interactiveSpring(
+            response: 0.28,
+            dampingFraction: 0.78,
+            blendDuration: 0.05
+        )
+    }
+    
+    /*private var snapAnimation: Animation {
+        .interactiveSpring(
             response: 0.22,
             dampingFraction: 0.9,
             blendDuration: 0.05
         )
-    }
+    }*/
 }
-
 
 // MARK: - DAY SECTION VIEW
 

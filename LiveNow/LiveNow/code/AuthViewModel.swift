@@ -16,12 +16,79 @@ final class AuthViewModel: ObservableObject {
     
     @Published var errorMessage: String? = nil
     @Published var isLoading: Bool = false
-    @Published var isLoggedIn: Bool = Auth.auth().currentUser != nil
+    @Published var isLoggedIn: Bool = false
     @Published var showSignup: Bool = false
     @Published var confirmPassword = ""
     @Published var currentNonce: String?
+
+    @Published var needsEmailVerification: Bool = false
+    @Published var verificationMessage: String? = nil
+    @Published var isCheckingAuthentication: Bool = true
+    
     @AppStorage("hasAuthenticatedBefore")
     var hasAuthenticatedBefore = false
+    
+    init() {
+        checkAuthenticationState()
+    }
+    
+    func checkAuthenticationState() {
+        guard let user = Auth.auth().currentUser else {
+            isLoggedIn = false
+            needsEmailVerification = false
+            isCheckingAuthentication = false
+            return
+        }
+
+        user.reload { [weak self] error in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+
+                defer {
+                    self.isCheckingAuthentication = false
+                }
+
+                if let nsError = error as NSError?,
+                   nsError.domain == AuthErrorDomain,
+                   nsError.code == AuthErrorCode.userNotFound.rawValue {
+
+                    try? Auth.auth().signOut()
+
+                    self.isLoggedIn = false
+                    self.needsEmailVerification = false
+                    self.verificationMessage = nil
+                    self.errorMessage = nil
+                    return
+                }
+
+                guard error == nil,
+                      let refreshedUser = Auth.auth().currentUser else {
+
+                    try? Auth.auth().signOut()
+
+                    self.isLoggedIn = false
+                    self.needsEmailVerification = false
+                    return
+                }
+
+                let usesEmailPassword = refreshedUser.providerData.contains {
+                    $0.providerID == "password"
+                }
+
+                if usesEmailPassword && !refreshedUser.isEmailVerified {
+                    try? Auth.auth().signOut()
+
+                    self.isLoggedIn = false
+                    self.needsEmailVerification = false
+                    self.verificationMessage = nil
+                    self.errorMessage = nil
+                } else {
+                    self.isLoggedIn = true
+                    self.needsEmailVerification = false
+                }
+            }
+        }
+    }
 
     func randomNonceString(length: Int = 32) -> String {
         precondition(length > 0)
@@ -106,32 +173,54 @@ final class AuthViewModel: ObservableObject {
     
     func signUp() {
         errorMessage = nil
+        verificationMessage = nil
+
+        let trimmedName = name.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+
+        let trimmedEmail = email.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Please enter your name."
+            return
+        }
+
+        guard !trimmedEmail.isEmpty else {
+            errorMessage = "Please enter your email."
+            return
+        }
 
         guard password == confirmPassword else {
-                errorMessage = "Passwords don't match."
-                return
-            }
+            errorMessage = "Passwords don't match."
+            return
+        }
 
         isLoading = true
 
         Auth.auth().createUser(
-            withEmail: email,
+            withEmail: trimmedEmail,
             password: password
         ) { result, error in
-            
-            DispatchQueue.main.async {
-                self.isLoading = false
 
+            DispatchQueue.main.async {
                 if let error = error as NSError? {
+                    self.isLoading = false
+
                     switch error.code {
                     case AuthErrorCode.emailAlreadyInUse.rawValue:
-                        self.errorMessage = "An account with this email already exists."
+                        self.errorMessage =
+                            "An account with this email already exists."
 
                     case AuthErrorCode.invalidEmail.rawValue:
-                        self.errorMessage = "Please enter a valid email."
+                        self.errorMessage =
+                            "Please enter a valid email."
 
                     case AuthErrorCode.weakPassword.rawValue:
-                        self.errorMessage = "Password should be at least 6 characters."
+                        self.errorMessage =
+                            "Password should be at least 6 characters."
 
                     default:
                         self.errorMessage = error.localizedDescription
@@ -140,25 +229,52 @@ final class AuthViewModel: ObservableObject {
                     return
                 }
 
-                let changeRequest = result?.user.createProfileChangeRequest()
-                changeRequest?.displayName = self.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard let user = result?.user else {
+                    self.isLoading = false
+                    self.errorMessage =
+                        "Account could not be created."
+                    return
+                }
 
-                changeRequest?.commitChanges { profileError in
+                let changeRequest = user.createProfileChangeRequest()
+                changeRequest.displayName = trimmedName
+
+                changeRequest.commitChanges { profileError in
                     DispatchQueue.main.async {
-                        if let profileError = profileError {
-                            self.errorMessage = profileError.localizedDescription
+                        if let profileError {
+                            self.isLoading = false
+                            self.errorMessage =
+                                profileError.localizedDescription
                             return
                         }
 
-                        UIApplication.shared.sendAction(
-                            #selector(UIResponder.resignFirstResponder),
-                            to: nil,
-                            from: nil,
-                            for: nil
-                        )
+                        Auth.auth().useAppLanguage()
 
-                        self.hasAuthenticatedBefore = true
-                        self.isLoggedIn = true
+                        user.sendEmailVerification { verificationError in
+                            DispatchQueue.main.async {
+                                self.isLoading = false
+
+                                if let verificationError {
+                                    self.errorMessage =
+                                        verificationError.localizedDescription
+                                    return
+                                }
+
+                                UIApplication.shared.sendAction(
+                                    #selector(UIResponder.resignFirstResponder),
+                                    to: nil,
+                                    from: nil,
+                                    for: nil
+                                )
+
+                                self.hasAuthenticatedBefore = true
+                                self.needsEmailVerification = true
+                                self.isLoggedIn = false
+
+                                self.verificationMessage =
+                                    "We sent a verification link to \(trimmedEmail)."
+                            }
+                        }
                     }
                 }
             }
@@ -167,9 +283,29 @@ final class AuthViewModel: ObservableObject {
     
     func login() {
         errorMessage = nil
+        verificationMessage = nil
+
+        let trimmedEmail = email.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+
+        guard !trimmedEmail.isEmpty else {
+            errorMessage = "Please enter your email."
+            return
+        }
+
+        guard !password.isEmpty else {
+            errorMessage = "Please enter your password."
+            return
+        }
+
         isLoading = true
 
-        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+        Auth.auth().signIn(
+            withEmail: trimmedEmail,
+            password: password
+        ) { result, error in
+
             DispatchQueue.main.async {
                 self.isLoading = false
 
@@ -186,21 +322,112 @@ final class AuthViewModel: ObservableObject {
                         self.errorMessage = "No account found with this email."
 
                     default:
-                        self.errorMessage = "Something went wrong. Please try again."
+                        self.errorMessage =
+                            "Something went wrong. Please try again."
                     }
 
                     return
                 }
-                
+
+                guard let user = result?.user else {
+                    self.errorMessage =
+                        "Something went wrong. Please try again."
+                    return
+                }
+
+                guard user.isEmailVerified else {
+                    self.isLoggedIn = false
+                    self.needsEmailVerification = true
+                    self.errorMessage =
+                        "Please verify your email before continuing."
+                    return
+                }
+
                 UIApplication.shared.sendAction(
                     #selector(UIResponder.resignFirstResponder),
                     to: nil,
                     from: nil,
                     for: nil
                 )
-                
+
                 self.hasAuthenticatedBefore = true
+                self.needsEmailVerification = false
                 self.isLoggedIn = true
+            }
+        }
+    }
+    
+    func checkEmailVerification() {
+        errorMessage = nil
+        verificationMessage = nil
+
+        guard let user = Auth.auth().currentUser else {
+            isLoggedIn = false
+            needsEmailVerification = false
+            errorMessage = "Please sign in again."
+            return
+        }
+
+        isLoading = true
+
+        user.reload { error in
+            DispatchQueue.main.async {
+                self.isLoading = false
+
+                if let error {
+                    self.errorMessage = error.localizedDescription
+                    return
+                }
+
+                guard let refreshedUser = Auth.auth().currentUser else {
+                    self.errorMessage = "Please sign in again."
+                    return
+                }
+
+                if refreshedUser.isEmailVerified {
+                    self.hasAuthenticatedBefore = true
+                    self.needsEmailVerification = false
+                    self.isLoggedIn = true
+                } else {
+                    self.needsEmailVerification = true
+                    self.isLoggedIn = false
+                    self.errorMessage =
+                        "Your email hasn't been verified yet."
+                }
+            }
+        }
+    }
+    
+    func resendVerificationEmail() {
+        errorMessage = nil
+        verificationMessage = nil
+
+        guard let user = Auth.auth().currentUser else {
+            errorMessage = "Please sign in again."
+            return
+        }
+
+        guard !user.isEmailVerified else {
+            needsEmailVerification = false
+            isLoggedIn = true
+            return
+        }
+
+        isLoading = true
+
+        Auth.auth().useAppLanguage()
+
+        user.sendEmailVerification { error in
+            DispatchQueue.main.async {
+                self.isLoading = false
+
+                if let error {
+                    self.errorMessage = error.localizedDescription
+                    return
+                }
+
+                self.verificationMessage =
+                    "A new verification email has been sent."
             }
         }
     }
@@ -208,12 +435,18 @@ final class AuthViewModel: ObservableObject {
     func logout() {
         do {
             try Auth.auth().signOut()
+
             isLoggedIn = false
+            needsEmailVerification = false
+            verificationMessage = nil
+
             showSignup = false
             name = ""
             email = ""
             password = ""
+            confirmPassword = ""
             errorMessage = nil
+
         } catch {
             errorMessage = error.localizedDescription
         }

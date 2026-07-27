@@ -767,8 +767,8 @@ struct CompleteScreen: View {
     @ScaledMetric private var iconCircleSize: CGFloat = 142
     @ScaledMetric private var titleSize: CGFloat = 32
     @ScaledMetric private var buttonSize: CGFloat = 18
-    @ScaledMetric private var logoSize: CGFloat = 24
-    @ScaledMetric private var topButtonSize: CGFloat = 40
+   // @ScaledMetric private var logoSize: CGFloat = 24
+   // @ScaledMetric private var topButtonSize: CGFloat = 40
     
     private var isGuestFirstReset: Bool {
         vm.isGuestUser && vm.hasCompletedGuestReset
@@ -784,7 +784,7 @@ struct CompleteScreen: View {
             let screenHeight = geo.size.height
 
             let horizontalPadding = min(screenWidth * 0.06, 24)
-            let topPadding = min(max(screenHeight * 0.025, 18), 18)
+           // let topPadding = min(max(screenHeight * 0.025, 18), 18)
             let iconSize = min(iconCircleSize, screenWidth * 0.38)
             let sectionSpacing = min(max(screenHeight * 0.025, 18), 20)
             let buttonVerticalPadding = min(screenHeight * 0.022, 17)
@@ -792,8 +792,7 @@ struct CompleteScreen: View {
 
             VStack(spacing: 0) {
                 header(
-                    horizontalPadding: horizontalPadding,
-                    topPadding: topPadding
+                    horizontalPadding: horizontalPadding
                 )
 
                 ScrollView(showsIndicators: false) {
@@ -863,7 +862,23 @@ struct CompleteScreen: View {
         }
     }
 
-    private func header(horizontalPadding: CGFloat, topPadding: CGFloat) -> some View {
+    private func header(
+        horizontalPadding: CGFloat
+    ) -> some View {
+        LiveNowTopHeader(
+            horizontalPadding: horizontalPadding
+        ) {
+            if !isGuestFirstReset {
+                Button("Done") {
+                    onClose()
+                }
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(orange)
+            }
+        }
+    }
+    
+    /*private func header(horizontalPadding: CGFloat, topPadding: CGFloat) -> some View {
         ZStack {
             Text("LiveNow")
                 .font(.system(size: logoSize, weight: .semibold))
@@ -887,7 +902,7 @@ struct CompleteScreen: View {
                 .padding(.top, topPadding + 9)
             }
         }
-    }
+    }*/
 
     private func completeAnimation(iconSize: CGFloat) -> some View {
         ZStack {

@@ -98,7 +98,8 @@ struct LoginScreen: View {
                             text: $authVM.password,
                             orange: orange,
                             isFocused: focusedField == .password,
-                            fontSize: fieldTextSize
+                            fontSize: fieldTextSize,
+                            contentType: .password
                         )
                         .focused($focusedField, equals: .password)
                         .submitLabel(.done)
@@ -281,7 +282,8 @@ struct SignupScreen: View {
                             text: $authVM.password,
                             orange: orange,
                             isFocused: focusedField == .password,
-                            fontSize: fieldTextSize
+                            fontSize: fieldTextSize,
+                            contentType: .newPassword
                         )
                         .focused($focusedField, equals: .password)
                         .submitLabel(.next)
@@ -294,7 +296,8 @@ struct SignupScreen: View {
                             text: $authVM.confirmPassword,
                             orange: orange,
                             isFocused: focusedField == .confirmPassword,
-                            fontSize: fieldTextSize
+                            fontSize: fieldTextSize,
+                            contentType: .newPassword
                         )
                         .focused($focusedField, equals: .confirmPassword)
                         .submitLabel(.done)

@@ -111,6 +111,49 @@ struct TabItem: View {
     }
 }
 
+struct LiveNowTopHeader<TrailingContent: View>: View {
+    let horizontalPadding: CGFloat
+    let trailingContent: TrailingContent
+
+    @ScaledMetric private var logoSize: CGFloat = 24
+
+    init(
+        horizontalPadding: CGFloat,
+        @ViewBuilder trailingContent: () -> TrailingContent
+    ) {
+        self.horizontalPadding = horizontalPadding
+        self.trailingContent = trailingContent()
+    }
+
+    var body: some View {
+        ZStack {
+            Text("LiveNow")
+                .font(.system(size: logoSize, weight: .semibold))
+                .foregroundColor(.black)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            HStack {
+                Spacer()
+
+                trailingContent
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 40)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, 16)
+    }
+}
+
+extension LiveNowTopHeader where TrailingContent == EmptyView {
+    init(horizontalPadding: CGFloat) {
+        self.init(horizontalPadding: horizontalPadding) {
+            EmptyView()
+        }
+    }
+}
+
 struct OutcomeButton: View {
     let title: String
     let selected: Bool

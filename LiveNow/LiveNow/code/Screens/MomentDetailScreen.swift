@@ -141,7 +141,7 @@ struct MomentDetailScreen: View {
             Spacer()
                 .frame(height: 8)
 
-            Text(currentEntry.ai.shortTitle ?? currentEntry.thought)
+            Text(currentEntry.ai.shortTitle)
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.black)
                 .multilineTextAlignment(.center)
@@ -154,7 +154,7 @@ struct MomentDetailScreen: View {
                 .frame(height: 12)
 
             Text(statusText)
-                .font(.system(size: 15, weight: .medium))
+                .font(.system(size: 18, weight: .medium))
                 .foregroundColor(statusColor)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
@@ -416,13 +416,16 @@ struct MomentDetailScreen: View {
     private var statusText: String {
         switch currentEntry.worthIt {
         case .no:
-            return "didn't come true"
+            return "Not worth it"
+
         case .maybe:
-            return "maybe"
+            return "Maybe"
+
         case .yes:
-            return "came true"
-        case .none:
-            return "waiting for outcome"
+            return "Worth it"
+
+        default:
+            return "Waiting for outcome"
         }
     }
 

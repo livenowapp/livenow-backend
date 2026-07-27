@@ -43,7 +43,11 @@ struct ContentView:
                 .ignoresSafeArea()
 
             Group {
-                if !hasSeenOnboarding {
+                if authVM.isCheckingAuthentication {
+                    bgColor
+                        .ignoresSafeArea()
+                }
+                else if !hasSeenOnboarding {
                     OnboardingScreen(
                         orange: orange,
                         lightOrange: lightOrange,
@@ -72,35 +76,15 @@ struct ContentView:
                         .ignoresSafeArea()
 
                 } else if showLoginAfterLogout {
-                    if authVM.showSignup {
-                        SignupScreen(
-                            authVM: authVM,
-                            orange: orange
-                        )
-                    } else {
-                        LoginScreen(
-                            authVM: authVM,
-                            orange: orange
-                        )
-                    }
+                    authFlow
 
                 } else if purchaseManager.isPremium &&
-                            !authVM.isLoggedIn {
+                          !authVM.isLoggedIn {
 
-                    if authVM.showSignup {
-                        SignupScreen(
-                            authVM: authVM,
-                            orange: orange
-                        )
-                    } else {
-                        LoginScreen(
-                            authVM: authVM,
-                            orange: orange
-                        )
-                    }
+                    authFlow
 
                 } else if purchaseManager.isPremium &&
-                            authVM.isLoggedIn {
+                          authVM.isLoggedIn {
 
                     if vm.showWelcomeBack {
                         WelcomeBackScreen(
@@ -233,7 +217,8 @@ struct ContentView:
                     }
                 }
 
-            } else if authVM.hasAuthenticatedBefore {
+            } else if authVM.hasAuthenticatedBefore &&
+                      !authVM.needsEmailVerification {
 
                 showLoginAfterLogout = true
                 authVM.showSignup = false
@@ -251,6 +236,15 @@ struct ContentView:
             }
 
             prepareCheckInsIfPossible()
+        }
+        
+        .onChange(of: authVM.isCheckingAuthentication) { _, isChecking in
+            guard !isChecking else { return }
+            guard authVM.isLoggedIn else { return }
+
+            Task {
+                await refreshPremiumStatus(showWelcome: true)
+            }
         }
         
         .sheet(isPresented: $vm.showPaywall) {
@@ -325,6 +319,28 @@ struct ContentView:
             .easeInOut(duration: 0.55),
             value: vm.showWelcomeBack
         )
+    }
+    
+    @ViewBuilder
+    private var authFlow: some View {
+        if authVM.needsEmailVerification {
+            EmailVerificationScreen(
+                authVM: authVM,
+                orange: orange
+            )
+
+        } else if authVM.showSignup {
+            SignupScreen(
+                authVM: authVM,
+                orange: orange
+            )
+
+        } else {
+            LoginScreen(
+                authVM: authVM,
+                orange: orange
+            )
+        }
     }
     
     @MainActor
@@ -412,6 +428,7 @@ struct ContentView:
         welcomeHideTask?.cancel()
 
         withAnimation(.easeInOut(duration: 0.2)) {
+            vm.refreshHomeMessage()
             vm.showWelcomeBack = true
         }
 

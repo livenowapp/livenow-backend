@@ -13,6 +13,7 @@ struct PasswordField: View {
     let orange: Color
     let isFocused: Bool
     let fontSize: CGFloat
+    let contentType: UITextContentType
 
     @State private var isPasswordVisible = false
 
@@ -21,8 +22,10 @@ struct PasswordField: View {
             Group {
                 if isPasswordVisible {
                     TextField(title, text: $text)
+                        .textContentType(contentType)
                 } else {
                     SecureField(title, text: $text)
+                        .textContentType(contentType)
                 }
             }
             .font(.system(size: fontSize))

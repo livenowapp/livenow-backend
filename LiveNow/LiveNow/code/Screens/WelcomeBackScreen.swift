@@ -44,11 +44,17 @@ struct WelcomeBackScreen: View {
                     .font(.system(size: titleSize, weight: .bold))
                     .multilineTextAlignment(.center)
 
-                Text(message)
+                Text("One small reset can change your day.")
                     .font(.system(size: subtitleSize))
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
                     .padding(.top, 10)
+                
+                /*Text(message)
+                    .font(.system(size: subtitleSize))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 10)*/
 
                 Spacer()
             }
@@ -87,20 +93,33 @@ struct WelcomeBackScreen: View {
         }
     }
 
-    private var message: String {
+    
+    
+   /* private var message: String {
 
-        let hour = Calendar.current.component(.hour, from: Date())
+        let messages = [
+            "One small reset can change your day.",
+            "Take a deep breath. You're exactly where you need to be.",
+            "You don't have to solve everything today.",
+            "Your mind deserves a moment of peace.",
+            "Let's make today a little lighter.",
+            "A calmer mind starts with one small step.",
+            "You are stronger than your thoughts.",
+            "Progress comes from small resets.",
+            "Slow down. You've got this.",
+            "Today is a good day to think a little less.",
+            "Choose peace over overthinking.",
+            "One mindful moment is enough to begin.",
+            "Welcome back to yourself.",
+            "Less overthinking. More living.",
+            "You don't need all the answers right now.",
+            "A clear mind changes everything.",
+            "Let's quiet the noise together.",
+            "Your next reset is only one tap away.",
+            "Every reset is a step forward.",
+            "Today is another chance to live in the present."
+        ]
 
-        switch hour {
-
-        case 5..<12:
-            return "Let's start today with a calmer mind."
-
-        case 12..<18:
-            return "One small reset can change your day."
-
-        default:
-            return "Let's slow your mind down."
-        }
-    }
+        return messages.randomElement()!
+    }*/
 }

@@ -36,35 +36,12 @@ struct ResetCheckInOverlay: View {
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
 
-            let horizontalPadding = min(
-                max(screenWidth * 0.055, 16),
-                24
-            )
-
-            let cardHorizontalPadding = min(
-                max(screenWidth * 0.052, 18),
-                22
-            )
-
-            let cardVerticalPadding = min(
-                max(screenHeight * 0.022, 16),
-                20
-            )
-
-            let sectionSpacing = min(
-                max(screenHeight * 0.026, 18),
-                22
-            )
-
-            let answerHeight = min(
-                max(screenHeight * 0.062, 46),
-                52
-            )
-
-            let cardRadius = min(
-                max(screenWidth * 0.06, 20),
-                24
-            )
+            let horizontalPadding = min(max(screenWidth * 0.055, 16), 24)
+            let cardHorizontalPadding = min(max(screenWidth * 0.052, 18), 22)
+            let cardVerticalPadding = min(max(screenHeight * 0.022, 16), 20)
+            let sectionSpacing = min(max(screenHeight * 0.026, 18), 22)
+            let answerHeight = min(max(screenHeight * 0.062, 46), 52)
+            let cardRadius = min(max(screenWidth * 0.06, 20), 24)
 
             ZStack {
                 Color.black
@@ -188,10 +165,8 @@ struct ResetCheckInOverlay: View {
     // MARK: - THOUGHT
 
     private var thoughtSection: some View {
-        VStack(
-            alignment: .leading,
-            spacing: 10
-        ) {
+        VStack(alignment: .leading, spacing: 10) {
+            
             Text("Your thought")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.black)
@@ -211,10 +186,13 @@ struct ResetCheckInOverlay: View {
                     alignment: .leading
                 )
         }
+        .padding(20)
         .frame(
             maxWidth: .infinity,
             alignment: .leading
         )
+        .background(Color(red: 0.95, green: 0.89, blue: 0.84))
+        .cornerRadius(18)
     }
 
     // MARK: - ACTION

@@ -62,8 +62,8 @@ struct ProfilePlaceholderScreen: View {
         return calmMessages[day % calmMessages.count]
     }
 
-    @ScaledMetric private var logoSize: CGFloat = 24
-    @ScaledMetric private var topButtonSize: CGFloat = 40
+   // @ScaledMetric private var logoSize: CGFloat = 24
+   // @ScaledMetric private var topButtonSize: CGFloat = 40
     @ScaledMetric private var nameSize: CGFloat = 34
     @ScaledMetric private var titleSize: CGFloat = 34
     @ScaledMetric private var cardRadius: CGFloat = 22
@@ -77,14 +77,18 @@ struct ProfilePlaceholderScreen: View {
             let screenHeight = geo.size.height
 
             let horizontalPadding = min(screenWidth * 0.055, 24)
-            let topPadding = min(screenHeight * 0.025, 22)
+            let contentTopPadding = min(screenHeight * 0.025, 22)
 
             let cardSpacing = min(max(screenHeight * 0.022, 16), 22)
             let cardPadding = min(max(screenWidth * 0.052, 18), 24)
 
             VStack(spacing: 0) {
                 
-                ZStack {
+                LiveNowTopHeader(
+                    horizontalPadding: horizontalPadding
+                )
+                
+               /* ZStack {
                     Text("LiveNow")
                         .font(.system(size: logoSize, weight: .semibold))
                         .foregroundColor(.black)
@@ -94,7 +98,7 @@ struct ProfilePlaceholderScreen: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: topButtonSize)
                 .padding(.horizontal, horizontalPadding)
-                .padding(.top, topPadding)
+                .padding(.top, topPadding)*/
                 
                 ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 6) {
@@ -118,7 +122,7 @@ struct ProfilePlaceholderScreen: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, horizontalPadding)
-                .padding(.top, topPadding)
+                .padding(.top, contentTopPadding)
 
                     VStack(spacing: 18) {
                         if vm.isGuestUser {
