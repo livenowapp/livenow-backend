@@ -162,16 +162,16 @@ final class AppViewModel: ObservableObject {
 
         do {
             
-            /* let response = try await AIService.shared.analyzeThought(thought: cleanedThought)
+            let response = try await AIService.shared.analyzeThought(thought: cleanedThought)
 
             aiResponse = response
             lastAnalyzedThought = cleanedThought
             lastAIResponse = response
 
-            step = .analyze*/
+            step = .analyze
              
             
-            let response = AIResponse(
+            /*let response = AIResponse(
                 shortTitle: "feeling judged",
                 analysis: [
                     AIAnalysisItem(
@@ -212,7 +212,7 @@ final class AppViewModel: ObservableObject {
             )
 
             aiResponse = response
-            step = .analyze
+            step = .analyze*/
             
         } catch {
             print("ANALYZE ERROR:", error)

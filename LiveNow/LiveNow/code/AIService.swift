@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseAuth
 
 // MARK: - API
 
@@ -13,42 +14,109 @@ final class AIService {
     static let shared = AIService()
 
     // ✅ LIVE BACKEND
-    private let endpoint = "https://livenow-backend.onrender.com/analyze"
+    private let endpoint = "http://127.0.0.1:3001/analyze"
+    //private let endpoint = "https://livenow-backend.onrender.com/analyze"
+
+    private init() {}
 
     func analyzeThought(thought: String) async throws -> AIResponse {
         guard let url = URL(string: endpoint) else {
             throw URLError(.badURL)
         }
 
+        guard let currentUser = Auth.auth().currentUser else {
+            throw AIServiceError.userNotSignedIn
+        }
+
+        // Firebase samodejno osveži token, kadar je to potrebno.
+        let idToken = try await currentUser.getIDToken()
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let body = ["thought": thought]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField: "Content-Type"
+        )
+
+        request.setValue(
+            "Bearer \(idToken)",
+            forHTTPHeaderField: "Authorization"
+        )
+
+        let body = [
+            "thought": thought
+        ]
+
+        request.httpBody = try JSONSerialization.data(
+            withJSONObject: body
+        )
 
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.data(
+                for: request
+            )
 
-            guard let http = response as? HTTPURLResponse else {
+            guard let httpResponse = response as? HTTPURLResponse else {
                 throw URLError(.badServerResponse)
             }
 
-            // 🔍 Debug (zelo uporabno)
-            print("Status:", http.statusCode)
+            print("AI status:", httpResponse.statusCode)
 
-            guard 200..<300 ~= http.statusCode else {
-                let errorString = String(data: data, encoding: .utf8)
-                print("Server error:", errorString ?? "")
-                throw URLError(.badServerResponse)
+            guard 200..<300 ~= httpResponse.statusCode else {
+                let serverMessage =
+                    String(data: data, encoding: .utf8) ?? "Unknown server error"
+
+                print("AI server error:", serverMessage)
+
+                switch httpResponse.statusCode {
+                case 401:
+                    throw AIServiceError.unauthorized
+
+                case 429:
+                    throw AIServiceError.rateLimited
+
+                default:
+                    throw AIServiceError.serverError(
+                        statusCode: httpResponse.statusCode,
+                        message: serverMessage
+                    )
+                }
             }
 
-            let decoded = try JSONDecoder().decode(AIResponse.self, from: data)
-            return decoded
+            return try JSONDecoder().decode(
+                AIResponse.self,
+                from: data
+            )
 
         } catch {
-            print("Network error:", error.localizedDescription)
+            print("AI request error:", error.localizedDescription)
             throw error
+        }
+    }
+}
+
+// MARK: - ERRORS
+
+enum AIServiceError: LocalizedError {
+    case userNotSignedIn
+    case unauthorized
+    case rateLimited
+    case serverError(statusCode: Int, message: String)
+
+    var errorDescription: String? {
+        switch self {
+        case .userNotSignedIn:
+            return "You need to sign in before using LiveNow AI."
+
+        case .unauthorized:
+            return "Your session has expired. Please sign in again."
+
+        case .rateLimited:
+            return "You’ve made too many requests. Please try again shortly."
+
+        case let .serverError(statusCode, message):
+            return "Server error \(statusCode): \(message)"
         }
     }
 }

@@ -2,3 +2,9 @@ node_modules/
 .DS_Store
 *.xcuserstate
 *.xcuserdata/
+.env
+secret/
+
+# Backend backups
+Backend/server_backup.js
+Backend/server_before_firebase.js

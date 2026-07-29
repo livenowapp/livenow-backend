@@ -198,6 +198,7 @@ struct ThinkingScreen: View {
     @ObservedObject var vm: AppViewModel
 
     @State private var activeIndex = 0
+    @State private var stepTask: Task<Void, Never>?
     @State private var pulse = false
     @State private var dots = ""
 
@@ -330,7 +331,11 @@ struct ThinkingScreen: View {
             .onAppear {
                 pulse = true
                 startDots()
-                startSteps()
+                startRealisticSteps()
+            }
+            .onDisappear {
+                stepTask?.cancel()
+                stepTask = nil
             }
             .animation(
                 .easeInOut(duration: 1.25)
@@ -350,12 +355,31 @@ struct ThinkingScreen: View {
         }
     }
 
-    private func startSteps() {
-        Timer.scheduledTimer(withTimeInterval: 1.35, repeats: true) { timer in
-            if activeIndex < steps.count - 1 {
-                activeIndex += 1
-            } else {
-                timer.invalidate()
+    private func startRealisticSteps() {
+        stepTask?.cancel()
+
+        stepTask = Task { @MainActor in
+            activeIndex = 0
+
+            let delays: [UInt64] = [
+                900_000_000,
+                1_100_000_000,
+                1_400_000_000,
+                1_600_000_000
+            ]
+
+            for index in 1..<steps.count {
+                let delay = delays[min(index - 1, delays.count - 1)]
+
+                try? await Task.sleep(nanoseconds: delay)
+
+                guard !Task.isCancelled else {
+                    return
+                }
+
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    activeIndex = index
+                }
             }
         }
     }

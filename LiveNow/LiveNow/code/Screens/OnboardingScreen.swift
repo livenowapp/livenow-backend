@@ -91,7 +91,7 @@ struct OnboardingScreen: View {
 
         .info(.init(
             title: "track\nyour progress",
-            subtitle: "see your journey unfold\nwith simple stats and trends",
+            subtitle: "notice how your mind changes over time\nwith simple insights and trends",
             visual: .chart
         )),
         .info(.init(
