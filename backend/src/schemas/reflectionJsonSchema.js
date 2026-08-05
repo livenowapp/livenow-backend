@@ -13,7 +13,6 @@ export const ACTION_ICONS = [
   "action_nophone",
 ];
 
-
 export const reflectionJsonSchema = {
   type: "object",
   additionalProperties: false,
@@ -33,11 +32,13 @@ export const reflectionJsonSchema = {
       type: "object",
       additionalProperties: false,
       required: ["level", "message"],
+
       properties: {
         level: {
           type: "string",
           enum: ["normal", "elevated", "urgent"],
         },
+
         message: {
           type: ["string", "null"],
           maxLength: 500,
@@ -51,84 +52,105 @@ export const reflectionJsonSchema = {
       maxLength: 30,
     },
 
-analysis: {
-  type: "array",
-  items: {
-    type: "object",
-    additionalProperties: false,
-    required: ["type", "label", "sub"],
-    properties: {
-      type: {
-        type: "string",
-        enum: [
-          "assumption",
-          "brain_response",
-          "balanced_context",
-        ],
-      },
-      label: {
-        type: "string",
-        minLength: 1,
-        maxLength: 38,
-      },
-      sub: {
-        type: "string",
-        minLength: 1,
-        maxLength: 110,
+    analysis: {
+      type: "array",
+      minItems: 3,
+      maxItems: 3,
+
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["type", "label", "sub"],
+
+        properties: {
+          type: {
+            type: "string",
+            enum: [
+              "assumption",
+              "brain_response",
+              "balanced_context",
+            ],
+          },
+
+          label: {
+            type: "string",
+            minLength: 1,
+            maxLength: 38,
+          },
+
+          sub: {
+            type: "string",
+            minLength: 1,
+            maxLength: 110,
+          },
+        },
       },
     },
-  },
-},
 
-evidence: {
-  type: "array",
-  items: {
-    type: "object",
-    additionalProperties: false,
-    required: ["q", "a"],
-    properties: {
-      q: {
-        type: "string",
-        minLength: 1,
-        maxLength: 85,
-      },
-      a: {
-        type: "string",
-        minLength: 1,
-        maxLength: 75,
+    evidence: {
+      type: "array",
+      minItems: 2,
+      maxItems: 2,
+
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["q", "a"],
+
+        properties: {
+          q: {
+            type: "string",
+            minLength: 1,
+            maxLength: 85,
+          },
+
+          a: {
+            type: "string",
+            minLength: 1,
+            maxLength: 75,
+          },
+        },
       },
     },
-  },
-},
 
-reframes: {
-  type: "array",
-  items: {
-    type: "string",
-    minLength: 1,
-    maxLength: 90,
-  },
-},
+    reframes: {
+      type: "array",
+      minItems: 3,
+      maxItems: 3,
+      uniqueItems: true,
 
-actions: {
-  type: "array",
-  items: {
-    type: "object",
-    additionalProperties: false,
-    required: ["icon", "label"],
-    properties: {
-      icon: {
-        type: "string",
-        enum: ACTION_ICONS,
-      },
-      label: {
+      items: {
         type: "string",
         minLength: 1,
-        maxLength: 55,
+        maxLength: 90,
       },
     },
-  },
-},
+
+    actions: {
+      type: "array",
+      minItems: 4,
+      maxItems: 4,
+      uniqueItems: true,
+
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["icon", "label"],
+
+        properties: {
+          icon: {
+            type: "string",
+            enum: ACTION_ICONS,
+          },
+
+          label: {
+            type: "string",
+            minLength: 1,
+            maxLength: 55,
+          },
+        },
+      },
+    },
 
     insight: {
       type: "string",
