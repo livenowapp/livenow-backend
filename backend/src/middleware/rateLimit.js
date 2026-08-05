@@ -8,7 +8,7 @@ import {
 } from "../config/firebase.js";
 
 const COOLDOWN_MS = 10 * 1000;
-const DAILY_LIMIT = 100;
+const DAILY_LIMIT = 30;
 
 function getTodayKey() {
   return new Date().toISOString().slice(0, 10);
