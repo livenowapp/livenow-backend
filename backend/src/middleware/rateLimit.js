@@ -91,6 +91,12 @@ export async function checkRateLimit(firebaseUid) {
 
         const updatedCount = currentCount + 1;
 
+        console.log("Writing rate limit:", {
+          uid: firebaseUid,
+          date: today,
+          count: updatedCount,
+        });
+
         transaction.set(
           rateLimitReference,
           {
