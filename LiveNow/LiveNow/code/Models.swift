@@ -27,6 +27,7 @@ enum MainTab {
 }
 
 struct AIAnalysisItem: Codable, Hashable {
+    let type: String
     let label: String
     let sub: String
 }

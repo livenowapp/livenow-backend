@@ -215,6 +215,7 @@ struct SignupScreen: View {
         !authVM.email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !authVM.password.isEmpty &&
         !authVM.confirmPassword.isEmpty &&
+        authVM.acceptedAgeAndTerms &&
         !authVM.isLoading
     }
 
@@ -309,6 +310,51 @@ struct SignupScreen: View {
                     }
                     .padding(.top, 18)
                     
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.16)) {
+                            authVM.acceptedAgeAndTerms.toggle()
+                        }
+                    } label: {
+                        HStack(alignment: .top, spacing: 12) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(
+                                        authVM.acceptedAgeAndTerms
+                                            ? orange
+                                            : Color.white.opacity(0.82)
+                                    )
+                                    .frame(width: 24, height: 24)
+
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(
+                                        authVM.acceptedAgeAndTerms
+                                            ? orange
+                                            : Color.black.opacity(0.14),
+                                        lineWidth: 1
+                                    )
+                                    .frame(width: 24, height: 24)
+
+                                if authVM.acceptedAgeAndTerms {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                            }
+
+                            Text(
+                                "I confirm that I am at least 16 years old and agree to the Terms of Use and Privacy Policy."
+                            )
+                            .font(.system(size: 13))
+                            .foregroundColor(.black.opacity(0.68))
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                            Spacer(minLength: 0)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    
                     if let error = authVM.errorMessage {
                         Text(error)
                             .font(.system(size: 13, weight: .medium))
@@ -340,6 +386,7 @@ struct SignupScreen: View {
                     .opacity(canSubmit ? 1 : 0.55)
                     
                     Button(action: {
+                        authVM.acceptedAgeAndTerms = false
                         authVM.showSignup = false
                     }) {
                         Text("already have an account? log in")
@@ -356,11 +403,19 @@ struct SignupScreen: View {
                         request.nonce = authVM.sha256(nonce)
 
                     } onCompletion: { result in
+                        guard authVM.acceptedAgeAndTerms else {
+                            authVM.errorMessage =
+                                "Please confirm that you are at least 16 years old and agree to the Terms of Use and Privacy Policy."
+                            return
+                        }
+
                         authVM.handleAppleSignIn(result: result)
                     }
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 52)
                     .cornerRadius(14)
+                    .disabled(!authVM.acceptedAgeAndTerms || authVM.isLoading)
+                    .opacity(authVM.acceptedAgeAndTerms ? 1 : 0.55)
                   //  .padding(.top, 8)
 
                     

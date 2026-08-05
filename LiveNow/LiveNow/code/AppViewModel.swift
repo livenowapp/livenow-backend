@@ -58,6 +58,10 @@ final class AppViewModel: ObservableObject {
     @Published var hasCompletedGuestReset = false
     @Published var showPaywall = false
     
+    @Published var completionNote = ""
+
+    private var currentCompletedEntryID: UUID?
+    
     init() {
         loadGuestFirstReset()
                                             UserDefaults.standard.removeObject(
@@ -83,6 +87,8 @@ final class AppViewModel: ObservableObject {
         aiResponse = nil
         selectedReframeIndex = 0
         selectedActionIndex = 0
+        completionNote = ""
+        currentCompletedEntryID = nil
         errorMessage = nil
     }
 
@@ -121,6 +127,8 @@ final class AppViewModel: ObservableObject {
         aiResponse = nil
         selectedReframeIndex = 0
         selectedActionIndex = 0
+        completionNote = ""
+        currentCompletedEntryID = nil
         errorMessage = nil
         currentTab = .home
     }
@@ -235,18 +243,25 @@ final class AppViewModel: ObservableObject {
             ? ai.reframes[selectedReframeIndex]
             : nil
 
+        let entryID = UUID()
+
         let entry = ThoughtEntry(
-            id: UUID(),
+            id: entryID,
             date: Date(),
             thought: thought,
             ai: ai,
             selectedActionLabel: action?.label,
             selectedActionIcon: action?.icon,
             selectedReframe: reframe,
-            worthIt: nil
+            worthIt: nil,
+            note: nil
         )
 
         entries.insert(entry, at: 0)
+
+        currentCompletedEntryID = entryID
+        completionNote = ""
+
         saveEntry(entry)
         step = .complete
 
@@ -260,16 +275,89 @@ final class AppViewModel: ObservableObject {
         }
     }
 
-    func updateOutcome(for entryID: UUID, outcome: EntryOutcome?) {
-        guard let index = entries.firstIndex(where: { $0.id == entryID }) else { return }
+    func updateOutcome(
+        for entryID: UUID,
+        outcome: EntryOutcome?
+    ) {
+        guard let index = entries.firstIndex(
+            where: { $0.id == entryID }
+        ) else {
+            return
+        }
+
         entries[index].worthIt = outcome
         saveEntry(entries[index])
+
+        let currentEntries = entries
+
+        Task {
+            await NotificationManager.shared.refreshTonightNotification(
+                reason: onboardingReason,
+                thinkerType: onboardingThinkerType,
+                need: onboardingNeed,
+                entries: currentEntries
+            )
+        }
     }
 
-    func updateNote(for entryID: UUID, note: String) {
-        guard let index = entries.firstIndex(where: { $0.id == entryID }) else { return }
-        entries[index].note = note
+    func updateNote(
+        for entryID: UUID,
+        note: String
+    ) {
+        guard let index = entries.firstIndex(where: {
+            $0.id == entryID
+        }) else {
+            return
+        }
+
+        let cleanedNote = note.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+
+        entries[index].note = cleanedNote.isEmpty
+            ? nil
+            : note
+
+        if selectedMoment?.id == entryID {
+            selectedMoment = entries[index]
+        }
+
         saveEntry(entries[index])
+    }
+    
+    func updateCurrentCompletionNote(_ note: String) {
+        completionNote = note
+
+        guard let entryID = currentCompletedEntryID else {
+            return
+        }
+
+        if isGuestUser {
+            updateGuestCompletionNote(
+                entryID: entryID,
+                note: note
+            )
+        } else {
+            updateNote(
+                for: entryID,
+                note: note
+            )
+        }
+    }
+    
+    private func updateGuestCompletionNote(
+        entryID: UUID,
+        note: String
+    ) {
+        guard var entry = guestFirstReset,
+              entry.id == entryID else {
+            return
+        }
+
+        entry.note = note
+
+        guestFirstReset = entry
+        saveGuestFirstReset(entry)
     }
 
     func deleteEntry(_ entryID: UUID) {
@@ -297,25 +385,57 @@ final class AppViewModel: ObservableObject {
     func completeGuestReset() {
         guard let ai = aiResponse else { return }
 
-        let action = ai.actions.indices.contains(selectedActionIndex) ? ai.actions[selectedActionIndex] : nil
-        let reframe = ai.reframes.indices.contains(selectedReframeIndex) ? ai.reframes[selectedReframeIndex] : nil
+        let action = ai.actions.indices.contains(selectedActionIndex)
+            ? ai.actions[selectedActionIndex]
+            : nil
+
+        let reframe = ai.reframes.indices.contains(selectedReframeIndex)
+            ? ai.reframes[selectedReframeIndex]
+            : nil
+
+        let entryID = UUID()
 
         let entry = ThoughtEntry(
-            id: UUID(),
+            id: entryID,
             date: Date(),
             thought: thought,
             ai: ai,
             selectedActionLabel: action?.label,
             selectedActionIcon: action?.icon,
             selectedReframe: reframe,
-            worthIt: nil
+            worthIt: nil,
+            note: nil
         )
 
         guestFirstReset = entry
         hasCompletedGuestReset = true
+
+        currentCompletedEntryID = entryID
+        completionNote = ""
+
         saveGuestFirstReset(entry)
 
         step = .complete
+    }
+    
+    private func refreshDynamicNotifications() {
+        let currentEntries = entries
+
+        Task {
+            await NotificationManager.shared
+                .refreshTonightNotification(
+                    reason: UserDefaults.standard.string(
+                        forKey: "notification_reason"
+                    ),
+                    thinkerType: UserDefaults.standard.string(
+                        forKey: "notification_thinker_type"
+                    ),
+                    need: UserDefaults.standard.string(
+                        forKey: "notification_need"
+                    ),
+                    entries: currentEntries
+                )
+        }
     }
 
     // MARK: - General Stats
@@ -970,6 +1090,11 @@ final class AppViewModel: ObservableObject {
     func clearGuestFirstReset() {
         guestFirstReset = nil
         hasCompletedGuestReset = false
-        UserDefaults.standard.removeObject(forKey: guestFirstResetKey)
+        completionNote = ""
+        currentCompletedEntryID = nil
+
+        UserDefaults.standard.removeObject(
+            forKey: guestFirstResetKey
+        )
     }
 }

@@ -14,8 +14,8 @@ final class AIService {
     static let shared = AIService()
 
     // ✅ LIVE BACKEND
-    private let endpoint = "http://127.0.0.1:3001/analyze"
-    //private let endpoint = "https://livenow-backend.onrender.com/analyze"
+    /*private let endpoint = "http://127.0.0.1:3001/analyze"*/
+    private let endpoint = "https://livenow-backend.onrender.com/analyze"
 
     private init() {}
 

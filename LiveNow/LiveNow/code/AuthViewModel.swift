@@ -19,6 +19,7 @@ final class AuthViewModel: ObservableObject {
     @Published var isLoggedIn: Bool = false
     @Published var showSignup: Bool = false
     @Published var confirmPassword = ""
+    @Published var acceptedAgeAndTerms = false
     @Published var currentNonce: String?
 
     @Published var needsEmailVerification: Bool = false
@@ -175,6 +176,12 @@ final class AuthViewModel: ObservableObject {
         errorMessage = nil
         verificationMessage = nil
 
+        guard acceptedAgeAndTerms else {
+            errorMessage =
+                "Please confirm that you are at least 16 years old and agree to the Terms of Use and Privacy Policy."
+            return
+        }
+        
         let trimmedName = name.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
@@ -445,6 +452,7 @@ final class AuthViewModel: ObservableObject {
             email = ""
             password = ""
             confirmPassword = ""
+            acceptedAgeAndTerms = false
             errorMessage = nil
 
         } catch {

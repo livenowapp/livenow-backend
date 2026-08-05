@@ -782,13 +782,15 @@ struct CompleteScreen: View {
     let lightOrange: Color
     var onClose: () -> Void
     var onNewReset: () -> Void
+    
+    @FocusState private var isNoteFocused: Bool
 
     @State private var animateComplete = false
     @State private var particles: [SparkleParticle] = []
     @State private var burstParticles: [BurstParticle] = []
     @State private var showBurst = false
 
-    @ScaledMetric private var iconCircleSize: CGFloat = 142
+    @ScaledMetric private var iconCircleSize: CGFloat = 116
     @ScaledMetric private var titleSize: CGFloat = 32
     @ScaledMetric private var buttonSize: CGFloat = 18
    // @ScaledMetric private var logoSize: CGFloat = 24
@@ -810,7 +812,7 @@ struct CompleteScreen: View {
             let horizontalPadding = min(screenWidth * 0.06, 24)
            // let topPadding = min(max(screenHeight * 0.025, 18), 18)
             let iconSize = min(iconCircleSize, screenWidth * 0.38)
-            let sectionSpacing = min(max(screenHeight * 0.025, 18), 20)
+            let sectionSpacing = min(max(screenHeight * 0.020, 14), 18)
             let buttonVerticalPadding = min(screenHeight * 0.022, 17)
             let bottomSpacing = screenHeight < 760 ? 8 : min(max(screenHeight * 0.018, 12), 22)
 
@@ -828,9 +830,11 @@ struct CompleteScreen: View {
 
                         nextStepCard(selectedAction: selectedAction)
 
+                        learningNoteCard
+
                     }
                     .padding(.horizontal, horizontalPadding)
-                    .padding(.bottom, 18)
+                    .padding(.bottom, isGuestFirstReset ? 30 : 150)
                 }
                 .frame(maxHeight: .infinity)
 
@@ -978,7 +982,7 @@ struct CompleteScreen: View {
                 .scaleEffect(animateComplete ? 1.0 : 0.4)
                 .opacity(animateComplete ? 1 : 0)
         }
-        .frame(width: iconSize * 2.35, height: iconSize * 2.05)
+        .frame(width: iconSize * 2.15, height: iconSize * 1.75)
         .frame(maxWidth: .infinity)
     }
 
@@ -987,7 +991,7 @@ struct CompleteScreen: View {
             Text(
                 isGuestFirstReset
                 ? "your first reset is complete"
-                : "you’re back in control"
+                : "saved to your journey"
             )
             .font(.system(size: titleSize, weight: .bold))
             .foregroundColor(.black)
@@ -1003,6 +1007,78 @@ struct CompleteScreen: View {
             .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
+    }
+    
+    private var learningNoteCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center, spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(orange.opacity(0.12))
+                        .frame(width: 42, height: 42)
+
+                    Image(systemName: "pencil")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(orange)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("note")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.gray)
+
+                    Text("What did you learn?")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.black)
+                }
+
+                Spacer()
+            }
+
+            ZStack(alignment: .topLeading) {
+                if vm.completionNote.isEmpty {
+                    Text("write a small note...")
+                        .font(.system(size: 15))
+                        .foregroundColor(.gray)
+                        .padding(.top, 18)
+                        .padding(.leading, 16)
+                        .allowsHitTesting(false)
+                }
+
+                TextEditor(
+                    text: Binding(
+                        get: {
+                            vm.completionNote
+                        },
+                        set: { newValue in
+                            vm.updateCurrentCompletionNote(newValue)
+                        }
+                    )
+                )
+                .focused($isNoteFocused)
+                .font(.system(size: 15))
+                .foregroundColor(.black.opacity(0.82))
+                .padding(12)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+            }
+            .frame(minHeight: 110)
+            .background(Color.white.opacity(0.82))
+            .cornerRadius(18)
+            .overlay {
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(
+                        isNoteFocused
+                            ? orange.opacity(0.30)
+                            : Color.black.opacity(0.05),
+                        lineWidth: 1
+                    )
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white.opacity(0.70))
+        .cornerRadius(18)
     }
 
     private func nextStepCard(selectedAction: AIActionItem?) -> some View {

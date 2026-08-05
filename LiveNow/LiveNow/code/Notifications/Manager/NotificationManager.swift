@@ -353,9 +353,11 @@ final class NotificationManager {
             return
         }
 
-        let today = Date()
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
 
-        // Posodobi današnjo večerno notifikacijo.
+        // Vedno odstrani in ponovno ustvari
+        // današnjo večerno notifikacijo.
         scheduler.removeNotification(
             period: .evening,
             date: today
@@ -371,27 +373,28 @@ final class NotificationManager {
             await scheduler.schedule(tonightNotification)
         }
 
-        // Posodobi tudi najbližjo prihodnjo nedeljo.
-        guard let upcomingSunday = nextSunday(
-            after: today
-        ) else {
-            return
+        // Če danes ni nedelja, posodobimo še
+        // najbližjo prihodnjo nedeljo.
+        if !conditionChecker.isSunday(today),
+           let upcomingSunday = nextSunday(after: today) {
+
+            scheduler.removeNotification(
+                period: .evening,
+                date: upcomingSunday
+            )
+
+            if let sundayNotification = makeEveningNotification(
+                for: upcomingSunday,
+                reason: reason,
+                thinkerType: thinkerType,
+                need: need,
+                entries: entries
+            ) {
+                await scheduler.schedule(sundayNotification)
+            }
         }
 
-        scheduler.removeNotification(
-            period: .evening,
-            date: upcomingSunday
-        )
-
-        if let sundayNotification = makeEveningNotification(
-            for: upcomingSunday,
-            reason: reason,
-            thinkerType: thinkerType,
-            need: need,
-            entries: entries
-        ) {
-            await scheduler.schedule(sundayNotification)
-        }
+        print("EVENING NOTIFICATIONS REFRESHED")
     }
 
     // MARK: - MAKE EVENING NOTIFICATION
@@ -420,20 +423,9 @@ final class NotificationManager {
 
         let selection: TonightNotificationSelection
 
-        if calendar.isDateInToday(day) {
-            // Današnja večerna notifikacija uporablja celotno
-            // dinamično logiko.
-            selection = conditionChecker.tonightSelection(
-                entries: entries,
-                reason: reason,
-                thinkerType: thinkerType,
-                need: need,
-                referenceDate: day,
-                seed: seed
-            )
-        } else if conditionChecker.isSunday(day) {
-            // Prihodnja nedelja pokaže trenutno število
-            // resetov tega tedna.
+        // Nedelja mora imeti prednost tudi takrat,
+        // ko je nedelja hkrati današnji dan.
+        if conditionChecker.isSunday(day) {
             let stats = conditionChecker.weeklyStats(
                 entries: entries,
                 referenceDate: day
@@ -448,6 +440,8 @@ final class NotificationManager {
                     )
                 )
             } else {
+                // Če v tem tednu ni bilo nobenega reseta,
+                // pokažemo nežen običajen reminder.
                 selection = TonightNotificationSelection(
                     type: .dailyResetReminder,
                     message: ResetReminderMessages.message(
@@ -455,9 +449,22 @@ final class NotificationManager {
                     )
                 )
             }
+
+        } else if calendar.isDateInToday(day) {
+            // Dinamična dnevna logika velja samo
+            // za današnje dneve, ki niso nedelja.
+            selection = conditionChecker.tonightSelection(
+                entries: entries,
+                reason: reason,
+                thinkerType: thinkerType,
+                need: need,
+                referenceDate: day,
+                seed: seed
+            )
+
         } else {
-            // Prihodnji običajni dnevi imajo vnaprej
-            // nastavljen no-reset fallback.
+            // Prihodnji običajni dnevi imajo
+            // vnaprej nastavljen fallback.
             selection = TonightNotificationSelection(
                 type: .dailyResetReminder,
                 message: ResetReminderMessages.message(

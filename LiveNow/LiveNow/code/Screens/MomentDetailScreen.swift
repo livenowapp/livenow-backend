@@ -49,6 +49,7 @@ struct MomentDetailScreen: View {
                             outcomeCard
                             thoughtCard
                             analysisCard
+                            askYourselfCard
                             reframeCard
                             noteCard
                             deleteButton
@@ -261,6 +262,49 @@ struct MomentDetailScreen: View {
             }
         }
         .padding(20)
+        .background(Color.white.opacity(0.78))
+        .cornerRadius(cardRadius)
+    }
+    
+    private var askYourselfCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader(
+                eyebrow: "reflection",
+                title: "Ask yourself",
+                icon: "questionmark.bubble",
+                color: orange
+            )
+
+            ForEach(
+                Array(currentEntry.ai.evidence.enumerated()),
+                id: \.offset
+            ) { index, item in
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(item.q)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.black.opacity(0.82))
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(item.a)
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(
+                    maxWidth: .infinity,
+                    alignment: .leading
+                )
+
+                if index < currentEntry.ai.evidence.count - 1 {
+                    Divider()
+                        .opacity(0.16)
+                        .padding(.vertical, 6)
+                }
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white.opacity(0.78))
         .cornerRadius(cardRadius)
     }
