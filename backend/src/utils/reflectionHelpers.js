@@ -15,22 +15,6 @@ export function normalizeThought(value) {
     .trim();
 }
 
-export function getUserKey(req) {
-  const firebaseUid = req.user?.uid;
-
-  if (
-    typeof firebaseUid === "string" &&
-    firebaseUid.trim().length > 0 &&
-    firebaseUid.length <= 128
-  ) {
-    return `firebase-user:${firebaseUid}`;
-  }
-
-  // Pri zaščitenem /analyze endpointu se to ne bi smelo zgoditi,
-  // vendar fallback prepreči nepričakovano sesutje.
-  return `ip:${req.ip ?? "unknown"}`;
-}
-
 export function extractTextFromClaudeMessage(message) {
   return message.content
     .filter((block) => block.type === "text")

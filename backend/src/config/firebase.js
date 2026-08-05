@@ -6,6 +6,7 @@ import {
   initializeApp,
 } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 
 const firebaseServiceAccountPath =
   process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
@@ -27,3 +28,4 @@ if (getApps().length === 0) {
 }
 
 export const firebaseAuth = getAuth();
+export const firebaseDb = getFirestore();

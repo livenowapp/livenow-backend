@@ -14,7 +14,6 @@ import {
 import {
   createRequestId,
   normalizeThought,
-  getUserKey,
   extractTextFromClaudeMessage,
   getPublicError,
 } from "../utils/reflectionHelpers.js";
@@ -69,25 +68,39 @@ export async function analyzeController(req, res) {
   // Rate limiting
   // ----------------------------------------------------------
 
-  const userKey = getUserKey(req);
-  const limitCheck = checkRateLimit(userKey);
+  const firebaseUid = req.user?.uid;
 
-  if (!limitCheck.allowed) {
-    if (limitCheck.retryAfterSeconds) {
-      res.set(
-        "Retry-After",
-        String(limitCheck.retryAfterSeconds)
-      );
-    }
+if (!firebaseUid) {
+  return res.status(401).json({
+    error: {
+      code: "UNAUTHORIZED",
+      message: "A valid authenticated user is required.",
+      requestId,
+    },
+  });
+}
 
-    return res.status(limitCheck.status).json({
-      error: {
-        code: "RATE_LIMITED",
-        message: limitCheck.message,
-        requestId,
-      },
-    });
+const limitCheck = await checkRateLimit(firebaseUid);
+
+if (!limitCheck.allowed) {
+  if (limitCheck.retryAfterSeconds) {
+    res.set(
+      "Retry-After",
+      String(limitCheck.retryAfterSeconds)
+    );
   }
+
+  return res.status(limitCheck.status).json({
+    error: {
+      code:
+        limitCheck.status === 503
+          ? "RATE_LIMIT_UNAVAILABLE"
+          : "RATE_LIMITED",
+      message: limitCheck.message,
+      requestId,
+    },
+  });
+}
 
   // ----------------------------------------------------------
   // Claude request
