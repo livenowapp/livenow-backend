@@ -192,10 +192,9 @@ if (!limitCheck.allowed) {
       durationMs: Date.now() - startedAt,
       errorName: error?.name,
       errorStatus: error?.status,
-      errorMessage:
-        process.env.NODE_ENV === "development"
-          ? error?.message
-          : undefined,
+      errorMessage: error?.message,
+      errorHeaders: error?.headers,
+      errorBody: error?.error,
     });
 
     return res.status(publicError.status).json({
