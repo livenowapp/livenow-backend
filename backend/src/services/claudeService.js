@@ -13,6 +13,11 @@ import {
 } from "../schemas/reflectionJsonSchema.js";
 
 export async function generateReflection(thought) {
+  console.log(
+    "SYSTEM PROMPT CHARACTERS:",
+    SYSTEM_PROMPT.length
+  );
+
   const message = await anthropic.messages.create({
     model: MODEL,
     max_tokens: 1_200,
