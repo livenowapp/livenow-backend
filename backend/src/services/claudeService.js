@@ -18,15 +18,7 @@ export async function generateReflection(thought) {
     max_tokens: 1_200,
     temperature: 0.35,
 
-    system: [
-      {
-        type: "text",
-        text: SYSTEM_PROMPT,
-        cache_control: {
-          type: "ephemeral",
-        },
-      },
-    ],
+    system: SYSTEM_PROMPT,
 
     messages: [
       {
