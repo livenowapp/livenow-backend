@@ -30,6 +30,43 @@ struct AIAnalysisItem: Codable, Hashable {
     let type: String
     let label: String
     let sub: String
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case label
+        case sub
+    }
+
+    init(
+        type: String,
+        label: String,
+        sub: String
+    ) {
+        self.type = type
+        self.label = label
+        self.sub = sub
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(
+            keyedBy: CodingKeys.self
+        )
+
+        type = try container.decodeIfPresent(
+            String.self,
+            forKey: .type
+        ) ?? "balanced_context"
+
+        label = try container.decode(
+            String.self,
+            forKey: .label
+        )
+
+        sub = try container.decode(
+            String.self,
+            forKey: .sub
+        )
+    }
 }
 
 struct AIEvidenceItem: Codable, Hashable {
