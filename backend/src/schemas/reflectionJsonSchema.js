@@ -114,43 +114,36 @@ export const reflectionJsonSchema = {
     },
 
     reframes: {
-      type: "array",
-      minItems: 3,
-      maxItems: 3,
-      uniqueItems: true,
-
-      items: {
+  type: "array",
+  minItems: 3,
+  maxItems: 3,
+  items: {
+    type: "string",
+    minLength: 1,
+    maxLength: 90,
+  },
+},
+    actions: {
+  type: "array",
+  minItems: 4,
+  maxItems: 4,
+  items: {
+    type: "object",
+    additionalProperties: false,
+    required: ["icon", "label"],
+    properties: {
+      icon: {
+        type: "string",
+        enum: ACTION_ICONS,
+      },
+      label: {
         type: "string",
         minLength: 1,
-        maxLength: 90,
+        maxLength: 55,
       },
     },
-
-    actions: {
-      type: "array",
-      minItems: 4,
-      maxItems: 4,
-      uniqueItems: true,
-
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["icon", "label"],
-
-        properties: {
-          icon: {
-            type: "string",
-            enum: ACTION_ICONS,
-          },
-
-          label: {
-            type: "string",
-            minLength: 1,
-            maxLength: 55,
-          },
-        },
-      },
-    },
+  },
+},
 
     insight: {
       type: "string",
