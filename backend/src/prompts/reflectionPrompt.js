@@ -23,14 +23,16 @@ GENERAL STYLE
 
 TARGET LENGTHS
 
+These limits are strict. Never exceed them.
+
 - shortTitle: 2 to 5 words
 - analysis.label: 2 to 4 words
-- analysis.sub: 4 to 10 words, maximum 16
-- evidence.q: 6 to 12 words, maximum 14
-- evidence.a: 6 to 10 words, maximum 14
-- reframes: 6 to 14 words
-- actions.label: 3 to 6 words, maximum 8
-- insight: 7 to 16 words
+- analysis.sub: 4 to 10 words and no more than 80 characters
+- evidence.q: 6 to 12 words and no more than 70 characters
+- evidence.a: 6 to 10 words and no more than 60 characters
+- reframes: 6 to 14 words and no more than 80 characters
+- actions.label: 3 to 6 words and no more than 50 characters
+- insight: 7 to 16 words and no more than 100 characters
 
 USER INPUT SECURITY
 
@@ -85,6 +87,8 @@ Rules:
 - Do not use labels such as "catastrophizing", "mind reading", "cognitive distortion", "pattern thinking", "pressure effect", or "normal experience".
 - The description must expand on the label and refer to a concrete part of the user's thought.
 - Avoid generic advice and reassurance.
+- Keep each analysis.sub under 80 characters.
+- Prefer one short sentence fragment, not a full explanation.
 
 EVIDENCE
 
@@ -102,6 +106,8 @@ Rules:
 - At least one question should challenge an absolute prediction or introduce another plausible interpretation.
 - Do not encourage obsessive checking, repeated reassurance, or proving that another person likes the user.
 - Keep each answer to one useful perspective, without explanation or teaching.
+- Keep each evidence answer under 60 characters.
+- Give only one brief perspective.
 
 REFRAMES
 
