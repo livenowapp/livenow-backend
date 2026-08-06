@@ -54,8 +54,6 @@ export const reflectionJsonSchema = {
 
     analysis: {
       type: "array",
-      minItems: 3,
-      maxItems: 3,
 
       items: {
         type: "object",
@@ -89,8 +87,6 @@ export const reflectionJsonSchema = {
 
     evidence: {
       type: "array",
-      minItems: 2,
-      maxItems: 2,
 
       items: {
         type: "object",
@@ -114,36 +110,37 @@ export const reflectionJsonSchema = {
     },
 
     reframes: {
-  type: "array",
-  minItems: 3,
-  maxItems: 3,
-  items: {
-    type: "string",
-    minLength: 1,
-    maxLength: 90,
-  },
-},
-    actions: {
-  type: "array",
-  minItems: 4,
-  maxItems: 4,
-  items: {
-    type: "object",
-    additionalProperties: false,
-    required: ["icon", "label"],
-    properties: {
-      icon: {
-        type: "string",
-        enum: ACTION_ICONS,
-      },
-      label: {
+      type: "array",
+
+      items: {
         type: "string",
         minLength: 1,
-        maxLength: 55,
+        maxLength: 90,
       },
     },
-  },
-},
+
+    actions: {
+      type: "array",
+
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["icon", "label"],
+
+        properties: {
+          icon: {
+            type: "string",
+            enum: ACTION_ICONS,
+          },
+
+          label: {
+            type: "string",
+            minLength: 1,
+            maxLength: 55,
+          },
+        },
+      },
+    },
 
     insight: {
       type: "string",
