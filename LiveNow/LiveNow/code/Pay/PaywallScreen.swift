@@ -110,7 +110,7 @@ struct PaywallScreen: View {
                     VStack(spacing: featureSpacing) {
                         PaywallFeatureRow(
                             icon: "brain.head.profile",
-                            title: "Unlimited resets",
+                            title: "Reset whenever you need",
                             subtitle: "Analyze thoughts whenever your mind feels stuck.",
                             orange: orange,
                             screenWidth: screenWidth,
