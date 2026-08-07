@@ -62,8 +62,6 @@ struct ProfilePlaceholderScreen: View {
         return calmMessages[day % calmMessages.count]
     }
 
-   // @ScaledMetric private var logoSize: CGFloat = 24
-   // @ScaledMetric private var topButtonSize: CGFloat = 40
     @ScaledMetric private var nameSize: CGFloat = 34
     @ScaledMetric private var titleSize: CGFloat = 34
     @ScaledMetric private var cardRadius: CGFloat = 22
@@ -87,18 +85,6 @@ struct ProfilePlaceholderScreen: View {
                 LiveNowTopHeader(
                     horizontalPadding: horizontalPadding
                 )
-                
-               /* ZStack {
-                    Text("LiveNow")
-                        .font(.system(size: logoSize, weight: .semibold))
-                        .foregroundColor(.black)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: topButtonSize)
-                .padding(.horizontal, horizontalPadding)
-                .padding(.top, topPadding)*/
                 
                 ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 6) {
@@ -253,7 +239,6 @@ struct ProfilePlaceholderScreen: View {
         .background(Color.white.opacity(0.78))
         .cornerRadius(cardRadius)
         .frame(maxWidth: .infinity, alignment: .leading)
-        //.frame(height: 205)
     }
 
 // MARK: - PROGRESS CIRCLE

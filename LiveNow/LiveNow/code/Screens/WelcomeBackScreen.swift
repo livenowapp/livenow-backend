@@ -49,12 +49,6 @@ struct WelcomeBackScreen: View {
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
                     .padding(.top, 10)
-                
-                /*Text(message)
-                    .font(.system(size: subtitleSize))
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 10)*/
 
                 Spacer()
             }
@@ -92,34 +86,4 @@ struct WelcomeBackScreen: View {
             return "Good evening"
         }
     }
-
-    
-    
-   /* private var message: String {
-
-        let messages = [
-            "One small reset can change your day.",
-            "Take a deep breath. You're exactly where you need to be.",
-            "You don't have to solve everything today.",
-            "Your mind deserves a moment of peace.",
-            "Let's make today a little lighter.",
-            "A calmer mind starts with one small step.",
-            "You are stronger than your thoughts.",
-            "Progress comes from small resets.",
-            "Slow down. You've got this.",
-            "Today is a good day to think a little less.",
-            "Choose peace over overthinking.",
-            "One mindful moment is enough to begin.",
-            "Welcome back to yourself.",
-            "Less overthinking. More living.",
-            "You don't need all the answers right now.",
-            "A clear mind changes everything.",
-            "Let's quiet the noise together.",
-            "Your next reset is only one tap away.",
-            "Every reset is a step forward.",
-            "Today is another chance to live in the present."
-        ]
-
-        return messages.randomElement()!
-    }*/
 }

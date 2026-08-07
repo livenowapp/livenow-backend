@@ -416,10 +416,6 @@ struct ResetCheckInOverlay: View {
             }
 
             await MainActor.run {
-                /*
-                 Stanje počistimo PRED action(), ker action()
-                 odstrani trenutni entry in prikaže naslednjega.
-                 */
                 selectedAnswer = nil
                 isSubmittingAnswer = false
                 answerTask = nil

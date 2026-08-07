@@ -419,7 +419,6 @@ struct SelectedDateEntriesSheet: View {
 
     @State private var path: [ThoughtEntry] = []
     @State private var openEntryID: UUID?
-  //  @State private var isMomentSwipeActive = false
 
     private var selectedEntries: [ThoughtEntry] {
         vm.entries(for: vm.selectedDate)
@@ -967,14 +966,6 @@ struct MomentSwipeRow<Content: View>: View {
             blendDuration: 0.05
         )
     }
-    
-    /*private var snapAnimation: Animation {
-        .interactiveSpring(
-            response: 0.22,
-            dampingFraction: 0.9,
-            blendDuration: 0.05
-        )
-    }*/
 }
 
 // MARK: - DAY SECTION VIEW

@@ -33,7 +33,6 @@ struct NotificationSettingsScreen: View {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 28) {
                         notificationAccessSection
-                      //  reminderInfoSection
                     }
                     .padding(.horizontal, 22)
                     .padding(.top, 28)
@@ -136,85 +135,6 @@ struct NotificationSettingsScreen: View {
             .padding(18)
         }
     }
-
-    // MARK: - REMINDER INFO
-
- /*   private var reminderInfoSection: some View {
-        settingsGroup(title: "DAILY REMINDERS") {
-            VStack(alignment: .leading, spacing: 18) {
-                reminderRow(
-                    icon: "sun.max.fill",
-                    title: "Morning reminder",
-                    subtitle: "Delivered between 8:45 AM and 10:15 AM"
-                )
-
-                Divider()
-
-                reminderRow(
-                    icon: "sun.haze.fill",
-                    title: "Afternoon reminder",
-                    subtitle: "Delivered between 1:30 PM and 4:30 PM"
-                )
-
-                Divider()
-
-                reminderRow(
-                    icon: "moon.stars.fill",
-                    title: "Evening reminder",
-                    subtitle: "Delivered between 7:30 PM and 9:30 PM"
-                )
-
-                Divider()
-
-                HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundColor(orange)
-                        .frame(width: 24)
-
-                    Text(
-                        "Reminder times and messages vary each day. Messages are personalized using your onboarding answers."
-                    )
-                    .font(.system(size: 13))
-                    .foregroundColor(.gray)
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
-                    )
-                }
-            }
-            .padding(18)
-        }
-    }
-
-    private func reminderRow(
-        icon: String,
-        title: String,
-        subtitle: String
-    ) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            Image(systemName: icon)
-                .font(.system(size: 21))
-                .foregroundColor(orange)
-                .frame(width: 42, height: 42)
-                .background(
-                    orange.opacity(0.10)
-                )
-                .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.black)
-
-                Text(subtitle)
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-            }
-
-            Spacer()
-        }
-    }*/
 
     // MARK: - GROUP
 

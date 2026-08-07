@@ -636,9 +636,7 @@ struct ReframeScreen: View {
 
                         Text("Choose the response that feels most believable right now.")
                             .font(.system(size: 15 * scales.scale, weight: .medium))
-                        //.font(.system(size: min(max(screenWidth * 0.033, 12), 13.5)))
                             .foregroundColor(.gray)
-                           // .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
                             .padding(.top, 10)
                     }
@@ -793,8 +791,6 @@ struct CompleteScreen: View {
     @ScaledMetric private var iconCircleSize: CGFloat = 116
     @ScaledMetric private var titleSize: CGFloat = 32
     @ScaledMetric private var buttonSize: CGFloat = 18
-   // @ScaledMetric private var logoSize: CGFloat = 24
-   // @ScaledMetric private var topButtonSize: CGFloat = 40
     
     private var isGuestFirstReset: Bool {
         vm.isGuestUser && vm.hasCompletedGuestReset
@@ -810,7 +806,6 @@ struct CompleteScreen: View {
             let screenHeight = geo.size.height
 
             let horizontalPadding = min(screenWidth * 0.06, 24)
-           // let topPadding = min(max(screenHeight * 0.025, 18), 18)
             let iconSize = min(iconCircleSize, screenWidth * 0.38)
             let sectionSpacing = min(max(screenHeight * 0.020, 14), 18)
             let buttonVerticalPadding = min(screenHeight * 0.022, 17)
@@ -905,32 +900,6 @@ struct CompleteScreen: View {
             }
         }
     }
-    
-    /*private func header(horizontalPadding: CGFloat, topPadding: CGFloat) -> some View {
-        ZStack {
-            Text("LiveNow")
-                .font(.system(size: logoSize, weight: .semibold))
-                .foregroundColor(.black)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: topButtonSize)
-        .padding(.horizontal, horizontalPadding)
-        .padding(.top, topPadding)
-        
-        .overlay(alignment: .topTrailing) {
-            if !isGuestFirstReset {
-                Button("Done") {
-                    onClose()
-                }
-                .font(.system(size: 17, weight: .medium))
-                .foregroundColor(orange)
-                .padding(.trailing, horizontalPadding)
-                .padding(.top, topPadding + 9)
-            }
-        }
-    }*/
 
     private func completeAnimation(iconSize: CGFloat) -> some View {
         ZStack {

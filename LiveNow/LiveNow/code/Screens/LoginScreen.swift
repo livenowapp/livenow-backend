@@ -416,9 +416,6 @@ struct SignupScreen: View {
                     .cornerRadius(14)
                     .disabled(!authVM.acceptedAgeAndTerms || authVM.isLoading)
                     .opacity(authVM.acceptedAgeAndTerms ? 1 : 0.55)
-                  //  .padding(.top, 8)
-
-                    
 
                     Spacer().frame(height: 40)
                 }

@@ -100,8 +100,6 @@ struct NotificationConditionChecker {
             entries: entries,
             referenceDate: referenceDate
         ) else {
-            // Uporabnik nima še nobenega reseta.
-            // To za zdaj ne obravnavamo kot večdnevno neaktivnost.
             return false
         }
 
@@ -237,15 +235,6 @@ struct NotificationConditionChecker {
             .weekday,
             from: startOfDay
         )
-
-        /*
-         Calendar weekday:
-         Sunday = 1
-         Monday = 2
-         Tuesday = 3
-         ...
-         Saturday = 7
-         */
 
         let daysSinceMonday =
             (weekday + 5) % 7

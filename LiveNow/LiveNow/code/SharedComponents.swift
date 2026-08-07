@@ -12,8 +12,6 @@ import SwiftUI
 struct BottomTabBar: View {
     @ObservedObject var vm: AppViewModel
     let orange: Color
-   // let onTabInteraction: () -> Void
-
     var body: some View {
         HStack(spacing: 0) {
             TabItem(
@@ -22,7 +20,6 @@ struct BottomTabBar: View {
                 tab: .home,
                 vm: vm,
                 orange: orange,
-             //   onTap: onTabInteraction
             )
 
             TabItem(
@@ -31,7 +28,6 @@ struct BottomTabBar: View {
                 tab: .moments,
                 vm: vm,
                 orange: orange,
-             //   onTap: onTabInteraction
             )
 
             TabItem(
@@ -40,7 +36,6 @@ struct BottomTabBar: View {
                 tab: .insights,
                 vm: vm,
                 orange: orange,
-             //   onTap: onTabInteraction
             )
 
             TabItem(
@@ -49,7 +44,6 @@ struct BottomTabBar: View {
                 tab: .profile,
                 vm: vm,
                 orange: orange,
-             //   onTap: onTabInteraction
             )
         }
         .padding(.top, 8)
@@ -69,14 +63,12 @@ struct TabItem: View {
 
     @ObservedObject var vm: AppViewModel
     let orange: Color
-    //let onTap: () -> Void
 
     @ScaledMetric private var iconSize: CGFloat = 18
     @ScaledMetric private var labelSize: CGFloat = 11
 
     var body: some View {
         Button {
-           // onTap()
 
             if vm.isGuestUser && vm.hasCompletedGuestReset {
                 switch tab {

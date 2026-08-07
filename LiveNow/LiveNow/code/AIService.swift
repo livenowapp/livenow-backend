@@ -13,8 +13,6 @@ import FirebaseAuth
 final class AIService {
     static let shared = AIService()
 
-    // ✅ LIVE BACKEND
-    /*private let endpoint = "http://127.0.0.1:3001/analyze"*/
     private let endpoint = "https://livenow-backend.onrender.com/analyze"
 
     private init() {}
@@ -28,7 +26,6 @@ final class AIService {
             throw AIServiceError.userNotSignedIn
         }
 
-        // Firebase samodejno osveži token, kadar je to potrebno.
         let idToken = try await currentUser.getIDToken()
 
         var request = URLRequest(url: url)
