@@ -83,8 +83,13 @@ final class AppViewModel: ObservableObject {
 
         currentTab = .home
         step = .input
+        
         thought = ""
         aiResponse = nil
+        
+        lastAnalyzedThought = ""
+        lastAIResponse = nil
+        
         selectedReframeIndex = 0
         selectedActionIndex = 0
         completionNote = ""
@@ -125,6 +130,10 @@ final class AppViewModel: ObservableObject {
         step = .home
         thought = ""
         aiResponse = nil
+        
+        lastAnalyzedThought = ""
+        lastAIResponse = nil
+        
         selectedReframeIndex = 0
         selectedActionIndex = 0
         completionNote = ""
