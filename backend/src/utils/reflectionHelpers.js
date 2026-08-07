@@ -58,7 +58,7 @@ export function getPublicError(error) {
       status: 503,
       code: "AI_OVERLOADED",
       message:
-        "The reflection service is temporarily busy.",
+        "The reflection service is temporarily busy. Please try again shortly.",
     };
   }
 

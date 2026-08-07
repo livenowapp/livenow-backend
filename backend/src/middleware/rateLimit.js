@@ -8,7 +8,7 @@ import {
 } from "../config/firebase.js";
 
 const COOLDOWN_MS = 10 * 1000;
-const DAILY_LIMIT = 30;
+const DAILY_LIMIT = 20;
 
 function getTodayKey() {
   return new Date().toISOString().slice(0, 10);
@@ -85,7 +85,7 @@ export async function checkRateLimit(firebaseUid) {
             allowed: false,
             status: 429,
             retryAfterSeconds: null,
-            message: "Daily analysis limit reached.",
+            message: "You've reached today's reflection limit. You can continue tomorrow.",
           };
         }
 

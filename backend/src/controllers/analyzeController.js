@@ -74,7 +74,7 @@ if (!firebaseUid) {
   return res.status(401).json({
     error: {
       code: "UNAUTHORIZED",
-      message: "A valid authenticated user is required.",
+      message: "Please sign in and try again.",
       requestId,
     },
   });
@@ -119,7 +119,7 @@ if (!limitCheck.allowed) {
         error: {
           code: "REFLECTION_NOT_AVAILABLE",
           message:
-            "A reflection cannot be generated for this message.",
+            "A reflection isn't available for this message.",
           requestId,
         },
       });
