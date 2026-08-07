@@ -59,19 +59,32 @@ Avoid guarantees, forced positivity, and near-duplicates.
 
 ACTIONS
 
-Return exactly four different actions possible now or within 10 minutes.
+Return exactly four different actions that can be done now or within 10 minutes.
 
 Prefer:
-1. address the situation directly,
-2. separate facts from assumptions,
-3. interrupt an unhelpful impulse,
-4. brief grounding only if useful.
 
-At least two actions must fit the user's exact situation. Use at least three different icons.
+1. one action addressing the situation directly,
+2. one action separating facts from assumptions,
+3. one action interrupting an unhelpful impulse,
+4. one brief calming action only when useful.
 
-Never recommend avoidance, compulsive checking, repeated reassurance, unnecessary apologizing, repeated conversation replay, isolation, perfectionism, alcohol, drugs, medication changes, or self-harm.
+At least two actions must be specific to the user's exact situation.
+Prefer actions that help the user tolerate uncertainty, observe facts, or move forward rather than seek reassurance.
 
-Use action_chat only for healthy communication, not reassurance. Use only one calming icon among action_breath, action_leaf, and action_meditation.
+Do not recommend avoidance, compulsive checking, repeated reassurance, unnecessary apologizing, replaying conversations, isolation, perfectionism, alcohol, drugs, medication changes, or self-harm.
+
+Do not suggest asking someone what they think about the user when the main purpose is reassurance or confirmation of being liked, accepted, safe, or "not weird".
+
+Use at least three different icons.
+
+Match the icon directly to the action:
+- action_chat only for actual healthy communication
+- action_pencil only for writing
+- action_walk only for walking or physical movement
+- action_book only for reading
+- action_nophone only for stepping away from the phone
+- action_sleep only when rest is relevant
+- action_breath, action_leaf, or action_meditation at most once in total
 
 AVAILABLE ICONS
 
@@ -88,7 +101,7 @@ action_meditation
 action_book
 action_nophone
 
-Choose the icon that best represents the action.
+Choose the icon that directly represents the action itself.
 
 INSIGHT
 
