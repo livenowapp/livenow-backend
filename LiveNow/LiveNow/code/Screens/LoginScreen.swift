@@ -195,6 +195,14 @@ struct LoginScreen: View {
 struct SignupScreen: View {
     @ObservedObject var authVM: AuthViewModel
     let orange: Color
+    
+    private let privacyURL = URL(
+        string: "https://www.notion.so/Privacy-Policy-3496f514da4380bfba2bdbdbd6289377?source=copy_link"
+    )!
+
+    private let termsURL = URL(
+        string: "https://www.notion.so/Terms-Of-Use-3566f514da438019836cf4da4e5f68cc?source=copy_link"
+    )!
 
     @ScaledMetric private var titleSize: CGFloat = 34
     @ScaledMetric private var subtitleSize: CGFloat = 15
@@ -310,12 +318,13 @@ struct SignupScreen: View {
                     }
                     .padding(.top, 18)
                     
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.16)) {
-                            authVM.acceptedAgeAndTerms.toggle()
-                        }
-                    } label: {
-                        HStack(alignment: .top, spacing: 12) {
+                    HStack(alignment: .top, spacing: 12) {
+
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.16)) {
+                                authVM.acceptedAgeAndTerms.toggle()
+                            }
+                        } label: {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(
@@ -340,20 +349,35 @@ struct SignupScreen: View {
                                         .foregroundColor(.white)
                                 }
                             }
-
-                            Text(
-                                "I confirm that I am at least 16 years old and agree to the Terms of Use and Privacy Policy."
-                            )
-                            .font(.system(size: 13))
-                            .foregroundColor(.black.opacity(0.68))
-                            .multilineTextAlignment(.leading)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                            Spacer(minLength: 0)
                         }
-                        .contentShape(Rectangle())
+                        .buttonStyle(.plain)
+
+                        VStack(alignment: .leading, spacing: 3) {
+
+                            Text("I confirm that I am at least 16 years old and agree to the")
+                                .font(.system(size: 13))
+                                .foregroundColor(.black.opacity(0.68))
+
+                            HStack(spacing: 4) {
+                                Link("Terms of Use", destination: termsURL)
+                                    .foregroundColor(orange)
+
+                                Text("and")
+                                    .foregroundColor(.black.opacity(0.68))
+
+                                Link("Privacy Policy", destination: privacyURL)
+                                    .foregroundColor(orange)
+
+                                Text(".")
+                                    .foregroundColor(.black.opacity(0.68))
+                            }
+                            .font(.system(size: 13))
+                        }
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                        Spacer(minLength: 0)
                     }
-                    .buttonStyle(.plain)
                     
                     if let error = authVM.errorMessage {
                         Text(error)
