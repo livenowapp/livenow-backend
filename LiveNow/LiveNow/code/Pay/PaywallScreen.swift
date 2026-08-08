@@ -21,8 +21,8 @@ struct PaywallScreen: View {
 
     @State private var selectedPlan: PaywallPlan = .yearly
 
-    private let privacyURL = URL(string: "https://www.notion.so/Privacy-Policy-3496f514da4380bfba2bdbdbd6289377?source=copy_link")!
-    private let termsURL = URL(string: "https://www.notion.so/Terms-Of-Use-3566f514da438019836cf4da4e5f68cc?source=copy_link")!
+    private let privacyURL = URL(string: "https://www.livenowapp.net/privacy")!
+    private let termsURL = URL(string: "https://www.livenowapp.net/terms")!
 
     var body: some View {
         GeometryReader { geo in

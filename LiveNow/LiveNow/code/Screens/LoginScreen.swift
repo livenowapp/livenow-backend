@@ -85,6 +85,7 @@ struct LoginScreen: View {
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
                             .padding(.horizontal, 16)
+                            .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(
                                 AuthTextFieldBackground(
@@ -92,6 +93,10 @@ struct LoginScreen: View {
                                     orange: orange
                                 )
                             )
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                focusedField = .email
+                            }
 
                         PasswordField(
                             title: "password",
@@ -107,6 +112,10 @@ struct LoginScreen: View {
                             if canSubmit {
                                 authVM.login()
                             }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            focusedField = .password
                         }
                         
                         Button(action: {
@@ -197,12 +206,23 @@ struct SignupScreen: View {
     let orange: Color
     
     private let privacyURL = URL(
-        string: "https://www.notion.so/Privacy-Policy-3496f514da4380bfba2bdbdbd6289377?source=copy_link"
+        string: "https://www.livenowapp.net/privacy"
     )!
 
     private let termsURL = URL(
-        string: "https://www.notion.so/Terms-Of-Use-3566f514da438019836cf4da4e5f68cc?source=copy_link"
+        string: "https://www.livenowapp.net/terms"
     )!
+    
+    private var termsAndPrivacyText: AttributedString {
+        let markdown = """
+        I confirm that I am at least 16 years old and agree to the [Terms of Use](\(termsURL.absoluteString)) and [Privacy Policy](\(privacyURL.absoluteString)).
+        """
+
+        return (try? AttributedString(markdown: markdown))
+            ?? AttributedString(
+                "I confirm that I am at least 16 years old and agree to the Terms of Use and Privacy Policy."
+            )
+    }
 
     @ScaledMetric private var titleSize: CGFloat = 34
     @ScaledMetric private var subtitleSize: CGFloat = 15
@@ -229,8 +249,8 @@ struct SignupScreen: View {
 
     var body: some View {
         GeometryReader { geo in
-            let horizontalPadding = min(geo.size.width * 0.065, 28)
-            let topSpacing = min(geo.size.height * 0.07, 60)
+            let horizontalPadding = min(max(geo.size.width * 0.065, 20), 28)
+            let topSpacing = min(max(geo.size.height * 0.045, 28), 60)
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 18) {
@@ -257,6 +277,7 @@ struct SignupScreen: View {
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
                             .padding(.horizontal, 16)
+                            .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(
                                 AuthTextFieldBackground(
@@ -264,6 +285,10 @@ struct SignupScreen: View {
                                     orange: orange
                                 )
                             )
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                focusedField = .name
+                            }
 
                         TextField("email", text: $authVM.email)
                             .font(.system(size: fieldTextSize))
@@ -278,6 +303,7 @@ struct SignupScreen: View {
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
                             .padding(.horizontal, 16)
+                            .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(
                                 AuthTextFieldBackground(
@@ -285,6 +311,10 @@ struct SignupScreen: View {
                                     orange: orange
                                 )
                             )
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                focusedField = .email
+                            }
 
                         PasswordField(
                             title: "password",
@@ -298,6 +328,10 @@ struct SignupScreen: View {
                         .submitLabel(.next)
                         .onSubmit {
                             focusedField = .confirmPassword
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            focusedField = .password
                         }
                         
                         PasswordField(
@@ -314,6 +348,10 @@ struct SignupScreen: View {
                             if canSubmit {
                                 authVM.signUp()
                             }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            focusedField = .confirmPassword
                         }
                     }
                     .padding(.top, 18)
@@ -352,29 +390,12 @@ struct SignupScreen: View {
                         }
                         .buttonStyle(.plain)
 
-                        VStack(alignment: .leading, spacing: 3) {
-
-                            Text("I confirm that I am at least 16 years old and agree to the")
-                                .font(.system(size: 13))
-                                .foregroundColor(.black.opacity(0.68))
-
-                            HStack(spacing: 4) {
-                                Link("Terms of Use", destination: termsURL)
-                                    .foregroundColor(orange)
-
-                                Text("and")
-                                    .foregroundColor(.black.opacity(0.68))
-
-                                Link("Privacy Policy", destination: privacyURL)
-                                    .foregroundColor(orange)
-
-                                Text(".")
-                                    .foregroundColor(.black.opacity(0.68))
-                            }
+                        Text(termsAndPrivacyText)
                             .font(.system(size: 13))
-                        }
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
+                            .foregroundColor(.black.opacity(0.68))
+                            .tint(orange)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
 
                         Spacer(minLength: 0)
                     }

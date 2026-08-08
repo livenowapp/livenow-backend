@@ -22,9 +22,9 @@ struct SettingsScreen: View {
     
     @ScaledMetric private var cardRadius: CGFloat = 24
 
-    private let privacyURL = URL(string: "https://www.notion.so/Privacy-Policy-3496f514da4380bfba2bdbdbd6289377?source=copy_link")!
-    private let termsURL = URL(string: "https://www.notion.so/Terms-Of-Use-3566f514da438019836cf4da4e5f68cc?source=copy_link")!
-    private let faqURL = URL(string: "https://www.notion.so/LiveNow-Help-FAQ-3496f514da438035bcdef3ef1bca01e7?source=copy_link")!
+    private let privacyURL = URL(string: "https://www.livenowapp.net/privacy")!
+    private let termsURL = URL(string: "https://www.livenowapp.net/terms")!
+    private let faqURL = URL(string: "https://www.livenowapp.net/help")!
     private let subscriptionURL = URL(string:
         "https://apps.apple.com/account/subscriptions")!
 
