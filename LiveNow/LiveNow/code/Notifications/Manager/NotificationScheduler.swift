@@ -85,25 +85,7 @@ final class NotificationScheduler {
             trigger: trigger
         )
 
-        do {
-            try await notificationCenter.add(request)
-
-            print(
-                "SCHEDULED NOTIFICATION:",
-                notification.type.rawValue,
-                identifier,
-                notification.date.formatted(
-                    date: .abbreviated,
-                    time: .shortened
-                )
-            )
-        } catch {
-            print(
-                "NOTIFICATION SCHEDULING ERROR:",
-                identifier,
-                error.localizedDescription
-            )
-        }
+        try? await notificationCenter.add(request)
     }
 
     // MARK: - REMOVE ALL LIVENOW

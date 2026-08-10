@@ -38,11 +38,6 @@ final class NotificationManager {
                     ]
                 )
         } catch {
-            print(
-                "NOTIFICATION AUTHORIZATION ERROR:",
-                error.localizedDescription
-            )
-
             return false
         }
     }
@@ -130,7 +125,6 @@ final class NotificationManager {
         need: String?,
         entries: [ThoughtEntry]
     ) async {
-        print("REBUILDING NOTIFICATION SCHEDULE")
 
         await scheduler.removeAllLiveNowNotifications()
 
@@ -389,8 +383,6 @@ final class NotificationManager {
                 await scheduler.schedule(sundayNotification)
             }
         }
-
-        print("EVENING NOTIFICATIONS REFRESHED")
     }
 
     // MARK: - MAKE EVENING NOTIFICATION

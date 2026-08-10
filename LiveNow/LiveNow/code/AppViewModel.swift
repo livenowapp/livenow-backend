@@ -229,7 +229,6 @@ final class AppViewModel: ObservableObject {
             step = .analyze*/
             
         } catch {
-            print("ANALYZE ERROR:", error)
             errorMessage = "error: \(error.localizedDescription)"
         }
 
@@ -757,23 +756,37 @@ final class AppViewModel: ObservableObject {
     }
 
     private func saveEntry(_ entry: ThoughtEntry) {
-        guard let collection = userEntriesCollection() else { return }
+        guard let collection = userEntriesCollection() else {
+            return
+        }
 
         do {
             let data = try JSONEncoder().encode(entry)
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+
+            let json = try JSONSerialization.jsonObject(
+                with: data
+            ) as? [String: Any] ?? [:]
 
             collection
                 .document(entry.id.uuidString)
                 .setData(json) { error in
+                    #if DEBUG
                     if let error {
-                        print("Firestore save error:", error.localizedDescription)
-                    } else {
-                        print("Saved entry:", entry.id.uuidString)
+                        print(
+                            "Firestore save error:",
+                            error.localizedDescription
+                        )
                     }
+                    #endif
                 }
+
         } catch {
-            print("Encode entry error:", error)
+            #if DEBUG
+            print(
+                "Encode entry error:",
+                error.localizedDescription
+            )
+            #endif
         }
     }
 
@@ -787,7 +800,13 @@ final class AppViewModel: ObservableObject {
             .order(by: "date", descending: true)
             .getDocuments { snapshot, error in
                 if let error {
-                    print("Firestore load error:", error)
+                    #if DEBUG
+                    print(
+                        "Firestore load error:",
+                        error.localizedDescription
+                    )
+                    #endif
+
                     return
                 }
 
@@ -795,6 +814,7 @@ final class AppViewModel: ObservableObject {
                     DispatchQueue.main.async {
                         self.entries = []
                     }
+
                     return
                 }
 
@@ -811,8 +831,15 @@ final class AppViewModel: ObservableObject {
                                 ThoughtEntry.self,
                                 from: rawData
                             )
+
                         } catch {
-                            print("Decode entry error:", error)
+                            #if DEBUG
+                            print(
+                                "Decode entry error:",
+                                error.localizedDescription
+                            )
+                            #endif
+
                             return nil
                         }
                     }
@@ -830,13 +857,22 @@ final class AppViewModel: ObservableObject {
     }
 
     private func deleteEntryFromFirestore(_ entryID: UUID) {
-        guard let collection = userEntriesCollection() else { return }
-
-        collection.document(entryID.uuidString).delete { error in
-            if let error {
-                print("Firestore delete error:", error.localizedDescription)
-            }
+        guard let collection = userEntriesCollection() else {
+            return
         }
+
+        collection
+            .document(entryID.uuidString)
+            .delete { error in
+                #if DEBUG
+                if let error {
+                    print(
+                        "Firestore delete error:",
+                        error.localizedDescription
+                    )
+                }
+                #endif
+            }
     }
 
     func reloadEntriesForCurrentUser() {
@@ -850,11 +886,16 @@ final class AppViewModel: ObservableObject {
 
     func loadOnboardingAnswersAsync() async {
         guard let user = Auth.auth().currentUser else {
+            #if DEBUG
             print("PERSONALIZATION: no Firebase user")
+            #endif
+
             return
         }
 
+        #if DEBUG
         print("PERSONALIZATION USER UID:", user.uid)
+        #endif
 
         do {
             let snapshot = try await db
@@ -865,7 +906,10 @@ final class AppViewModel: ObservableObject {
             guard
                 let data = snapshot.data()?["personalization"] as? [String: Any]
             else {
+                #if DEBUG
                 print("PERSONALIZATION: document has no personalization field")
+                #endif
+
                 return
             }
 
@@ -883,13 +927,17 @@ final class AppViewModel: ObservableObject {
                     data["onboardingNeed"] as? String ?? ""
             }
 
+            #if DEBUG
             print("PERSONALIZATION LOADED")
+            #endif
 
         } catch {
+            #if DEBUG
             print(
                 "LOAD ONBOARDING ERROR:",
                 error.localizedDescription
             )
+            #endif
         }
     }
     
@@ -908,12 +956,17 @@ final class AppViewModel: ObservableObject {
         onboardingNeed =
             answers["onboardingNeed"] ?? ""
 
+        #if DEBUG
         print("ONBOARDING ANSWERS SAVED LOCALLY")
+        #endif
     }
-    
+
     func saveCurrentOnboardingAnswersForLoggedInUser() async {
         guard let uid = Auth.auth().currentUser?.uid else {
+            #if DEBUG
             print("PERSONALIZATION SAVE: no logged-in user")
+            #endif
+
             return
         }
 
@@ -924,7 +977,10 @@ final class AppViewModel: ObservableObject {
             !onboardingNeed.isEmpty
 
         guard hasAnswers else {
+            #if DEBUG
             print("PERSONALIZATION SAVE: no answers available")
+            #endif
+
             return
         }
 
@@ -945,12 +1001,17 @@ final class AppViewModel: ObservableObject {
                     merge: true
                 )
 
+            #if DEBUG
             print("PERSONALIZATION SAVED TO FIRESTORE")
+            #endif
+
         } catch {
+            #if DEBUG
             print(
                 "PERSONALIZATION SAVE ERROR:",
                 error.localizedDescription
             )
+            #endif
         }
     }
     
@@ -1087,25 +1148,48 @@ final class AppViewModel: ObservableObject {
     private func saveGuestFirstReset(_ entry: ThoughtEntry) {
         do {
             let data = try JSONEncoder().encode(entry)
-            UserDefaults.standard.set(data, forKey: guestFirstResetKey)
+
+            UserDefaults.standard.set(
+                data,
+                forKey: guestFirstResetKey
+            )
+
         } catch {
-            print("Guest reset save error:", error)
+            #if DEBUG
+            print(
+                "Guest reset save error:",
+                error.localizedDescription
+            )
+            #endif
         }
     }
 
     private func loadGuestFirstReset() {
-        guard let data = UserDefaults.standard.data(forKey: guestFirstResetKey) else {
+        guard let data = UserDefaults.standard.data(
+            forKey: guestFirstResetKey
+        ) else {
             guestFirstReset = nil
             hasCompletedGuestReset = false
             return
         }
 
         do {
-            let entry = try JSONDecoder().decode(ThoughtEntry.self, from: data)
+            let entry = try JSONDecoder().decode(
+                ThoughtEntry.self,
+                from: data
+            )
+
             guestFirstReset = entry
             hasCompletedGuestReset = true
+
         } catch {
-            print("Guest reset load error:", error)
+            #if DEBUG
+            print(
+                "Guest reset load error:",
+                error.localizedDescription
+            )
+            #endif
+
             guestFirstReset = nil
             hasCompletedGuestReset = false
         }

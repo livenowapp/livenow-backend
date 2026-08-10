@@ -187,21 +187,29 @@ struct ContentView:
                 vm.resetToHome()
 
                 guard let user = Auth.auth().currentUser else {
+                    #if DEBUG
                     print("LOGIN LOAD: Firebase user is missing")
+                    #endif
+
                     return
                 }
 
                 user.getIDTokenForcingRefresh(true) { token, error in
                     if let error {
+                        #if DEBUG
                         print(
                             "LOGIN TOKEN REFRESH ERROR:",
                             error.localizedDescription
                         )
+                        #endif
+
                         return
                     }
 
+                    #if DEBUG
                     print("LOGIN LOAD UID:", user.uid)
                     print("LOGIN LOAD: Auth token refreshed")
+                    #endif
 
                     Task {
                         if vm.hasOnboardingAnswers {
@@ -212,8 +220,9 @@ struct ContentView:
 
                         vm.reloadEntriesForCurrentUser()
 
-                        await refreshPremiumStatus(showWelcome: false)
-
+                        await refreshPremiumStatus(
+                            showWelcome: false
+                        )
                     }
                 }
 

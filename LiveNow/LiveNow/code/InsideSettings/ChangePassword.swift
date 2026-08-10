@@ -260,7 +260,6 @@ struct ChangePasswordScreen: View {
 
                 if let error {
                     self.errorMessage = "Password is incorrect."
-                    print(error.localizedDescription)
                 } else {
                     self.isVerified = true
                     self.errorMessage = nil

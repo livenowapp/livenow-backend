@@ -58,13 +58,9 @@ final class AIService {
                 throw URLError(.badServerResponse)
             }
 
-            print("AI status:", httpResponse.statusCode)
-
             guard 200..<300 ~= httpResponse.statusCode else {
                 let serverMessage =
                     String(data: data, encoding: .utf8) ?? "Unknown server error"
-
-                print("AI server error:", serverMessage)
 
                 switch httpResponse.statusCode {
                 case 401:
@@ -87,7 +83,6 @@ final class AIService {
             )
 
         } catch {
-            print("AI request error:", error.localizedDescription)
             throw error
         }
     }
