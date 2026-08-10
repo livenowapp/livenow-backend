@@ -64,9 +64,6 @@ final class AppViewModel: ObservableObject {
     
     init() {
         loadGuestFirstReset()
-                                            UserDefaults.standard.removeObject(
-                                                forKey: lastCheckInPromptDateKey
-                                            )
     }
 
     func refreshHomeMessage() {
@@ -373,6 +370,17 @@ final class AppViewModel: ObservableObject {
         entries.removeAll { $0.id == entryID }
         selectedMoment = nil
         deleteEntryFromFirestore(entryID)
+
+        let currentEntries = entries
+
+        Task {
+            await NotificationManager.shared.refreshTonightNotification(
+                reason: onboardingReason,
+                thinkerType: onboardingThinkerType,
+                need: onboardingNeed,
+                entries: currentEntries
+            )
+        }
     }
 
     func entries(for date: Date) -> [ThoughtEntry] {
@@ -810,6 +818,13 @@ final class AppViewModel: ObservableObject {
                     }
 
                     self.entries = decodedEntries
+
+                    await NotificationManager.shared.refreshTonightNotification(
+                        reason: self.onboardingReason,
+                        thinkerType: self.onboardingThinkerType,
+                        need: self.onboardingNeed,
+                        entries: decodedEntries
+                    )
                 }
             }
     }
