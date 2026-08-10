@@ -183,50 +183,6 @@ final class AppViewModel: ObservableObject {
             lastAIResponse = response
 
             step = .analyze
-             
-            
-            /*let response = AIResponse(
-                shortTitle: "feeling judged",
-                analysis: [
-                    AIAnalysisItem(
-                        label: "possible overthinking",
-                        sub: "Your mind may be assuming the worst too quickly."
-                    ),
-                    AIAnalysisItem(
-                        label: "what your brain is doing",
-                        sub: "You are trying to predict danger before it happens."
-                    ),
-                    AIAnalysisItem(
-                        label: "thinking trap",
-                        sub: "You're predicting what others think without evidence."
-                    )
-                ],
-                evidence: [
-                    AIEvidenceItem(
-                        q: "Do you have clear proof?",
-                        a: "Not really"
-                    ),
-                    AIEvidenceItem(
-                        q: "Could there be another explanation?",
-                        a: "Yes"
-                    )
-                ],
-                reframes: [
-                    "This thought is not necessarily true.",
-                    "I don’t need to solve everything right now.",
-                    "I can let this pass without reacting."
-                ],
-                actions: [
-                    AIActionItem(icon: "action_leaf", label: "take 3 deep breaths"),
-                    AIActionItem(icon: "action_nophone", label: "go for a short walk"),
-                    AIActionItem(icon: "action_book", label: "write down the thought"),
-                    AIActionItem(icon: "action_sleep", label: "rest for a moment")
-                ],
-                insight: "You often assume the worst before having evidence."
-            )
-
-            aiResponse = response
-            step = .analyze*/
             
         } catch {
             errorMessage = "error: \(error.localizedDescription)"
