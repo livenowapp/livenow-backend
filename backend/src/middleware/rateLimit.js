@@ -24,7 +24,8 @@ export async function checkRateLimit(firebaseUid) {
       allowed: false,
       status: 401,
       retryAfterSeconds: null,
-      message: "A valid authenticated user is required.",
+      message:
+        "A valid authenticated user is required.",
     };
   }
 
@@ -85,16 +86,12 @@ export async function checkRateLimit(firebaseUid) {
             allowed: false,
             status: 429,
             retryAfterSeconds: null,
-            message: "You've reached today's reflection limit. You can continue tomorrow.",
+            message:
+              "You've reached today's reflection limit. You can continue tomorrow.",
           };
         }
 
         const updatedCount = currentCount + 1;
-
-        console.info("Rate limit updated", {
-          date: today,
-          count: updatedCount,
-        });
 
         transaction.set(
           rateLimitReference,
@@ -119,7 +116,6 @@ export async function checkRateLimit(firebaseUid) {
   } catch (error) {
     console.error("Firestore rate-limit error:", {
       errorName: error?.name,
-      errorMessage: error?.message,
     });
 
     return {
@@ -129,5 +125,68 @@ export async function checkRateLimit(firebaseUid) {
       message:
         "The reflection service is temporarily unavailable. Please try again.",
     };
+  }
+}
+
+export async function refundRateLimit(firebaseUid) {
+  if (
+    typeof firebaseUid !== "string" ||
+    firebaseUid.trim().length === 0
+  ) {
+    return;
+  }
+
+  const today = getTodayKey();
+
+  const rateLimitReference = firebaseDb
+    .collection("rateLimits")
+    .doc(firebaseUid);
+
+  try {
+    await firebaseDb.runTransaction(
+      async (transaction) => {
+        const snapshot = await transaction.get(
+          rateLimitReference
+        );
+
+        if (!snapshot.exists) {
+          return;
+        }
+
+        const storedData = snapshot.data();
+
+        if (storedData?.date !== today) {
+          return;
+        }
+
+        const currentCount =
+          Number.isInteger(storedData?.count)
+            ? storedData.count
+            : 0;
+
+        if (currentCount <= 0) {
+          return;
+        }
+
+        transaction.update(
+          rateLimitReference,
+          {
+            count: currentCount - 1,
+            updatedAt: FieldValue.serverTimestamp(),
+          }
+        );
+      }
+    );
+
+    console.info("Rate limit reservation refunded", {
+      date: today,
+    });
+  } catch (error) {
+    console.error(
+      "Rate-limit refund failed",
+      {
+        errorName: error?.name,
+      }
+    );
   }
 }
