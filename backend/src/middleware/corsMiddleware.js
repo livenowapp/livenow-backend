@@ -17,7 +17,13 @@ export const corsMiddleware = cors({
     // During development, allow all browser origins when no list
     // has been configured.
     if (ALLOWED_ORIGINS.length === 0) {
-      return callback(null, true);
+      if (process.env.NODE_ENV === "development") {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error("Origin not allowed by CORS.")
+      );
     }
 
     if (ALLOWED_ORIGINS.includes(origin)) {
@@ -30,8 +36,7 @@ export const corsMiddleware = cors({
   methods: ["GET", "POST"],
 
   allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-User-ID",
-  ],
+  "Content-Type",
+  "Authorization",
+],
 });

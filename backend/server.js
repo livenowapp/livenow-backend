@@ -111,8 +111,6 @@ app.use(
 app.get("/health", (_req, res) => {
   return res.status(200).json({
     status: "ok",
-    service: "livenow-api",
-    model: MODEL,
   });
 });
 

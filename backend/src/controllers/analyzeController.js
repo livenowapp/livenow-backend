@@ -188,14 +188,11 @@ if (!limitCheck.allowed) {
 
     // Log technical metadata, not the user's private thought.
     console.error("AI request failed", {
-  requestId,
-  durationMs: Date.now() - startedAt,
-  errorName: error?.name,
-  errorStatus: error?.status,
-  errorMessage: error?.message,
-  errorBody: error?.error,
-  errorCause: error?.cause,
-});
+      requestId,
+      durationMs: Date.now() - startedAt,
+      errorName: error?.name,
+      errorStatus: error?.status,
+    });
 
     return res.status(publicError.status).json({
       error: {

@@ -82,14 +82,19 @@ export const ReflectionSchema = z
       (item) => item.type
     );
 
-    for (const expectedType of expectedAnalysisTypes) {
-      if (!receivedTypes.includes(expectedType)) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["analysis"],
-          message: `Missing analysis type: ${expectedType}`,
-        });
-      }
+    const hasCorrectAnalysisOrder =
+      expectedAnalysisTypes.every(
+        (type, index) =>
+          receivedTypes[index] === type
+      );
+
+    if (!hasCorrectAnalysisOrder) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["analysis"],
+        message:
+          "Analysis items must be in the required order.",
+      });
     }
 
     const normalizedReframes = data.reframes.map((item) =>
@@ -117,14 +122,59 @@ export const ReflectionSchema = z
     }
 
     if (
-      data.safety.level === "urgent" &&
+      data.safety.level === "normal" &&
+      data.safety.message !== null
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["safety", "message"],
+        message:
+          "Normal responses must not include a safety message.",
+      });
+    }
+
+    if (
+      data.safety.level !== "normal" &&
       !data.safety.message?.trim()
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["safety", "message"],
         message:
-          "Urgent responses must include a safety message.",
+          "Elevated and urgent responses must include a safety message.",
+      });
+    }
+
+    const actionIcons = data.actions.map(
+      (item) => item.icon
+    );
+
+    if (new Set(actionIcons).size < 3) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["actions"],
+        message:
+          "Actions must use at least three different icons.",
+      });
+    }
+
+    const calmingIcons = new Set([
+      "action_breath",
+      "action_leaf",
+      "action_meditation",
+    ]);
+
+    const calmingActionCount =
+      data.actions.filter((action) =>
+        calmingIcons.has(action.icon)
+      ).length;
+
+    if (calmingActionCount > 1) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["actions"],
+        message:
+          "Only one calming action icon may be used.",
       });
     }
   });

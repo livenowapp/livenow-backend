@@ -2,14 +2,22 @@
   "name": "livenow-app",
   "version": "1.0.0",
   "type": "module",
+
+  "engines": {
+    "node": ">=22"
+  },
+
   "description": "",
   "main": "index.js",
+
   "scripts": {
     "start": "node server.js"
   },
+
   "keywords": [],
   "author": "",
   "license": "ISC",
+
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
     "cors": "^2.8.5",
