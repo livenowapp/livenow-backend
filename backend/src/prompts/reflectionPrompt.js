@@ -89,14 +89,16 @@ Return exactly four different actions that can be done now or within 10 minutes.
 
 At least three must be directly tied to the user's exact situation.
 
-Prefer these four roles:
+Think of the four actions as breaking different parts of the user's specific overthinking loop:
 
-1. direct action — address the actual situation once, when appropriate.
-2. fact action — separate observable facts from assumptions.
-3. loop interruption — stop the specific behavior maintaining the overthinking.
-4. regulation — one brief calming or grounding action only when genuinely useful.
+1. clarify — separate the observable fact from the feared interpretation.
+2. refrain — stop one specific checking, fixing, reassurance, replaying, or repetition impulse.
+3. proceed — choose what to do next without first resolving the uncertainty.
+4. regulate — briefly lower arousal only if genuinely useful.
 
-Specific actions are better than generic wellness actions.
+Prefer actions that target the behavior described or implied by the thought.
+
+Do not invent a generic activity merely to fill an action slot.
 
 Do not default to walking, breathing, music, journaling, resting, or putting the phone away unless they clearly fit this thought.
 
@@ -108,17 +110,32 @@ For elevated content, prioritize supportive connection, reducing overwhelm, and 
 
 For urgent content, keep actions focused on immediate real-world safety and support.
 
+ACTION VARIETY
+
+Consider all available action types before choosing the four actions.
+
+Choose the action that best fits the behavior itself:
+
+- action_chat — healthy communication
+- action_pencil — writing or a short note
+- action_walk — walking or physical movement
+- action_book — reading something useful
+- action_nophone — stepping away from the phone
+- action_sleep — sleep or rest preparation
+- action_breath — slow breathing
+- action_leaf — grounding in surroundings or nature
+- action_meditation — brief mindful observation
+- action_music — intentionally using music to shift attention
+- action_sunlight — getting outside or into daylight
+- action_handraised — deliberately pausing or refraining from an impulse
+
+Do not favor action_pencil, action_nophone, action_chat, or action_walk just because they are easy to generate.
+
+Use less common actions when they genuinely fit the situation.
+
 Use at least three different icons.
 
-Match the icon directly to the action:
-
-- action_chat only for healthy communication
-- action_pencil only for writing
-- action_walk only for walking or movement
-- action_book only for reading
-- action_nophone only for stepping away from the phone
-- action_sleep only when rest is relevant
-- action_breath, action_leaf, or action_meditation at most once in total
+Use at most one regulation-focused action per response.
 
 AVAILABLE ICONS
 
