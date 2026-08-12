@@ -62,7 +62,7 @@ export const ReflectionSchema = z
         z
           .object({
             icon: ActionIconSchema,
-            label: z.string().min(1).max(55),
+            label: z.string().min(1).max(70),
           })
           .strict()
       )

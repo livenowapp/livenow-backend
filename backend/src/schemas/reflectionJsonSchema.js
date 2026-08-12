@@ -136,7 +136,7 @@ export const reflectionJsonSchema = {
           label: {
             type: "string",
             minLength: 1,
-            maxLength: 55,
+            maxLength: 70,
           },
         },
       },
