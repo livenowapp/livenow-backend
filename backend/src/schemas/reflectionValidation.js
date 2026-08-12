@@ -62,13 +62,13 @@ export const ReflectionSchema = z
         z
           .object({
             icon: ActionIconSchema,
-            label: z.string().min(1).max(70),
+            label: z.string().min(1).max(90),
           })
           .strict()
       )
       .length(4),
 
-    insight: z.string().min(1).max(120),
+    insight: z.string().min(1).max(160),
   })
   .strict()
   .superRefine((data, context) => {
