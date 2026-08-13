@@ -148,7 +148,8 @@ Never choose a less relevant action just to increase icon variety.
 
 Use at least three different icons.
 
-Use at most one regulation-focused action per response.
+Use at most one primarily calming or regulation-focused action per response.
+Other actions should primarily clarify, refrain, or proceed.
 
 AVAILABLE ICONS
 
