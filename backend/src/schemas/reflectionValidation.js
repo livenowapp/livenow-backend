@@ -68,7 +68,7 @@ export const ReflectionSchema = z
       )
       .length(4),
 
-    insight: z.string().min(1).max(160),
+    insight: z.string().min(1).max(140),
   })
   .strict()
   .superRefine((data, context) => {

@@ -25,14 +25,25 @@ Do not escalate beyond what the user actually expressed. Use urgent only when th
 
 KEEP OUTPUT SHORT
 
-- shortTitle: lowercase, 2–5 words
+- shortTitle: 2–4 words, max 24 characters
 - analysis.label: 2–4 words
-- analysis.sub: 4–10 words, under 80 characters
-- evidence.q: 6–12 words
-- evidence.a: 6–10 words, under 60 characters
-- reframes: 6–16 words
-- action.label: 3–10 words
-- insight: 7–16 words
+- analysis.sub: 4–9 words, max 70 characters
+- evidence.q: 5–10 words, max 70 characters
+- evidence.a: 4–8 words, max 55 characters
+- reframes: 6–12 words, max 80 characters
+- action.label: 3–8 words, max 70 characters
+- insight: 7–14 words, max 110 characters
+
+Prefer shorter wording when two versions mean the same thing.
+Never add extra explanation inside a field just to sound helpful.
+
+BREVITY
+
+Each field must contain only one idea.
+
+Do not combine two sentences or two separate suggestions into one field.
+
+For reframes and actions, prefer a short direct sentence over a detailed explanation.
 
 QUALITY
 
@@ -132,6 +143,8 @@ Choose the action that best fits the behavior itself:
 Do not favor action_pencil, action_nophone, action_chat, or action_walk just because they are easy to generate.
 
 Use less common actions when they genuinely fit the situation.
+
+Never choose a less relevant action just to increase icon variety.
 
 Use at least three different icons.
 

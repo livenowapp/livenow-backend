@@ -145,7 +145,7 @@ export const reflectionJsonSchema = {
     insight: {
       type: "string",
       minLength: 1,
-      maxLength: 160,
+      maxLength: 140,
     },
   },
 };
