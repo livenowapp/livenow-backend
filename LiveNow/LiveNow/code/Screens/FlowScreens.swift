@@ -385,6 +385,335 @@ struct ThinkingScreen: View {
     }
 }
 
+// MARK: - SAFETY MESSAGE CARD
+
+struct SafetyMessageCard: View {
+    let level: String
+    let message: String
+    let orange: Color
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(iconBackground)
+                    .frame(width: 42, height: 42)
+
+                Image(systemName: iconName)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(iconColor)
+            }
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.black.opacity(0.84))
+
+                Text(message)
+                    .font(.system(size: 14))
+                    .foregroundColor(.black.opacity(0.62))
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
+            }
+
+            Spacer()
+        }
+        .padding(16)
+        .frame(
+            maxWidth: .infinity,
+            alignment: .leading
+        )
+        .background(Color.white.opacity(0.82))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    borderColor,
+                    lineWidth: 1
+                )
+        }
+        .cornerRadius(16)
+    }
+
+    private var title: String {
+        switch level {
+        case "urgent":
+            return "please get support now"
+        case "elevated":
+            return "a little extra support may help"
+        default:
+            return "support"
+        }
+    }
+
+    private var iconName: String {
+        switch level {
+        case "urgent":
+            return "exclamationmark.triangle.fill"
+        case "elevated":
+            return "heart.fill"
+        default:
+            return "heart"
+        }
+    }
+
+    private var iconColor: Color {
+        switch level {
+        case "urgent":
+            return .red
+        case "elevated":
+            return orange
+        default:
+            return orange
+        }
+    }
+
+    private var iconBackground: Color {
+        switch level {
+        case "urgent":
+            return Color.red.opacity(0.10)
+        case "elevated":
+            return orange.opacity(0.10)
+        default:
+            return orange.opacity(0.10)
+        }
+    }
+
+    private var borderColor: Color {
+        switch level {
+        case "urgent":
+            return Color.red.opacity(0.18)
+        case "elevated":
+            return orange.opacity(0.16)
+        default:
+            return Color.black.opacity(0.05)
+        }
+    }
+}
+
+// MARK: - URGENT SAFETY
+
+struct UrgentSafetyScreen: View {
+    @ObservedObject var vm: AppViewModel
+    let orange: Color
+    var onClose: () -> Void
+
+    @ScaledMetric private var titleSize: CGFloat = 32
+    @ScaledMetric private var bodySize: CGFloat = 16
+    @ScaledMetric private var buttonSize: CGFloat = 18
+
+    var body: some View {
+        GeometryReader { geo in
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
+
+            let horizontalPadding =
+                min(screenWidth * 0.06, 28)
+
+            let iconSize =
+                min(max(screenWidth * 0.20, 72), 88)
+
+            VStack(spacing: 0) {
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 24) {
+                        Spacer()
+                            .frame(height: 36)
+
+                        ZStack {
+                            Circle()
+                                .fill(Color.red.opacity(0.10))
+                                .frame(
+                                    width: iconSize,
+                                    height: iconSize
+                                )
+
+                            Image(
+                                systemName:
+                                    "heart.circle.fill"
+                            )
+                            .font(
+                                .system(
+                                    size: iconSize * 0.52,
+                                    weight: .medium
+                                )
+                            )
+                            .foregroundColor(.red.opacity(0.78))
+                        }
+
+                        VStack(spacing: 10) {
+                            Text("you deserve real support right now")
+                                .font(
+                                    .system(
+                                        size: titleSize,
+                                        weight: .bold
+                                    )
+                                )
+                                .foregroundColor(.black)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(
+                                    horizontal: false,
+                                    vertical: true
+                                )
+
+                            Text(
+                                "LiveNow isn't designed to handle immediate danger or a crisis."
+                            )
+                            .font(
+                                .system(size: bodySize)
+                            )
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(
+                                horizontal: false,
+                                vertical: true
+                            )
+                        }
+
+                        if let message =
+                            vm.aiResponse?.safety.message,
+                           !message.trimmingCharacters(
+                                in: .whitespacesAndNewlines
+                           ).isEmpty {
+
+                            HStack(
+                                alignment: .top,
+                                spacing: 12
+                            ) {
+                                Image(
+                                    systemName:
+                                        "exclamationmark.triangle.fill"
+                                )
+                                .font(.system(size: 18))
+                                .foregroundColor(.red)
+
+                                Text(message)
+                                    .font(.system(size: 15))
+                                    .foregroundColor(
+                                        .black.opacity(0.76)
+                                    )
+                                    .fixedSize(
+                                        horizontal: false,
+                                        vertical: true
+                                    )
+
+                                Spacer()
+                            }
+                            .padding(18)
+                            .frame(
+                                maxWidth: .infinity,
+                                alignment: .leading
+                            )
+                            .background(
+                                Color.white.opacity(0.85)
+                            )
+                            .overlay {
+                                RoundedRectangle(
+                                    cornerRadius: 18
+                                )
+                                .stroke(
+                                    Color.red.opacity(0.16),
+                                    lineWidth: 1
+                                )
+                            }
+                            .cornerRadius(18)
+                        }
+
+                        VStack(
+                            alignment: .leading,
+                            spacing: 12
+                        ) {
+                            safetyRow(
+                                icon: "person.2.fill",
+                                text:
+                                    "Tell someone you trust what is happening and stay with someone if you can."
+                            )
+
+                            safetyRow(
+                                icon: "cross.case.fill",
+                                text:
+                                    "If you may act on these thoughts or are in immediate danger, contact local emergency or crisis support now."
+                            )
+
+                            safetyRow(
+                                icon: "location.fill",
+                                text:
+                                    "Move away from anything that could put you or someone else in danger."
+                            )
+                        }
+
+                        Text(
+                            "AI-generated information is not a substitute for emergency or professional care."
+                        )
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 4)
+                    }
+                    .padding(.bottom, 30)
+                }
+
+                Button {
+                    onClose()
+                } label: {
+                    Text("back to home")
+                        .font(
+                            .system(
+                                size: buttonSize,
+                                weight: .semibold
+                            )
+                        )
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(orange)
+                        .cornerRadius(16)
+                }
+                .buttonStyle(.plain)
+
+                Spacer().frame(height: 16)
+            }
+            .padding(.horizontal, horizontalPadding)
+        }
+    }
+
+    private func safetyRow(
+        icon: String,
+        text: String
+    ) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.85))
+                    .frame(width: 40, height: 40)
+
+                Image(systemName: icon)
+                    .font(
+                        .system(
+                            size: 15,
+                            weight: .semibold
+                        )
+                    )
+                    .foregroundColor(orange)
+            }
+
+            Text(text)
+                .font(.system(size: 15))
+                .foregroundColor(.black.opacity(0.72))
+                .fixedSize(
+                    horizontal: false,
+                    vertical: true
+                )
+
+            Spacer()
+        }
+        .padding(15)
+        .background(Color.white.opacity(0.58))
+        .cornerRadius(16)
+    }
+}
+
 // MARK: - ANALYZE
 
 struct AnalyzeScreen: View {
@@ -431,6 +760,33 @@ struct AnalyzeScreen: View {
                             title: "let’s analyze\nthis thought",
                             subtitle: "this helps you see clearly."
                         )
+                        
+                        if let safety = ai?.safety,
+                           safety.level != "normal",
+                           let message = safety.message,
+                           !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+
+                            Spacer().frame(height: sectionSpacing)
+
+                            HStack(alignment: .top, spacing: 12) {
+                                Image(systemName: safety.level == "urgent"
+                                      ? "exclamationmark.triangle.fill"
+                                      : "heart.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(orange)
+
+                                Text(message)
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.black.opacity(0.78))
+                                    .fixedSize(horizontal: false, vertical: true)
+
+                                Spacer()
+                            }
+                            .padding(16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.white.opacity(0.82))
+                            .cornerRadius(16)
+                        }
 
                         Spacer().frame(height: sectionSpacing)
 

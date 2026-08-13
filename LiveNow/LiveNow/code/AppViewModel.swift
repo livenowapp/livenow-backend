@@ -101,6 +101,7 @@ final class AppViewModel: ObservableObject {
         case .thinking: step = .analyze
         case .analyze: step = .reframe
         case .reframe: step = .action
+        case .urgentSafety: step = .home
         case .action:
             if isGuestUser {
                 completeGuestReset()
@@ -117,6 +118,7 @@ final class AppViewModel: ObservableObject {
         case .input: step = .home
         case .thinking: step = .input
         case .analyze: step = .input
+        case .urgentSafety: resetToHome()
         case .reframe: step = .analyze
         case .action: step = .reframe
         case .complete: step = .home
@@ -166,7 +168,13 @@ final class AppViewModel: ObservableObject {
 
             thought = cleanedThought
             aiResponse = cachedResponse
-            step = .analyze
+
+            if cachedResponse.safety.level == "urgent" {
+                step = .urgentSafety
+            } else {
+                step = .analyze
+            }
+
             return
         }
 
@@ -182,10 +190,25 @@ final class AppViewModel: ObservableObject {
             lastAnalyzedThought = cleanedThought
             lastAIResponse = response
 
-            step = .analyze
+            if response.safety.level == "urgent" {
+                step = .urgentSafety
+            } else {
+                step = .analyze
+            }
             
         } catch {
-            errorMessage = "error: \(error.localizedDescription)"
+            isLoading = false
+            errorMessage = error.localizedDescription
+            step = .input
+
+            #if DEBUG
+            print(
+                "ANALYZE ERROR:",
+                error.localizedDescription
+            )
+            #endif
+
+            return
         }
 
         isLoading = false

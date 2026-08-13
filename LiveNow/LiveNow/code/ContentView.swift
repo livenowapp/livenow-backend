@@ -618,6 +618,15 @@ struct ContentView:
                 onContinue: { vm.goNext() }
             )
             
+        case .urgentSafety:
+            UrgentSafetyScreen(
+                vm: vm,
+                orange: orange,
+                onClose: {
+                    vm.resetToHome()
+                }
+            )
+            
         case .reframe:
             ReframeScreen(
                 vm: vm,

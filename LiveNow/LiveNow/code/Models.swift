@@ -14,6 +14,7 @@ enum AppStep {
     case input
     case thinking
     case analyze
+    case urgentSafety
     case reframe
     case action
     case complete
@@ -69,6 +70,11 @@ struct AIAnalysisItem: Codable, Hashable {
     }
 }
 
+struct AISafety: Codable, Hashable {
+    let level: String
+    let message: String?
+}
+
 struct AIEvidenceItem: Codable, Hashable {
     let q: String
     let a: String
@@ -80,12 +86,85 @@ struct AIActionItem: Codable, Hashable {
 }
 
 struct AIResponse: Codable, Hashable {
+    let safety: AISafety
     let shortTitle: String
     let analysis: [AIAnalysisItem]
     let evidence: [AIEvidenceItem]
     let reframes: [String]
     let actions: [AIActionItem]
     let insight: String
+
+    enum CodingKeys: String, CodingKey {
+        case safety
+        case shortTitle
+        case analysis
+        case evidence
+        case reframes
+        case actions
+        case insight
+    }
+
+    init(
+        safety: AISafety,
+        shortTitle: String,
+        analysis: [AIAnalysisItem],
+        evidence: [AIEvidenceItem],
+        reframes: [String],
+        actions: [AIActionItem],
+        insight: String
+    ) {
+        self.safety = safety
+        self.shortTitle = shortTitle
+        self.analysis = analysis
+        self.evidence = evidence
+        self.reframes = reframes
+        self.actions = actions
+        self.insight = insight
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(
+            keyedBy: CodingKeys.self
+        )
+
+        safety = try container.decodeIfPresent(
+            AISafety.self,
+            forKey: .safety
+        ) ?? AISafety(
+            level: "normal",
+            message: nil
+        )
+
+        shortTitle = try container.decode(
+            String.self,
+            forKey: .shortTitle
+        )
+
+        analysis = try container.decode(
+            [AIAnalysisItem].self,
+            forKey: .analysis
+        )
+
+        evidence = try container.decode(
+            [AIEvidenceItem].self,
+            forKey: .evidence
+        )
+
+        reframes = try container.decode(
+            [String].self,
+            forKey: .reframes
+        )
+
+        actions = try container.decode(
+            [AIActionItem].self,
+            forKey: .actions
+        )
+
+        insight = try container.decode(
+            String.self,
+            forKey: .insight
+        )
+    }
 }
 
 struct ThoughtEntry: Identifiable, Codable, Hashable {
