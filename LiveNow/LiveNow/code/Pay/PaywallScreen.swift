@@ -69,9 +69,17 @@ struct PaywallScreen: View {
 
                         Button(action: onClose) {
                             Image(systemName: "xmark")
-                                .font(.system(size: closeSize * 0.40, weight: .medium))
+                                .font(
+                                    .system(
+                                        size: closeSize * 0.40,
+                                        weight: .medium
+                                    )
+                                )
                                 .foregroundColor(.black.opacity(0.6))
-                                .frame(width: closeSize, height: closeSize)
+                                .frame(
+                                    width: closeSize,
+                                    height: closeSize
+                                )
                                 .background(Color.white.opacity(0.78))
                                 .clipShape(Circle())
                         }
@@ -80,150 +88,243 @@ struct PaywallScreen: View {
                     .padding(.horizontal, horizontalPadding)
                     .padding(.top, topPadding)
 
-                    Spacer().frame(height: isVeryCompact ? 4 : 10)
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 0) {
 
-                    Image("LogoCircle")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: logoSize, height: logoSize)
+                            Spacer()
+                                .frame(height: isVeryCompact ? 4 : 10)
 
-                    Spacer().frame(height: headerSpacing)
+                            Image("LogoCircle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(
+                                    width: logoSize,
+                                    height: logoSize
+                                )
 
-                    VStack(spacing: min(screenHeight * 0.007, 8)) {
-                        Text("unlock LiveNow")
-                            .font(.system(size: titleSize, weight: .bold))
-                            .foregroundColor(.black)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.82)
+                            Spacer()
+                                .frame(height: headerSpacing)
 
-                        Text("reset your mind anytime & save your progress.")
-                            .font(.system(size: subtitleSize))
+                            VStack(
+                                spacing: min(
+                                    screenHeight * 0.007,
+                                    8
+                                )
+                            ) {
+                                Text("unlock LiveNow")
+                                    .font(
+                                        .system(
+                                            size: titleSize,
+                                            weight: .bold
+                                        )
+                                    )
+                                    .foregroundColor(.black)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.82)
+
+                                Text(
+                                    "reset your mind anytime & save your progress."
+                                )
+                                .font(.system(size: subtitleSize))
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.82)
+                            }
+                            .padding(
+                                .horizontal,
+                                horizontalPadding
+                            )
+
+                            Spacer()
+                                .frame(height: 24)
+
+                            VStack(spacing: featureSpacing) {
+                                PaywallFeatureRow(
+                                    icon: "brain.head.profile",
+                                    title: "Reset whenever you need",
+                                    subtitle: "Analyze thoughts whenever your mind feels stuck.",
+                                    orange: orange,
+                                    screenWidth: screenWidth,
+                                    screenHeight: screenHeight,
+                                    scale: scale,
+                                    isCompact: isCompact
+                                )
+
+                                PaywallFeatureRow(
+                                    icon: "sparkles",
+                                    title: "Personal reframes",
+                                    subtitle: "Get calmer, more realistic thoughts back.",
+                                    orange: orange,
+                                    screenWidth: screenWidth,
+                                    screenHeight: screenHeight,
+                                    scale: scale,
+                                    isCompact: isCompact
+                                )
+
+                                PaywallFeatureRow(
+                                    icon: "chart.bar",
+                                    title: "Personal insights",
+                                    subtitle: "Discover patterns behind your overthinking.",
+                                    orange: orange,
+                                    screenWidth: screenWidth,
+                                    screenHeight: screenHeight,
+                                    scale: scale,
+                                    isCompact: isCompact
+                                )
+                            }
+                            .padding(
+                                .horizontal,
+                                horizontalPadding
+                            )
+
+                            Spacer()
+                                .frame(height: 24)
+
+                            VStack(spacing: planSpacing) {
+                                PaywallPlanCard(
+                                    title: "LiveNow Yearly",
+                                    price: "€49.99 / year",
+                                    subtitle: "Save 68%",
+                                    badge: "MOST POPULAR",
+                                    isSelected: selectedPlan == .yearly,
+                                    orange: orange,
+                                    screenWidth: screenWidth,
+                                    screenHeight: screenHeight,
+                                    scale: scale,
+                                    isCompact: isCompact
+                                ) {
+                                    selectedPlan = .yearly
+                                }
+
+                                PaywallPlanCard(
+                                    title: "LiveNow Weekly",
+                                    price: "€2.99 / week",
+                                    subtitle: "Cancel anytime",
+                                    badge: nil,
+                                    isSelected: selectedPlan == .weekly,
+                                    orange: orange,
+                                    screenWidth: screenWidth,
+                                    screenHeight: screenHeight,
+                                    scale: scale,
+                                    isCompact: isCompact
+                                ) {
+                                    selectedPlan = .weekly
+                                }
+                            }
+                            .padding(
+                                .horizontal,
+                                horizontalPadding
+                            )
+
+                            Spacer()
+                                .frame(height: 20)
+                        }
+                    }
+
+                    VStack(spacing: 8) {
+                        Button {
+                            onSubscribe(selectedPlan)
+                        } label: {
+                            Text("Start 3-day free trial")
+                                .font(
+                                    .system(
+                                        size: buttonTextSize,
+                                        weight: .semibold
+                                    )
+                                )
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(
+                                    .vertical,
+                                    buttonVerticalPadding
+                                )
+                                .background(orange)
+                                .cornerRadius(
+                                    min(
+                                        max(
+                                            screenWidth * 0.04,
+                                            15
+                                        ),
+                                        18
+                                    )
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .padding(
+                            .horizontal,
+                            horizontalPadding
+                        )
+
+                        Button(action: onRestore) {
+                            Text("restore purchase")
+                                .font(
+                                    .system(
+                                        size: min(
+                                            max(
+                                                15 * scale,
+                                                13
+                                            ),
+                                            16
+                                        ),
+                                        weight: .medium
+                                    )
+                                )
+                                .foregroundColor(orange)
+                        }
+                        .buttonStyle(.plain)
+
+                        HStack(spacing: 6) {
+                            Link(
+                                "Privacy Policy",
+                                destination: privacyURL
+                            )
+                            .font(
+                                .system(
+                                    size: min(
+                                        max(
+                                            12.5 * scale,
+                                            11
+                                        ),
+                                        14
+                                    )
+                                )
+                            )
                             .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.82)
+
+                            Text("•")
+                                .foregroundColor(
+                                    .gray.opacity(0.6)
+                                )
+
+                            Link(
+                                "Terms of Use",
+                                destination: termsURL
+                            )
+                            .font(
+                                .system(
+                                    size: min(
+                                        max(
+                                            12.5 * scale,
+                                            11
+                                        ),
+                                        14
+                                    )
+                                )
+                            )
+                            .foregroundColor(.gray)
+                        }
                     }
-                    .padding(.horizontal, horizontalPadding)
-
-                    Spacer()
-
-                    VStack(spacing: featureSpacing) {
-                        PaywallFeatureRow(
-                            icon: "brain.head.profile",
-                            title: "Reset whenever you need",
-                            subtitle: "Analyze thoughts whenever your mind feels stuck.",
-                            orange: orange,
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            scale: scale,
-                            isCompact: isCompact
+                    .padding(.top, 10)
+                    .padding(.bottom, 8)
+                    .background(
+                        Color(
+                            red: 0.97,
+                            green: 0.96,
+                            blue: 0.94
                         )
-
-                        PaywallFeatureRow(
-                            icon: "sparkles",
-                            title: "Personal reframes",
-                            subtitle: "Get calmer, more realistic thoughts back.",
-                            orange: orange,
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            scale: scale,
-                            isCompact: isCompact
-                        )
-
-                        PaywallFeatureRow(
-                            icon: "chart.bar",
-                            title: "Personal insights",
-                            subtitle: "Discover patterns behind your overthinking.",
-                            orange: orange,
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            scale: scale,
-                            isCompact: isCompact
-                        )
-                    }
-                    .padding(.horizontal, horizontalPadding)
-
-                    Spacer()
-
-                    VStack(spacing: planSpacing) {
-                        PaywallPlanCard(
-                            title: "LiveNow Yearly",
-                            price: "€49.99 / year",
-                            subtitle: "Save 68%",
-                            badge: "MOST POPULAR",
-                            isSelected: selectedPlan == .yearly,
-                            orange: orange,
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            scale: scale,
-                            isCompact: isCompact
-                        ) {
-                            selectedPlan = .yearly
-                        }
-
-                        PaywallPlanCard(
-                            title: "LiveNow Weekly",
-                            price: "€2.99 / week",
-                            subtitle: "Cancel anytime",
-                            badge: nil,
-                            isSelected: selectedPlan == .weekly,
-                            orange: orange,
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            scale: scale,
-                            isCompact: isCompact
-                        ) {
-                            selectedPlan = .weekly
-                        }
-                    }
-                    .padding(.horizontal, horizontalPadding)
-
-                    Spacer().frame(height: min(max(screenHeight * 0.017, 10), 20))
-
-                    Button {
-                        onSubscribe(selectedPlan)
-                    } label: {
-                        Text("Start 3-day free trial")
-                            .font(.system(size: buttonTextSize, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, buttonVerticalPadding)
-                            .background(orange)
-                            .cornerRadius(min(max(screenWidth * 0.04, 15), 18))
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, horizontalPadding)
-
-                    Spacer().frame(height: min(max(screenHeight * 0.009, 6), 10))
-
-                    Button(action: onRestore) {
-                        Text("restore purchase")
-                            .font(.system(size: min(max(15 * scale, 13), 16), weight: .medium))
-                            .foregroundColor(orange)
-                    }
-                    .buttonStyle(.plain)
-
-                    Spacer().frame(height: min(max(screenHeight * 0.008, 5), 9))
-
-                    HStack(spacing: 6) {
-                        Link(destination: privacyURL) {
-                            Text("Privacy Policy")
-                                .font(.system(size: min(max(12.5 * scale, 11), 14)))
-                                .foregroundColor(.gray)
-                        }
-
-                        Text("•")
-                            .font(.system(size: min(max(12.5 * scale, 11), 14)))
-                            .foregroundColor(.gray.opacity(0.6))
-
-                        Link(destination: termsURL) {
-                            Text("Terms of Use")
-                                .font(.system(size: min(max(12.5 * scale, 11), 14)))
-                                .foregroundColor(.gray)
-                        }
-                    }
+                    )
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }

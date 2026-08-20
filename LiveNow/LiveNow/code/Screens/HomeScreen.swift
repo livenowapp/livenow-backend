@@ -957,9 +957,11 @@ struct HomeScreen: View {
     }
 }
 
+/*import SwiftUI
+
 // MARK: - HOME
 
-/*struct HomeScreen: View {
+struct HomeScreen: View {
     @ObservedObject var vm: AppViewModel
 
     let orange: Color
@@ -968,13 +970,13 @@ struct HomeScreen: View {
     var onStart: () -> Void
 
     @State private var isBreathing = false
+    @State private var isPressed = false
 
     @ScaledMetric private var heroSize: CGFloat = 43
     @ScaledMetric private var subtitleSize: CGFloat = 16
 
     var body: some View {
         GeometryReader { geo in
-
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
 
@@ -1003,22 +1005,19 @@ struct HomeScreen: View {
                 50
             )
 
-            let subtitleSize = min(
+            let adjustedSubtitleSize = min(
                 max(18 * scale, 15),
                 22
             )
 
             let isCompactHeight = screenHeight < 760
 
-            let resetSize = isCompactHeight
-                ? min(
-                    screenWidth * 0.46,
-                    185
-                )
+            let avatarSize = isCompactHeight
+                ? min(screenWidth * 0.56, 220)
                 : min(
-                    screenWidth * 0.52,
-                    screenHeight * 0.24,
-                    230 * scale
+                    screenWidth * 0.62,
+                    screenHeight * 0.31,
+                    265
                 )
 
             let spacingAfterHeader = min(
@@ -1027,13 +1026,13 @@ struct HomeScreen: View {
             )
 
             let spacingAfterHero = min(
-                max(screenHeight * 0.11, 65),
-                105
+                max(screenHeight * 0.055, 34),
+                58
             )
 
-            let spacingAfterReset = min(
-                max(screenHeight * 0.11, 65),
-                105
+            let spacingAfterAvatar = min(
+                max(screenHeight * 0.04, 26),
+                44
             )
 
             let bottomSpacing = min(
@@ -1041,258 +1040,68 @@ struct HomeScreen: View {
                 42
             )
 
-            // Avatar size adapts to screen size,
-            // but does not affect the layout.
-            let avatarSize = isCompactHeight
-                ? min(screenWidth * 0.29, 105)
-                : min(screenWidth * 0.31, 118)
-
             let isGuestAfterFirstReset =
                 vm.isGuestUser &&
                 vm.hasCompletedGuestReset
 
-            ZStack(alignment: .bottomLeading) {
+            VStack(spacing: 0) {
 
-                // MARK: Main content
+                // MARK: Header
+
+                LiveNowTopHeader(
+                    horizontalPadding: horizontalPadding
+                )
+
+                Spacer()
+                    .frame(
+                        height: spacingAfterHeader
+                    )
+
+                // MARK: Hero
 
                 VStack(spacing: 0) {
-
-                    // MARK: Header
-
-                    LiveNowTopHeader(
-                        horizontalPadding: horizontalPadding
-                    )
-
-                    Spacer()
-                        .frame(
-                            height: spacingAfterHeader
-                        )
-
-                    // MARK: Hero
-
-                    VStack(spacing: 0) {
-                        Text(
-                            isGuestAfterFirstReset
-                                ? "your first reset"
-                                : "get out of"
-                        )
-                        .font(
-                            .system(
-                                size: adjustedHeroSize,
-                                weight: .bold
-                            )
-                        )
-                        .foregroundColor(.black)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.72)
-
-                        Text(
-                            isGuestAfterFirstReset
-                                ? "is complete"
-                                : "your head"
-                        )
-                        .font(
-                            .system(
-                                size: adjustedHeroSize,
-                                weight: .bold
-                            )
-                        )
-                        .foregroundColor(orange)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.72)
-                    }
-                    .multilineTextAlignment(.center)
-                    .padding(
-                        .horizontal,
-                        horizontalPadding
-                    )
-
-                    Spacer()
-                        .frame(
-                            height: spacingAfterHero
-                        )
-
-                    // MARK: Reset button
-
-                    ZStack {
-
-                        Button(action: onStart) {
-
-                            ZStack {
-
-                                Circle()
-                                    .fill(
-                                        orange.opacity(0.16)
-                                    )
-                                    .frame(
-                                        width: resetSize * 1.14,
-                                        height: resetSize * 1.14
-                                    )
-                                    .scaleEffect(
-                                        isBreathing
-                                            ? 1.08
-                                            : 0.92
-                                    )
-                                    .opacity(
-                                        isBreathing
-                                            ? 0.15
-                                            : 0.35
-                                    )
-
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                lightOrange,
-                                                orange
-                                            ],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                                    .frame(
-                                        width: resetSize,
-                                        height: resetSize
-                                    )
-                                    .shadow(
-                                        color: orange.opacity(
-                                            isBreathing
-                                                ? 0.38
-                                                : 0.22
-                                        ),
-                                        radius: isBreathing
-                                            ? 26
-                                            : 16,
-                                        x: 0,
-                                        y: 9
-                                    )
-                                    .scaleEffect(
-                                        isBreathing
-                                            ? 1.055
-                                            : 0.975
-                                    )
-
-                                VStack(
-                                    spacing: resetSize * 0.035
-                                ) {
-
-                                    Text("RESET")
-                                        .font(
-                                            .system(
-                                                size: resetSize * 0.165,
-                                                weight: .bold
-                                            )
-                                        )
-                                        .foregroundColor(.white)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.8)
-
-                                    Text("clear your mind")
-                                        .font(
-                                            .system(
-                                                size: resetSize * 0.075
-                                            )
-                                        )
-                                        .foregroundColor(
-                                            .white.opacity(0.95)
-                                        )
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.8)
-                                }
-                                .offset(
-                                    y: -resetSize * 0.01
-                                )
-                                .scaleEffect(
-                                    isBreathing
-                                        ? 1.01
-                                        : 0.99
-                                )
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Reset")
-                        .accessibilityHint(
-                            "Start a new reset"
-                        )
-                        .onAppear {
-
-                            guard !isBreathing else {
-                                return
-                            }
-
-                            withAnimation(
-                                .easeInOut(
-                                    duration: 1.35
-                                )
-                                .repeatForever(
-                                    autoreverses: true
-                                )
-                            ) {
-                                isBreathing = true
-                            }
-                        }
-
-                        // MARK: Reset avatar
-
-                        if !isGuestAfterFirstReset {
-
-                            Image("avatar_smile")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(
-                                    width: avatarSize,
-                                    height: avatarSize
-                                )
-                                .offset(
-                                    x: resetSize * 0.43,
-                                    y: -resetSize * 0.42
-                                )
-                                .allowsHitTesting(false)
-                                .accessibilityHidden(true)
-                        }
-                    }
-
-                    // MARK: Message
-
                     Text(
                         isGuestAfterFirstReset
-                            ? "save your reset and\nkeep your progress going"
-                            : vm.homeMessage
+                            ? "your first reset"
+                            : "get out of"
                     )
                     .font(
                         .system(
-                            size: subtitleSize
+                            size: adjustedHeroSize,
+                            weight: .bold
                         )
                     )
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(
-                        .center
-                    )
-                    .lineLimit(3)
-                    .minimumScaleFactor(0.75)
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
-                    )
-                    .frame(
-                        maxWidth: 340
-                    )
-                    .padding(
-                        .horizontal,
-                        horizontalPadding
-                    )
+                    .foregroundColor(.black)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
 
-                    Spacer(
-                        minLength: bottomSpacing
+                    Text(
+                        isGuestAfterFirstReset
+                            ? "is complete"
+                            : "your head"
                     )
+                    .font(
+                        .system(
+                            size: adjustedHeroSize,
+                            weight: .bold
+                        )
+                    )
+                    .foregroundColor(orange)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
                 }
-                .frame(
-                    width: screenWidth,
-                    height: screenHeight,
-                    alignment: .top
+                .multilineTextAlignment(.center)
+                .padding(
+                    .horizontal,
+                    horizontalPadding
                 )
 
-                // MARK: Guest completed avatar
+                Spacer()
+                    .frame(
+                        height: spacingAfterHero
+                    )
+
+                // MARK: Main avatar
 
                 if isGuestAfterFirstReset {
 
@@ -1303,17 +1112,181 @@ struct HomeScreen: View {
                             width: avatarSize,
                             height: avatarSize
                         )
-                        .padding(
-                            .leading,
-                            horizontalPadding
-                        )
-                        .offset(
-                            x: 4,
-                            y: 0
-                        )
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
+
+                } else {
+
+                    Button {
+                        onStart()
+                    } label: {
+                        ZStack {
+
+                            // MARK: Subtle breathing halo
+
+                            Circle()
+                                .fill(
+                                    orange.opacity(0.08)
+                                )
+                                .frame(
+                                    width: avatarSize * 0.92,
+                                    height: avatarSize * 0.92
+                                )
+                                .scaleEffect(
+                                    isBreathing
+                                        ? 1.12
+                                        : 0.92
+                                )
+                                .opacity(
+                                    isBreathing
+                                        ? 0.20
+                                        : 0.55
+                                )
+
+                            Circle()
+                                .fill(
+                                    orange.opacity(0.045)
+                                )
+                                .frame(
+                                    width: avatarSize * 0.76,
+                                    height: avatarSize * 0.76
+                                )
+                                .scaleEffect(
+                                    isBreathing
+                                        ? 1.07
+                                        : 0.96
+                                )
+
+                            // MARK: Avatar
+
+                            Image("avatar_smile")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(
+                                    width: avatarSize,
+                                    height: avatarSize
+                                )
+                                .scaleEffect(
+                                    isPressed
+                                        ? 0.94
+                                        : 1.0
+                                )
+                        }
+                        .frame(
+                            width: avatarSize * 1.10,
+                            height: avatarSize * 1.10
+                        )
+                        .contentShape(
+                            Circle()
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(
+                        "Start reset"
+                    )
+                    .accessibilityHint(
+                        "Tap to start a new reset"
+                    )
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { _ in
+                                withAnimation(
+                                    .easeOut(duration: 0.10)
+                                ) {
+                                    isPressed = true
+                                }
+                            }
+                            .onEnded { _ in
+                                withAnimation(
+                                    .spring(
+                                        response: 0.28,
+                                        dampingFraction: 0.65
+                                    )
+                                ) {
+                                    isPressed = false
+                                }
+                            }
+                    )
+
+                    Text("tap to reset")
+                        .font(
+                            .system(
+                                size: 15 * scale,
+                                weight: .medium
+                            )
+                        )
+                        .foregroundColor(
+                            orange.opacity(0.82)
+                        )
+                        .padding(.top, 4)
                 }
+
+                Spacer()
+                    .frame(
+                        height: spacingAfterAvatar
+                    )
+
+                // MARK: Message
+
+                Text(
+                    isGuestAfterFirstReset
+                        ? "save your reset and\nkeep your progress going"
+                        : vm.homeMessage
+                )
+                .font(
+                    .system(
+                        size: adjustedSubtitleSize
+                    )
+                )
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .lineLimit(3)
+                .minimumScaleFactor(0.75)
+                .fixedSize(
+                    horizontal: false,
+                    vertical: true
+                )
+                .frame(
+                    maxWidth: 340
+                )
+                .padding(
+                    .horizontal,
+                    horizontalPadding
+                )
+
+                Spacer(
+                    minLength: bottomSpacing
+                )
+            }
+            .frame(
+                width: screenWidth,
+                height: screenHeight,
+                alignment: .top
+            )
+            .onAppear {
+                guard !isBreathing else {
+                    return
+                }
+
+                withAnimation(
+                    .easeInOut(
+                        duration: 1.5
+                    )
+                    .repeatForever(
+                        autoreverses: true
+                    )
+                ) {
+                    isBreathing = true
+                }
+            }
+            .sheet(
+                isPresented:
+                    $vm.showSelectedDateEntries
+            ) {
+                SelectedDateEntriesSheet(
+                    vm: vm,
+                    orange: orange
+                )
             }
         }
     }
