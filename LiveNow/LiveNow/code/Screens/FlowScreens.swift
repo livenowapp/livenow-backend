@@ -192,7 +192,7 @@ struct InputScreen: View {
                                     )
                                     .offset(
                                         x: -12,
-                                        y: -avatarSize * 0.72
+                                        y: -avatarSize * 0.80
                                     )
                                     .allowsHitTesting(false)
                                     .accessibilityHidden(true)
@@ -279,23 +279,11 @@ struct InputScreen: View {
                                         }
                                         .padding(
                                             .horizontal,
-                                            min(
-                                                max(
-                                                    screenWidth * 0.045,
-                                                    16
-                                                ),
-                                                20
-                                            )
+                                            min(max(screenWidth * 0.045,  16),20)
                                         )
                                         .padding(
                                             .vertical,
-                                            min(
-                                                max(
-                                                    screenHeight * 0.014,
-                                                    11
-                                                ),
-                                                14
-                                            )
+                                            min(max(screenHeight * 0.014, 11),14)
                                         )
                                         .frame(maxWidth: .infinity)
                                         .background(

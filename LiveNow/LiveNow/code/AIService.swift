@@ -60,7 +60,13 @@ final class AIService {
 
             guard 200..<300 ~= httpResponse.statusCode else {
                 let serverMessage =
-                    String(data: data, encoding: .utf8) ?? "Unknown server error"
+                    String(data: data, encoding: .utf8)
+                    ?? "Unknown server error"
+
+                #if DEBUG
+                print("AI BACKEND STATUS:", httpResponse.statusCode)
+                print("AI BACKEND RESPONSE:", serverMessage)
+                #endif
 
                 switch httpResponse.statusCode {
                 case 401:

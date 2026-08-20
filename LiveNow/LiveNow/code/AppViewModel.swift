@@ -156,7 +156,7 @@ final class AppViewModel: ObservableObject {
 
     // MARK: - Analyze
 
-    /*@MainActor
+    @MainActor
     func analyze() async {
         let cleanedThought = thought.trimmingCharacters(
             in: .whitespacesAndNewlines
@@ -283,9 +283,9 @@ final class AppViewModel: ObservableObject {
         }
 
         isLoading = false
-    }*/
+    }
     
-    @MainActor
+   /* @MainActor
     func analyze() async {
         let cleanedThought = thought.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -341,7 +341,7 @@ final class AppViewModel: ObservableObject {
         }
 
         isLoading = false
-    }
+    }*/
 
     // MARK: - Entries
 
