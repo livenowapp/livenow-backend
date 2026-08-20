@@ -156,6 +156,135 @@ final class AppViewModel: ObservableObject {
 
     // MARK: - Analyze
 
+    /*@MainActor
+    func analyze() async {
+        let cleanedThought = thought.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+
+        guard !cleanedThought.isEmpty else { return }
+
+        // Če je user že analiziral isti tekst,
+        // uporabimo zadnji fixed odgovor.
+        if isSimilarThought(
+            cleanedThought,
+            lastAnalyzedThought
+        ),
+           let cachedResponse = lastAIResponse {
+
+            thought = cleanedThought
+            aiResponse = cachedResponse
+
+            if cachedResponse.safety.level == "urgent" {
+                step = .urgentSafety
+            } else {
+                step = .analyze
+            }
+
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+        step = .thinking
+
+        // Samo za test, da se thinking screen malo pokaže.
+        try? await Task.sleep(
+            nanoseconds: 1_500_000_000
+        )
+
+        let response = AIResponse(
+            safety: AISafety(
+                level: "elevated",
+                message: "It may help to slow down and talk to someone you trust if this feeling keeps getting stronger."
+            ),
+
+            shortTitle: "Worried about what they think",
+
+            analysis: [
+                AIAnalysisItem(
+                    type: "catastrophizing",
+                    label: "You’re predicting the worst",
+                    sub: "Your mind is treating one possible negative outcome as if it is already certain."
+                ),
+
+                AIAnalysisItem(
+                    type: "mind_reading",
+                    label: "You’re guessing what they think",
+                    sub: "Right now, you don’t actually know what the other person is thinking or how they interpreted the situation."
+                ),
+
+                AIAnalysisItem(
+                    type: "balanced_context",
+                    label: "There are other possibilities",
+                    sub: "The moment may have felt bigger to you than it did to them, and their reaction could have many explanations."
+                )
+            ],
+
+            evidence: [
+                AIEvidenceItem(
+                    q: "Do you know for sure what they think?",
+                    a: "No"
+                ),
+
+                AIEvidenceItem(
+                    q: "Is there clear evidence something went wrong?",
+                    a: "Not really"
+                ),
+
+                AIEvidenceItem(
+                    q: "Could there be another explanation?",
+                    a: "Yes"
+                )
+            ],
+
+            reframes: [
+                "I don’t actually know what they’re thinking, and I don’t need to figure it out right now.",
+
+                "One awkward moment doesn’t define how someone sees me.",
+
+                "I can let this stay uncertain instead of trying to solve it in my head."
+            ],
+
+            actions: [
+                AIActionItem(
+                    icon: "action_breath",
+                    label: "Take 5 slow breaths and let your attention return to what is happening now."
+                ),
+
+                AIActionItem(
+                    icon: "action_walk",
+                    label: "Take a short walk and leave your phone alone for a few minutes."
+                ),
+
+                AIActionItem(
+                    icon: "action_chat",
+                    label: "Message someone about something completely unrelated and shift your focus."
+                ),
+                
+                AIActionItem(
+                    icon: "action_sunlight",
+                    label: "Go outside and get some natural light and air to help clear your mind."
+                )
+            ],
+
+            insight: "Your mind is trying to remove uncertainty by imagining what another person thinks, but there isn’t enough evidence to know."
+        )
+
+        thought = cleanedThought
+        aiResponse = response
+        lastAnalyzedThought = cleanedThought
+        lastAIResponse = response
+
+        if response.safety.level == "urgent" {
+            step = .urgentSafety
+        } else {
+            step = .analyze
+        }
+
+        isLoading = false
+    }*/
+    
     @MainActor
     func analyze() async {
         let cleanedThought = thought.trimmingCharacters(in: .whitespacesAndNewlines)

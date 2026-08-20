@@ -40,6 +40,7 @@ struct LoginScreen: View {
     
     @FocusState private var focusedField: Field?
     @State private var showForgotPassword = false
+    @State private var inputReady = false
 
     enum Field {
         case email
@@ -93,10 +94,6 @@ struct LoginScreen: View {
                                     orange: orange
                                 )
                             )
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                focusedField = .email
-                            }
 
                         PasswordField(
                             title: "password",
@@ -113,10 +110,6 @@ struct LoginScreen: View {
                                 authVM.login()
                             }
                         }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            focusedField = .password
-                        }
                         
                         Button(action: {
                             showForgotPassword = true
@@ -130,6 +123,7 @@ struct LoginScreen: View {
                         .padding(.top, 6)
                     }
                     .padding(.top, 18)
+                    .allowsHitTesting(inputReady)
 
                     if let error = authVM.errorMessage {
                         Text(error)
@@ -190,11 +184,29 @@ struct LoginScreen: View {
                 .padding(.horizontal, horizontalPadding)
                 .frame(minHeight: geo.size.height)
             }
-            .scrollDismissesKeyboard(.interactively)
+            .scrollDismissesKeyboard(.immediately)
         }
-        .background(Color(red: 0.97, green: 0.96, blue: 0.94).ignoresSafeArea())
+        .background(
+            Color(
+                red: 0.97,
+                green: 0.96,
+                blue: 0.94
+            )
+            .ignoresSafeArea()
+        )
+        .onAppear {
+            focusedField = nil
+            inputReady = false
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                inputReady = true
+            }
+        }
         .sheet(isPresented: $showForgotPassword) {
-            ForgotPasswordScreen(authVM: authVM, orange: orange)
+            ForgotPasswordScreen(
+                authVM: authVM,
+                orange: orange
+            )
         }
     }
 }
@@ -285,10 +297,6 @@ struct SignupScreen: View {
                                     orange: orange
                                 )
                             )
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                focusedField = .name
-                            }
 
                         TextField("email", text: $authVM.email)
                             .font(.system(size: fieldTextSize))
@@ -311,10 +319,6 @@ struct SignupScreen: View {
                                     orange: orange
                                 )
                             )
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                focusedField = .email
-                            }
 
                         PasswordField(
                             title: "password",
@@ -328,10 +332,6 @@ struct SignupScreen: View {
                         .submitLabel(.next)
                         .onSubmit {
                             focusedField = .confirmPassword
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            focusedField = .password
                         }
                         
                         PasswordField(
@@ -348,10 +348,6 @@ struct SignupScreen: View {
                             if canSubmit {
                                 authVM.signUp()
                             }
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            focusedField = .confirmPassword
                         }
                     }
                     .padding(.top, 18)
@@ -468,7 +464,7 @@ struct SignupScreen: View {
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: geo.size.height)
             }
-            .scrollDismissesKeyboard(.interactively)
+            .scrollDismissesKeyboard(.immediately)
         }
         .background(Color(red: 0.97, green: 0.96, blue: 0.94).ignoresSafeArea())
     }
