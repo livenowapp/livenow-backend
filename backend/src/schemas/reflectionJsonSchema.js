@@ -54,8 +54,6 @@ export const reflectionJsonSchema = {
 
     analysis: {
       type: "array",
-      minItems: 3,
-      maxItems: 3,
 
       items: {
         type: "object",
@@ -89,8 +87,6 @@ export const reflectionJsonSchema = {
 
     evidence: {
       type: "array",
-      minItems: 2,
-      maxItems: 2,
 
       items: {
         type: "object",
@@ -115,8 +111,6 @@ export const reflectionJsonSchema = {
 
     reframes: {
       type: "array",
-      minItems: 3,
-      maxItems: 3,
 
       items: {
         type: "string",
@@ -127,8 +121,6 @@ export const reflectionJsonSchema = {
 
     actions: {
       type: "array",
-      minItems: 4,
-      maxItems: 4,
 
       items: {
         type: "object",
