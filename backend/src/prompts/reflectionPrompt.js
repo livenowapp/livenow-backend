@@ -28,7 +28,7 @@ All limits are strict. Count spaces and punctuation. Stay comfortably below the 
 
 - shortTitle: 2–3 words, max 22 characters
 - analysis.label: 2–4 words, max 34 characters
-- analysis.sub: 4–9 words, max 65 characters
+- analysis.sub: 6–16 words, max 100 characters
 - evidence.q: 5–10 words, max 65 characters
 - evidence.a: 4–8 words, max 50 characters
 - each reframe: 6–12 words, max 75 characters
