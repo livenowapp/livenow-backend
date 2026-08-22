@@ -18,6 +18,7 @@ export const reflectionJsonSchema = {
   additionalProperties: false,
 
   required: [
+    "inputAssessment",
     "safety",
     "shortTitle",
     "analysis",
@@ -28,6 +29,15 @@ export const reflectionJsonSchema = {
   ],
 
   properties: {
+    inputAssessment: {
+      type: "string",
+      enum: [
+        "analyzable",
+        "not_overthinking",
+        "too_vague",
+      ],
+    },
+
     safety: {
       type: "object",
       additionalProperties: false,
@@ -36,7 +46,11 @@ export const reflectionJsonSchema = {
       properties: {
         level: {
           type: "string",
-          enum: ["normal", "elevated", "urgent"],
+          enum: [
+            "normal",
+            "elevated",
+            "urgent",
+          ],
         },
 
         message: {
@@ -58,7 +72,11 @@ export const reflectionJsonSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["type", "label", "sub"],
+        required: [
+          "type",
+          "label",
+          "sub",
+        ],
 
         properties: {
           type: {
@@ -91,7 +109,10 @@ export const reflectionJsonSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["q", "a"],
+        required: [
+          "q",
+          "a",
+        ],
 
         properties: {
           q: {
@@ -125,7 +146,10 @@ export const reflectionJsonSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["icon", "label"],
+        required: [
+          "icon",
+          "label",
+        ],
 
         properties: {
           icon: {
