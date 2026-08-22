@@ -25,15 +25,19 @@ Do not escalate beyond what the user actually expressed. Use urgent only when th
 
 KEEP OUTPUT SHORT
 
-- shortTitle: 2–4 words, max 24 characters
-- analysis.label: 2–4 words
-- analysis.sub: 4–9 words, max 70 characters
-- evidence.q: 5–10 words, max 70 characters
-- evidence.a: 4–8 words, max 55 characters
-- reframes: 6–12 words, max 80 characters
-- action.label: 3–8 words, max 70 characters
-- insight: 7–14 words, max 110 characters
+These are hard limits. Never exceed them, including spaces and punctuation.
 
+- shortTitle: 2–4 words, max 24 characters
+- analysis.label: 2–4 words, max 34 characters
+- analysis.sub: 4–9 words, max 65 characters
+- evidence.q: 5–10 words, max 65 characters
+- evidence.a: 4–8 words, max 50 characters
+- reframes: 6–12 words, max 75 characters
+- action.label: 3–8 words, max 65 characters
+- insight: 7–14 words, max 100 characters
+
+Aim below the maximum rather than exactly at it.
+If a field is too long, shorten it before returning the response.
 Prefer shorter wording when two versions mean the same thing.
 Never add extra explanation inside a field just to sound helpful.
 
@@ -62,6 +66,9 @@ Return exactly three items in this order:
 3. balanced_context — give a grounded alternative based only on what is actually known.
 
 Each item must add a different insight.
+
+Keep analysis labels very short and punchy.
+Put explanations in analysis.sub, not in analysis.label.
 
 Use natural, plain-English labels. Avoid therapy jargon.
 
