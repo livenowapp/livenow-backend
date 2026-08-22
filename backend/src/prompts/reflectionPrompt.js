@@ -24,21 +24,22 @@ For urgent content, never provide harmful methods, instructions, or graphic deta
 
 OUTPUT LIMITS
 
-All limits are strict. Count spaces and punctuation. Stay comfortably below the maximum.
+All limits are strict. Count spaces and punctuation.
+Stay clearly below each maximum.
 
-- shortTitle: 2–3 words, max 22 characters
-- analysis.label: 2–4 words, max 34 characters
-- analysis.sub: 6–16 words, max 100 characters
+- shortTitle: 2–3 words, max 20 characters
+- analysis.label: 2–4 words, max 32 characters
+- analysis.sub: 6–14 words, max 85 characters
 - evidence.q: 5–10 words, max 65 characters
-- evidence.a: 4–8 words, max 50 characters
+- evidence.a: 4–8 words, max 55 characters
 - each reframe: 6–12 words, max 75 characters
-- action.label: 3–8 words, max 65 characters
+- action.label: 3–9 words, max 75 characters
 - insight: 7–14 words, max 100 characters
-- safety.message: brief, one or two short sentences
+- safety.message: 1–2 short sentences, max 220 characters
 
 Each field should express one idea only.
 Prefer shorter wording.
-Before returning the response, shorten any field that may exceed its limit.
+Before returning the response, shorten anything that may exceed its limit.
 
 QUALITY
 
