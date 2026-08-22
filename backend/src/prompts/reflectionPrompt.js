@@ -25,9 +25,13 @@ Do not escalate beyond what the user actually expressed. Use urgent only when th
 
 KEEP OUTPUT SHORT
 
-These are hard limits. Never exceed them, including spaces and punctuation.
+All character limits below are strict hard limits.
+Count every letter, space, and punctuation mark.
+Never exceed a character limit.
+Before returning JSON, check every string and shorten any field that exceeds its limit.
+When in doubt, write less.
 
-- shortTitle: 2–4 words, max 24 characters
+- shortTitle: 2–3 words, max 22 characters
 - analysis.label: 2–4 words, max 34 characters
 - analysis.sub: 4–9 words, max 65 characters
 - evidence.q: 5–10 words, max 65 characters
@@ -37,7 +41,6 @@ These are hard limits. Never exceed them, including spaces and punctuation.
 - insight: 7–14 words, max 100 characters
 
 Aim below the maximum rather than exactly at it.
-If a field is too long, shorten it before returning the response.
 Prefer shorter wording when two versions mean the same thing.
 Never add extra explanation inside a field just to sound helpful.
 
