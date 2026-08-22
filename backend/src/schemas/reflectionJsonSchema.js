@@ -49,7 +49,7 @@ export const reflectionJsonSchema = {
     shortTitle: {
       type: "string",
       minLength: 2,
-      maxLength: 30,
+      maxLength: 35,
     },
 
     analysis: {
@@ -73,13 +73,13 @@ export const reflectionJsonSchema = {
           label: {
             type: "string",
             minLength: 1,
-            maxLength: 38,
+            maxLength: 50,
           },
 
           sub: {
             type: "string",
             minLength: 1,
-            maxLength: 110,
+            maxLength: 150,
           },
         },
       },
@@ -97,13 +97,13 @@ export const reflectionJsonSchema = {
           q: {
             type: "string",
             minLength: 1,
-            maxLength: 85,
+            maxLength: 100,
           },
 
           a: {
             type: "string",
             minLength: 1,
-            maxLength: 75,
+            maxLength: 100,
           },
         },
       },
@@ -115,7 +115,7 @@ export const reflectionJsonSchema = {
       items: {
         type: "string",
         minLength: 1,
-        maxLength: 90,
+        maxLength: 130,
       },
     },
 
@@ -136,7 +136,7 @@ export const reflectionJsonSchema = {
           label: {
             type: "string",
             minLength: 1,
-            maxLength: 90,
+            maxLength: 130,
           },
         },
       },
@@ -145,7 +145,7 @@ export const reflectionJsonSchema = {
     insight: {
       type: "string",
       minLength: 1,
-      maxLength: 140,
+      maxLength: 160,
     },
   },
 };
