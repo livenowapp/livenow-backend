@@ -9,7 +9,8 @@ import SwiftUI
 
 // MARK: - HOME
 
-/*struct HomeScreen: View {
+struct HomeScreen: View {
+
     @ObservedObject var vm: AppViewModel
 
     let orange: Color
@@ -17,24 +18,13 @@ import SwiftUI
 
     var onStart: () -> Void
 
-    @State private var isBreathing = false
-
-    // MARK: Avatar physics
-
-    @State private var avatarPosition: CGPoint = .zero
-    @State private var avatarVelocity: CGVector = .zero
-    @State private var avatarDragStart: CGPoint?
-    @State private var isDraggingAvatar = false
-    @State private var physicsTask: Task<Void, Never>?
-    @State private var didSetInitialAvatarPosition = false
-    
-    @State private var didAvatarHitEdge = false
-
     @ScaledMetric private var heroSize: CGFloat = 43
     @ScaledMetric private var subtitleSize: CGFloat = 16
 
     var body: some View {
+
         GeometryReader { geo in
+
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
 
@@ -63,22 +53,19 @@ import SwiftUI
                 50
             )
 
-            let subtitleSize = min(
-                max(18 * scale, 15),
-                22
+            let adjustedSubtitleSize = min(
+                max(subtitleSize * scale, 15),
+                19
             )
 
             let isCompactHeight = screenHeight < 760
 
-            let resetSize = isCompactHeight
-                ? min(
-                    screenWidth * 0.46,
-                    185
-                )
+            let avatarSize = isCompactHeight
+                ? min(screenWidth * 0.60, 220)
                 : min(
-                    screenWidth * 0.52,
-                    screenHeight * 0.24,
-                    230 * scale
+                    screenWidth * 0.66,
+                    screenHeight * 0.29,
+                    260
                 )
 
             let spacingAfterHeader = min(
@@ -87,23 +74,24 @@ import SwiftUI
             )
 
             let spacingAfterHero = min(
-                max(screenHeight * 0.11, 65),
-                105
+                max(screenHeight * 0.035, 24),
+                36
             )
 
-            let spacingAfterReset = min(
-                max(screenHeight * 0.11, 65),
-                105
+            let bubbleToAvatarSpacing = min(
+                max(screenHeight * 0.008, 6),
+                10
             )
 
-            let bottomSpacing = min(
-                max(screenHeight * 0.04, 22),
-                42
+            let avatarToMessageSpacing = min(
+                max(screenHeight * 0.018, 12),
+                18
             )
 
-            let avatarSize = isCompactHeight
-                ? min(screenWidth * 0.37, 124)
-                : min(screenWidth * 0.39, 138)
+            let bottomLandscapePadding = min(
+                max(screenHeight * 0.025, 16),
+                24
+            )
 
             let isGuestAfterFirstReset =
                 vm.isGuestUser &&
@@ -111,7 +99,37 @@ import SwiftUI
 
             ZStack {
 
-                // MARK: Main content
+                // MARK: Base background
+
+                Color(
+                    red: 0.97,
+                    green: 0.96,
+                    blue: 0.94
+                )
+                .ignoresSafeArea()
+
+                // MARK: Landscape asset
+
+                VStack(spacing: 0) {
+
+                    Spacer()
+
+                    Image("background")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: screenWidth)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+                .frame(
+                    width: screenWidth,
+                    height: screenHeight
+                )
+                .ignoresSafeArea(
+                    edges: [.horizontal, .bottom]
+                )
+
+                // MARK: Main layout
 
                 VStack(spacing: 0) {
 
@@ -122,11 +140,14 @@ import SwiftUI
                     )
 
                     Spacer()
-                        .frame(height: spacingAfterHeader)
+                        .frame(
+                            height: spacingAfterHeader
+                        )
 
                     // MARK: Hero
 
                     VStack(spacing: 0) {
+
                         Text(
                             isGuestAfterFirstReset
                                 ? "your first reset"
@@ -164,302 +185,163 @@ import SwiftUI
                     )
 
                     Spacer()
-                        .frame(height: spacingAfterHero)
+                        .frame(
+                            height: spacingAfterHero
+                        )
 
-                    // MARK: Reset button
+                    Spacer()
 
-                    Button(action: onStart) {
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    orange.opacity(0.16)
-                                )
-                                .frame(
-                                    width: resetSize * 1.14,
-                                    height: resetSize * 1.14
-                                )
-                                .scaleEffect(
-                                    isBreathing
-                                        ? 1.08
-                                        : 0.92
-                                )
-                                .opacity(
-                                    isBreathing
-                                        ? 0.15
-                                        : 0.35
-                                )
+                    // MARK: Character area on landscape
 
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            lightOrange,
-                                            orange
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
+                    VStack(spacing: 0) {
+
+                        if isGuestAfterFirstReset {
+
+                            VStack(spacing: avatarToMessageSpacing) {
+
+                                Image("avatar_happy")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(
+                                        width: avatarSize,
+                                        height: avatarSize
+                                    )
+                                    .allowsHitTesting(false)
+                                    .accessibilityHidden(true)
+
+                                Text(
+                                    "save your reset and\nkeep your progress going"
+                                )
+                                .font(
+                                    .system(
+                                        size: adjustedSubtitleSize
                                     )
                                 )
-                                .frame(
-                                    width: resetSize,
-                                    height: resetSize
+                                .foregroundColor(
+                                    .black.opacity(0.58)
                                 )
-                                .shadow(
-                                    color: orange.opacity(
-                                        isBreathing
-                                            ? 0.38
-                                            : 0.22
-                                    ),
-                                    radius: isBreathing
-                                        ? 26
-                                        : 16,
-                                    x: 0,
-                                    y: 9
+                                .multilineTextAlignment(.center)
+                                .fixedSize(
+                                    horizontal: false,
+                                    vertical: true
                                 )
-                                .scaleEffect(
-                                    isBreathing
-                                        ? 1.055
-                                        : 0.975
+                            }
+
+                        } else {
+
+                            VStack(spacing: 0) {
+
+                                Button {
+                                    onStart()
+                                } label: {
+
+                                    VStack(
+                                        spacing: bubbleToAvatarSpacing
+                                    ) {
+
+                                        Text("need a reset? tap me")
+                                            .font(
+                                                .system(
+                                                    size: 15 * scale,
+                                                    weight: .semibold
+                                                )
+                                            )
+                                            .foregroundColor(
+                                                .black.opacity(0.72)
+                                            )
+                                            .padding(
+                                                .horizontal,
+                                                18
+                                            )
+                                            .padding(
+                                                .vertical,
+                                                10
+                                            )
+                                            .background(
+                                                Color.white.opacity(0.94)
+                                            )
+                                            .overlay {
+                                                RoundedRectangle(
+                                                    cornerRadius: 16
+                                                )
+                                                .stroke(
+                                                    lightOrange.opacity(0.55),
+                                                    lineWidth: 1
+                                                )
+                                            }
+                                            .clipShape(
+                                                RoundedRectangle(
+                                                    cornerRadius: 16
+                                                )
+                                            )
+                                            .shadow(
+                                                color: .black.opacity(0.05),
+                                                radius: 8,
+                                                x: 0,
+                                                y: 4
+                                            )
+
+                                        Image("resetButton")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(
+                                                width: avatarSize,
+                                                height: avatarSize
+                                            )
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Start reset")
+                                .accessibilityHint(
+                                    "Tap to start a new reset"
                                 )
 
-                            VStack(
-                                spacing: resetSize * 0.035
-                            ) {
-                                Text("RESET")
-                                    .font(
-                                        .system(
-                                            size:
-                                                resetSize
-                                                * 0.165,
-                                            weight: .bold
-                                        )
+                                Spacer()
+                                    .frame(
+                                        height: avatarToMessageSpacing
                                     )
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
 
-                                Text("clear your mind")
+                                Text(vm.homeMessage)
                                     .font(
                                         .system(
-                                            size:
-                                                resetSize
-                                                * 0.075
+                                            size: adjustedSubtitleSize
                                         )
                                     )
                                     .foregroundColor(
-                                        .white.opacity(0.95)
+                                        .black.opacity(0.58)
                                     )
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(3)
+                                    .minimumScaleFactor(0.75)
+                                    .fixedSize(
+                                        horizontal: false,
+                                        vertical: true
+                                    )
+                                    .frame(maxWidth: 330)
+                                    .padding(
+                                        .horizontal,
+                                        horizontalPadding
+                                    )
+                                    .offset(y: 25)
                             }
-                            .offset(
-                                y:
-                                    -resetSize
-                                    * 0.01
-                            )
-                            .scaleEffect(
-                                isBreathing
-                                    ? 1.01
-                                    : 0.99
-                            )
                         }
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Reset")
-                    .accessibilityHint(
-                        "Start a new reset"
+                    .offset(
+                        y: isCompactHeight
+                            ? -135
+                            : -165
                     )
-                    .onAppear {
-                        guard !isBreathing else {
-                            return
-                        }
-
-                        withAnimation(
-                            .easeInOut(
-                                duration: 1.35
-                            )
-                            .repeatForever(
-                                autoreverses: true
-                            )
-                        ) {
-                            isBreathing = true
-                        }
-                    }
 
                     Spacer()
-                        .frame(height: spacingAfterReset)
-
-                    // MARK: Message
-
-                    Text(
-                        isGuestAfterFirstReset
-                            ? "save your reset and\nkeep your progress going"
-                            : vm.homeMessage
-                    )
-                    .font(
-                        .system(
-                            size: subtitleSize
+                        .frame(
+                            height: bottomLandscapePadding
                         )
-                    )
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(3)
-                    .minimumScaleFactor(0.75)
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
-                    )
-                    .frame(maxWidth: 340)
-                    .padding(
-                        .horizontal,
-                        horizontalPadding
-                    )
-
-                    Spacer(
-                        minLength: bottomSpacing
-                    )
                 }
                 .frame(
                     width: screenWidth,
                     height: screenHeight,
                     alignment: .top
                 )
-
-                // MARK: Draggable home avatar
-
-                Image(
-                    isGuestAfterFirstReset
-                        ? "avatar_happy"
-                        : (didAvatarHitEdge ? "avatar_bum" : "avatar_smile")
-                )
-                .resizable()
-                .scaledToFit()
-                .frame(
-                    width: avatarSize,
-                    height: avatarSize
-                )
-                .contentShape(Rectangle())
-                .position(avatarPosition)
-                .transaction { transaction in
-                    transaction.animation = nil
-                }
-                .scaleEffect(
-                    isDraggingAvatar ? 1.06 : 1.0
-                )
-                .shadow(
-                    color: .black.opacity(
-                        isDraggingAvatar ? 0.10 : 0
-                    ),
-                    radius: 10,
-                    x: 0,
-                    y: 5
-                )
-                .gesture(
-                    DragGesture(
-                        minimumDistance: 0,
-                        coordinateSpace: .local
-                    )
-                    .onChanged { value in
-                        physicsTask?.cancel()
-                        physicsTask = nil
-
-                        avatarVelocity = .zero
-                        isDraggingAvatar = true
-                        didAvatarHitEdge = false
-
-                        if avatarDragStart == nil {
-                            avatarDragStart = avatarPosition
-                        }
-
-                        guard let start = avatarDragStart else {
-                            return
-                        }
-
-                        let proposedPosition = CGPoint(
-                            x: start.x + value.translation.width,
-                            y: start.y + value.translation.height
-                        )
-
-                        avatarPosition = clampAvatarPosition(
-                            proposedPosition,
-                            screenSize: geo.size,
-                            safeAreaInsets: geo.safeAreaInsets,
-                            avatarSize: avatarSize
-                        )
-                    }
-                    .onEnded { value in
-                        isDraggingAvatar = false
-                        avatarDragStart = nil
-
-                        let extraX =
-                            value
-                                .predictedEndTranslation
-                                .width
-                            - value.translation.width
-
-                        let extraY =
-                            value
-                                .predictedEndTranslation
-                                .height
-                            - value.translation.height
-
-                        let velocityMultiplier: CGFloat = 5.5
-
-                        let dx = max(
-                            -1800,
-                            min(
-                                extraX
-                                    * velocityMultiplier,
-                                1800
-                            )
-                        )
-
-                        let dy = max(
-                            -1800,
-                            min(
-                                extraY
-                                    * velocityMultiplier,
-                                1800
-                            )
-                        )
-
-                        avatarVelocity = CGVector(
-                            dx: dx,
-                            dy: dy
-                        )
-
-                        startAvatarPhysics(
-                            screenSize: geo.size,
-                            safeAreaInsets:
-                                geo.safeAreaInsets,
-                            avatarSize: avatarSize
-                        )
-                    }
-                )
-                .accessibilityHidden(true)
-            }
-            .frame(
-                width: screenWidth,
-                height: screenHeight
-            )
-            .onAppear {
-                if !didSetInitialAvatarPosition {
-                    avatarPosition =
-                        initialAvatarPosition(
-                            screenSize: geo.size,
-                            safeAreaInsets:
-                                geo.safeAreaInsets,
-                            avatarSize: avatarSize,
-                            horizontalPadding:
-                                horizontalPadding
-                        )
-
-                    didSetInitialAvatarPosition = true
-                }
-            }
-            .onDisappear {
-                physicsTask?.cancel()
-                physicsTask = nil
             }
             .sheet(
                 isPresented:
@@ -472,162 +354,9 @@ import SwiftUI
             }
         }
     }
+}
 
-    // MARK: - Initial avatar position
-
-    private func initialAvatarPosition(
-        screenSize: CGSize,
-        safeAreaInsets: EdgeInsets,
-        avatarSize: CGFloat,
-        horizontalPadding: CGFloat
-    ) -> CGPoint {
-        CGPoint(
-            x:
-                horizontalPadding
-                + avatarSize / 2
-                + 4,
-            y:
-                screenSize.height
-                - safeAreaInsets.bottom
-                - avatarSize / 2
-                - 4
-        )
-    }
-
-    // MARK: - Clamp avatar to full screen
-
-    private func clampAvatarPosition(
-        _ position: CGPoint,
-        screenSize: CGSize,
-        safeAreaInsets: EdgeInsets,
-        avatarSize: CGFloat
-    ) -> CGPoint {
-
-        let collisionRadius = avatarSize * 0.40
-
-        let minX = collisionRadius
-        let maxX = screenSize.width - collisionRadius
-
-        let minY = collisionRadius
-        let maxY = screenSize.height - collisionRadius
-
-        return CGPoint(
-            x: min(max(position.x, minX), maxX),
-            y: min(max(position.y, minY), maxY)
-        )
-    }
-
-    // MARK: - Avatar physics
-
-    private func startAvatarPhysics(
-        screenSize: CGSize,
-        safeAreaInsets: EdgeInsets,
-        avatarSize: CGFloat
-    ) {
-        physicsTask?.cancel()
-
-        physicsTask = Task { @MainActor in
-            let frameDuration: UInt64 = 16_666_667
-            let deltaTime: CGFloat = 1.0 / 60.0
-
-            let friction: CGFloat = 0.985
-            let bounce: CGFloat = 0.78
-            let stopSpeed: CGFloat = 12
-
-            let collisionRadius = avatarSize * 0.40
-
-            let minX = collisionRadius
-            let maxX = screenSize.width - collisionRadius
-
-            let minY = collisionRadius
-            let maxY = screenSize.height - collisionRadius
-
-            while !Task.isCancelled {
-                let speed = sqrt(
-                    avatarVelocity.dx
-                    * avatarVelocity.dx
-                    +
-                    avatarVelocity.dy
-                    * avatarVelocity.dy
-                )
-
-                if speed < stopSpeed {
-                    avatarVelocity = .zero
-                    didAvatarHitEdge = false
-                    break
-                }
-
-                var nextX =
-                    avatarPosition.x
-                    + avatarVelocity.dx
-                    * deltaTime
-
-                var nextY =
-                    avatarPosition.y
-                    + avatarVelocity.dy
-                    * deltaTime
-
-                // Left edge
-                if nextX < minX {
-                    nextX = minX
-                    avatarVelocity.dx =
-                        abs(avatarVelocity.dx) * bounce
-                    didAvatarHitEdge = true
-                }
-
-                // Right edge
-                if nextX > maxX {
-                    nextX = maxX
-                    avatarVelocity.dx =
-                        -abs(avatarVelocity.dx) * bounce
-                    didAvatarHitEdge = true
-                }
-
-                // Top edge
-                if nextY < minY {
-                    nextY = minY
-                    avatarVelocity.dy =
-                        abs(avatarVelocity.dy) * bounce
-                    didAvatarHitEdge = true
-                }
-
-                // Bottom edge
-                if nextY > maxY {
-                    nextY = maxY
-                    avatarVelocity.dy =
-                        -abs(avatarVelocity.dy) * bounce
-                    didAvatarHitEdge = true
-                }
-
-                var transaction = Transaction()
-                transaction.animation = nil
-
-                withTransaction(transaction) {
-                    avatarPosition = CGPoint(
-                        x: nextX,
-                        y: nextY
-                    )
-                }
-
-                avatarVelocity.dx *= friction
-                avatarVelocity.dy *= friction
-
-                try? await Task.sleep(
-                    nanoseconds: frameDuration
-                )
-
-                if Task.isCancelled {
-                    return
-                }
-            }
-
-            didAvatarHitEdge = false
-            physicsTask = nil
-        }
-    }
-}*/
-
-import SwiftUI
+/*import SwiftUI
 
 // MARK: - HOME
 
@@ -955,13 +684,14 @@ struct HomeScreen: View {
             }
         }
     }
-}
+}*/
 
 /*import SwiftUI
 
 // MARK: - HOME
 
 struct HomeScreen: View {
+
     @ObservedObject var vm: AppViewModel
 
     let orange: Color
@@ -969,14 +699,13 @@ struct HomeScreen: View {
 
     var onStart: () -> Void
 
-    @State private var isBreathing = false
-    @State private var isPressed = false
-
     @ScaledMetric private var heroSize: CGFloat = 43
     @ScaledMetric private var subtitleSize: CGFloat = 16
 
     var body: some View {
+
         GeometryReader { geo in
+
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
 
@@ -1006,18 +735,18 @@ struct HomeScreen: View {
             )
 
             let adjustedSubtitleSize = min(
-                max(18 * scale, 15),
-                22
+                max(subtitleSize * scale, 15),
+                19
             )
 
             let isCompactHeight = screenHeight < 760
 
             let avatarSize = isCompactHeight
-                ? min(screenWidth * 0.56, 220)
+                ? min(screenWidth * 0.66, 240)
                 : min(
-                    screenWidth * 0.62,
-                    screenHeight * 0.31,
-                    265
+                    screenWidth * 0.74,
+                    screenHeight * 0.37,
+                    295
                 )
 
             let spacingAfterHeader = min(
@@ -1026,18 +755,23 @@ struct HomeScreen: View {
             )
 
             let spacingAfterHero = min(
-                max(screenHeight * 0.055, 34),
-                58
+                max(screenHeight * 0.045, 30),
+                46
+            )
+
+            let bubbleToAvatarSpacing = min(
+                max(screenHeight * 0.012, 8),
+                12
             )
 
             let spacingAfterAvatar = min(
-                max(screenHeight * 0.04, 26),
-                44
+                max(screenHeight * 0.075, 48),
+                70
             )
 
             let bottomSpacing = min(
-                max(screenHeight * 0.04, 22),
-                42
+                max(screenHeight * 0.035, 22),
+                38
             )
 
             let isGuestAfterFirstReset =
@@ -1053,13 +787,12 @@ struct HomeScreen: View {
                 )
 
                 Spacer()
-                    .frame(
-                        height: spacingAfterHeader
-                    )
+                    .frame(height: spacingAfterHeader)
 
                 // MARK: Hero
 
                 VStack(spacing: 0) {
+
                     Text(
                         isGuestAfterFirstReset
                             ? "your first reset"
@@ -1097,11 +830,9 @@ struct HomeScreen: View {
                 )
 
                 Spacer()
-                    .frame(
-                        height: spacingAfterHero
-                    )
+                    .frame(height: spacingAfterHero)
 
-                // MARK: Main avatar
+                // MARK: Main character
 
                 if isGuestAfterFirstReset {
 
@@ -1120,111 +851,70 @@ struct HomeScreen: View {
                     Button {
                         onStart()
                     } label: {
-                        ZStack {
 
-                            // MARK: Subtle breathing halo
+                        VStack(spacing: bubbleToAvatarSpacing) {
 
-                            Circle()
-                                .fill(
-                                    orange.opacity(0.08)
+                            // MARK: Speech bubble
+
+                            Text("need a reset? tap me")
+                                .font(
+                                    .system(
+                                        size: 15 * scale,
+                                        weight: .semibold
+                                    )
                                 )
-                                .frame(
-                                    width: avatarSize * 0.92,
-                                    height: avatarSize * 0.92
+                                .foregroundColor(
+                                    .black.opacity(0.72)
                                 )
-                                .scaleEffect(
-                                    isBreathing
-                                        ? 1.12
-                                        : 0.92
+                                .padding(
+                                    .horizontal,
+                                    18
                                 )
-                                .opacity(
-                                    isBreathing
-                                        ? 0.20
-                                        : 0.55
+                                .padding(
+                                    .vertical,
+                                    10
+                                )
+                                .background(
+                                    Color.white.opacity(0.94)
+                                )
+                                .overlay {
+                                    RoundedRectangle(
+                                        cornerRadius: 16
+                                    )
+                                    .stroke(
+                                        lightOrange.opacity(0.55),
+                                        lineWidth: 1
+                                    )
+                                }
+                                .cornerRadius(16)
+                                .shadow(
+                                    color: .black.opacity(0.05),
+                                    radius: 8,
+                                    x: 0,
+                                    y: 4
                                 )
 
-                            Circle()
-                                .fill(
-                                    orange.opacity(0.045)
-                                )
-                                .frame(
-                                    width: avatarSize * 0.76,
-                                    height: avatarSize * 0.76
-                                )
-                                .scaleEffect(
-                                    isBreathing
-                                        ? 1.07
-                                        : 0.96
-                                )
+                            // MARK: Reset avatar
 
-                            // MARK: Avatar
-
-                            Image("avatar_smile")
+                            Image("resetButton")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(
                                     width: avatarSize,
                                     height: avatarSize
                                 )
-                                .scaleEffect(
-                                    isPressed
-                                        ? 0.94
-                                        : 1.0
-                                )
                         }
-                        .frame(
-                            width: avatarSize * 1.10,
-                            height: avatarSize * 1.10
-                        )
-                        .contentShape(
-                            Circle()
-                        )
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(
-                        "Start reset"
-                    )
+                    .accessibilityLabel("Start reset")
                     .accessibilityHint(
                         "Tap to start a new reset"
                     )
-                    .simultaneousGesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { _ in
-                                withAnimation(
-                                    .easeOut(duration: 0.10)
-                                ) {
-                                    isPressed = true
-                                }
-                            }
-                            .onEnded { _ in
-                                withAnimation(
-                                    .spring(
-                                        response: 0.28,
-                                        dampingFraction: 0.65
-                                    )
-                                ) {
-                                    isPressed = false
-                                }
-                            }
-                    )
-
-                    Text("tap to reset")
-                        .font(
-                            .system(
-                                size: 15 * scale,
-                                weight: .medium
-                            )
-                        )
-                        .foregroundColor(
-                            orange.opacity(0.82)
-                        )
-                        .padding(.top, 4)
                 }
 
                 Spacer()
-                    .frame(
-                        height: spacingAfterAvatar
-                    )
+                    .frame(height: spacingAfterAvatar)
 
                 // MARK: Message
 
@@ -1246,9 +936,7 @@ struct HomeScreen: View {
                     horizontal: false,
                     vertical: true
                 )
-                .frame(
-                    maxWidth: 340
-                )
+                .frame(maxWidth: 340)
                 .padding(
                     .horizontal,
                     horizontalPadding
@@ -1263,22 +951,6 @@ struct HomeScreen: View {
                 height: screenHeight,
                 alignment: .top
             )
-            .onAppear {
-                guard !isBreathing else {
-                    return
-                }
-
-                withAnimation(
-                    .easeInOut(
-                        duration: 1.5
-                    )
-                    .repeatForever(
-                        autoreverses: true
-                    )
-                ) {
-                    isBreathing = true
-                }
-            }
             .sheet(
                 isPresented:
                     $vm.showSelectedDateEntries
