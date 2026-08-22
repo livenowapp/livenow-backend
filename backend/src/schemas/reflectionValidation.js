@@ -24,7 +24,7 @@ export const ReflectionSchema = z
       })
       .strict(),
 
-    shortTitle: z.string().min(2).max(30),
+    shortTitle: z.string().min(2).max(35),
 
     analysis: z
       .array(
@@ -35,8 +35,8 @@ export const ReflectionSchema = z
               "brain_response",
               "balanced_context",
             ]),
-            label: z.string().min(1).max(38),
-            sub: z.string().min(1).max(110),
+            label: z.string().min(1).max(50),
+            sub: z.string().min(1).max(150), 
           })
           .strict()
       )
@@ -46,15 +46,15 @@ export const ReflectionSchema = z
       .array(
         z
           .object({
-            q: z.string().min(1).max(85),
-            a: z.string().min(1).max(75),
+            q: z.string().min(1).max(100),
+            a: z.string().min(1).max(100),
           })
           .strict()
       )
       .length(2),
 
     reframes: z
-      .array(z.string().min(1).max(90))
+      .array(z.string().min(1).max(130))
       .length(3),
 
     actions: z
@@ -62,13 +62,13 @@ export const ReflectionSchema = z
         z
           .object({
             icon: ActionIconSchema,
-            label: z.string().min(1).max(90),
+            label: z.string().min(1).max(130),
           })
           .strict()
       )
       .length(4),
 
-    insight: z.string().min(1).max(140),
+    insight: z.string().min(1).max(160),
   })
   .strict()
   .superRefine((data, context) => {
