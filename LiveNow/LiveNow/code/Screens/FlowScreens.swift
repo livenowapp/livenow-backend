@@ -1022,7 +1022,7 @@ struct SafetyMessageCard: View {
                 Text(title)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.black.opacity(0.84))
-
+                
                 Text(message)
                     .font(.system(size: 14))
                     .foregroundColor(.black.opacity(0.62))
@@ -1030,15 +1030,6 @@ struct SafetyMessageCard: View {
                         horizontal: false,
                         vertical: true
                     )
-                    .padding(.trailing, 90)
-                
-                /*Text(message)
-                    .font(.system(size: 14))
-                    .foregroundColor(.black.opacity(0.62))
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
-                    )*/
             }
 
             Spacer()
@@ -1344,39 +1335,7 @@ struct AnalyzeScreen: View {
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-
-            // MARK: Safety
-
-            if let safety = ai?.safety,
-               safety.level != "normal",
-               let message = safety.message,
-               !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-
-                Spacer()
-                    .frame(height: sectionSpacing)
-
-                HStack(alignment: .top, spacing: 12) {
-                    Image(
-                        systemName: safety.level == "urgent"
-                            ? "exclamationmark.triangle.fill"
-                            : "heart.fill"
-                    )
-                    .font(.system(size: 18))
-                    .foregroundColor(orange)
-
-                    Text(message)
-                        .font(.system(size: 14))
-                        .foregroundColor(.black.opacity(0.78))
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Spacer()
-                }
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.white.opacity(0.82))
-                .cornerRadius(16)
-            }
-
+                
             Spacer()
                 .frame(
                     height: min(
@@ -1384,6 +1343,8 @@ struct AnalyzeScreen: View {
                         34
                     )
                 )
+
+            
 
             // MARK: Thought card + analyze avatar
 
@@ -1473,6 +1434,38 @@ struct AnalyzeScreen: View {
 
                 Spacer()
                     .frame(height: mediumSpacing)
+                
+                // MARK: Safety
+
+                if let safety = ai?.safety,
+                   safety.level != "normal",
+                   let message = safety.message,
+                   !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(
+                            systemName: safety.level == "urgent"
+                                ? "exclamationmark.triangle.fill"
+                                : "heart.fill"
+                        )
+                        .font(.system(size: 18))
+                        .foregroundColor(orange)
+
+                        Text(message)
+                            .font(.system(size: 14))
+                            .foregroundColor(.black.opacity(0.78))
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Spacer()
+                    }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.white.opacity(0.82))
+                    .cornerRadius(16)
+                    
+                    Spacer()
+                        .frame(height: mediumSpacing)
+                }
 
                 // MARK: Analysis cards
 
