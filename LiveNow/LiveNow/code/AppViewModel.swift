@@ -34,6 +34,8 @@ final class AppViewModel: ObservableObject {
     @Published var showResetCheckIn = false
     @Published var pendingCheckInEntries: [ThoughtEntry] = []
     
+    @Published var inputGuidanceMessage: String? = nil
+    
     // MARK: - onboarding personalization
 
     @Published var onboardingReason = ""
@@ -287,6 +289,69 @@ final class AppViewModel: ObservableObject {
     
     @MainActor
     func analyze() async {
+
+        let cleanedThought = thought.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+
+        guard !cleanedThought.isEmpty else {
+            return
+        }
+
+        // Če je uporabnik že analiziral isto misel,
+        // uporabimo zadnji odgovor brez novega API klica.
+        if isSimilarThought(
+            cleanedThought,
+            lastAnalyzedThought
+        ),
+           let cachedResponse = lastAIResponse {
+
+            thought = cleanedThought
+
+            handleAIResponse(
+                cachedResponse,
+                for: cleanedThought
+            )
+
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+        step = .thinking
+
+        do {
+
+            let response = try await AIService.shared.analyzeThought(
+                thought: cleanedThought
+            )
+
+            handleAIResponse(
+                response,
+                for: cleanedThought
+            )
+
+        } catch {
+
+            isLoading = false
+            errorMessage = error.localizedDescription
+            step = .input
+
+            #if DEBUG
+            print(
+                "ANALYZE ERROR:",
+                error.localizedDescription
+            )
+            #endif
+
+            return
+        }
+
+        isLoading = false
+    }
+    
+    /*@MainActor
+    func analyze() async {
         let cleanedThought = thought.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !cleanedThought.isEmpty else { return }
@@ -341,6 +406,57 @@ final class AppViewModel: ObservableObject {
         }
 
         isLoading = false
+    }*/
+    
+    @MainActor
+    private func handleAIResponse(
+        _ response: AIResponse,
+        for cleanedThought: String
+    ) {
+
+        thought = cleanedThought
+
+        switch response.inputAssessment {
+
+        case .analyzable:
+
+            aiResponse = response
+            lastAnalyzedThought = cleanedThought
+            lastAIResponse = response
+
+            errorMessage = nil
+            inputGuidanceMessage = nil
+
+            if response.safety.level == "urgent" {
+                step = .urgentSafety
+            } else {
+                step = .analyze
+            }
+
+        case .notOverthinking:
+
+            aiResponse = nil
+            lastAnalyzedThought = ""
+            lastAIResponse = nil
+
+            errorMessage = nil
+            inputGuidanceMessage =
+                "Write a specific thought that's been bothering you."
+
+            step = .input
+
+        case .tooVague:
+
+            aiResponse = nil
+            lastAnalyzedThought = ""
+            lastAIResponse = nil
+
+            errorMessage = nil
+            inputGuidanceMessage =
+                "Tell me a little more about what's on your mind."
+
+            step = .input
+        }
     }
 
     // MARK: - Entries

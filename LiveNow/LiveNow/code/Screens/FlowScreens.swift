@@ -294,6 +294,47 @@ struct InputScreen: View {
                                     .buttonStyle(.plain)
                                 }
                             }
+                            
+                            // MARK: Input guidance
+
+                            if let guidanceMessage = vm.inputGuidanceMessage {
+
+                                Spacer()
+                                    .frame(height: 12)
+
+                                HStack(alignment: .top, spacing: 10) {
+
+                                    Image(systemName: "lightbulb.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(orange)
+
+                                    Text(guidanceMessage)
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.black.opacity(0.62))
+                                        .fixedSize(
+                                            horizontal: false,
+                                            vertical: true
+                                        )
+
+                                    Spacer()
+                                }
+                                .padding(14)
+                                .frame(
+                                    maxWidth: .infinity,
+                                    alignment: .leading
+                                )
+                                .background(
+                                    Color.white.opacity(0.65)
+                                )
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(
+                                            orange.opacity(0.14),
+                                            lineWidth: 1
+                                        )
+                                }
+                                .cornerRadius(14)
+                            }
 
                             // MARK: Error
 

@@ -85,7 +85,15 @@ struct AIActionItem: Codable, Hashable {
     let label: String
 }
 
+enum AIInputAssessment: String, Codable, Hashable {
+    case analyzable
+    case notOverthinking = "not_overthinking"
+    case tooVague = "too_vague"
+}
+
 struct AIResponse: Codable, Hashable {
+
+    let inputAssessment: AIInputAssessment
     let safety: AISafety
     let shortTitle: String
     let analysis: [AIAnalysisItem]
@@ -95,6 +103,7 @@ struct AIResponse: Codable, Hashable {
     let insight: String
 
     enum CodingKeys: String, CodingKey {
+        case inputAssessment
         case safety
         case shortTitle
         case analysis
@@ -105,6 +114,7 @@ struct AIResponse: Codable, Hashable {
     }
 
     init(
+        inputAssessment: AIInputAssessment,
         safety: AISafety,
         shortTitle: String,
         analysis: [AIAnalysisItem],
@@ -113,6 +123,7 @@ struct AIResponse: Codable, Hashable {
         actions: [AIActionItem],
         insight: String
     ) {
+        self.inputAssessment = inputAssessment
         self.safety = safety
         self.shortTitle = shortTitle
         self.analysis = analysis
@@ -123,8 +134,14 @@ struct AIResponse: Codable, Hashable {
     }
 
     init(from decoder: Decoder) throws {
+
         let container = try decoder.container(
             keyedBy: CodingKeys.self
+        )
+
+        inputAssessment = try container.decode(
+            AIInputAssessment.self,
+            forKey: .inputAssessment
         )
 
         safety = try container.decodeIfPresent(
