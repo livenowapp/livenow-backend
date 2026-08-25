@@ -75,6 +75,7 @@ final class AppViewModel: ObservableObject {
     // MARK: - Navigation
 
     func goToInput() {
+        
         if isGuestUser && hasCompletedGuestReset {
             showPaywall = true
             return
@@ -82,7 +83,7 @@ final class AppViewModel: ObservableObject {
 
         currentTab = .home
         step = .input
-        
+
         thought = ""
         aiResponse = nil
         
@@ -94,6 +95,7 @@ final class AppViewModel: ObservableObject {
         completionNote = ""
         currentCompletedEntryID = nil
         errorMessage = nil
+        inputGuidanceMessage = nil
     }
 
     func goNext() {
@@ -436,8 +438,8 @@ final class AppViewModel: ObservableObject {
         case .notOverthinking:
 
             aiResponse = nil
-            lastAnalyzedThought = ""
-            lastAIResponse = nil
+            lastAnalyzedThought = cleanedThought
+            lastAIResponse = response
 
             errorMessage = nil
             inputGuidanceMessage =
@@ -448,8 +450,8 @@ final class AppViewModel: ObservableObject {
         case .tooVague:
 
             aiResponse = nil
-            lastAnalyzedThought = ""
-            lastAIResponse = nil
+            lastAnalyzedThought = cleanedThought
+            lastAIResponse = response
 
             errorMessage = nil
             inputGuidanceMessage =
