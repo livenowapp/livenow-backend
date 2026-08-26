@@ -446,7 +446,7 @@ final class AuthViewModel: ObservableObject {
             isLoggedIn = false
             needsEmailVerification = false
             verificationMessage = nil
-
+            
             showSignup = false
             name = ""
             email = ""
@@ -454,6 +454,11 @@ final class AuthViewModel: ObservableObject {
             confirmPassword = ""
             acceptedAgeAndTerms = false
             errorMessage = nil
+
+            Task {
+                await NotificationScheduler()
+                    .removeAllLiveNowNotifications()
+            }
 
         } catch {
             errorMessage = error.localizedDescription
@@ -550,6 +555,12 @@ final class AuthViewModel: ObservableObject {
                             self.name = ""
                             self.email = ""
                             self.password = ""
+                            
+                            Task {
+                                await NotificationScheduler()
+                                    .removeAllLiveNowNotifications()
+                            }
+                            
                             completion(nil)
                         }
                     }
