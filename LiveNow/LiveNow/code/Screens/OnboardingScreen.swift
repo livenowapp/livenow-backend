@@ -10,13 +10,31 @@ import SwiftUI
 // MARK: - ONBOARDING
 
 struct OnboardingScreen: View {
+
     let orange: Color
     let lightOrange: Color
+    let startOnLastPage: Bool
     var onGetStarted: ([String: String]) -> Void
     var onAlreadySubscribed: () -> Void
 
-    @State private var page = 0
+    @State private var page: Int
     @State private var onboardingAnswers: [String: String] = [:]
+
+    init(
+        orange: Color,
+        lightOrange: Color,
+        startOnLastPage: Bool = false,
+        onGetStarted: @escaping ([String: String]) -> Void,
+        onAlreadySubscribed: @escaping () -> Void
+    ) {
+        self.orange = orange
+        self.lightOrange = lightOrange
+        self.startOnLastPage = startOnLastPage
+        self.onGetStarted = onGetStarted
+        self.onAlreadySubscribed = onAlreadySubscribed
+
+        _page = State(initialValue: startOnLastPage ? 9 : 0)
+    }
 
     private let pages: [OnboardingStep] = [
         .info(.init(

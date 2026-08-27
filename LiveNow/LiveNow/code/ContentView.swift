@@ -10,8 +10,7 @@ import FirebaseAuth
 
 // MARK: - ROOT
 
-struct ContentView:
-    View {
+struct ContentView: View {
     
     @StateObject private var vm = AppViewModel()
     @StateObject private var authVM = AuthViewModel()
@@ -31,6 +30,7 @@ struct ContentView:
     @State private var backgroundDate: Date?
     @State private var isCheckingPremiumStatus = false
     @State private var didPrepareCheckInsThisSession = false
+    @State private var returnToLastOnboardingPage = false
     
     private let bgColor = Color(red: 0.97, green: 0.96, blue: 0.94)
     private let orange = Color(red: 1.0, green: 0.43, blue: 0.10)
@@ -51,10 +51,14 @@ struct ContentView:
                     OnboardingScreen(
                         orange: orange,
                         lightOrange: lightOrange,
+                        startOnLastPage: returnToLastOnboardingPage,
                         onGetStarted: { answers in
-                            hasSeenOnboarding = true
                             vm.saveOnboardingAnswers(answers)
-                            vm.goToInput()
+                            vm.resetToHome()
+
+                            returnToLastOnboardingPage = true
+                            hasSeenOnboarding = true
+                            vm.showPaywall = true
                         },
                         onAlreadySubscribed: {
                             Task {
@@ -76,6 +80,7 @@ struct ContentView:
                         .ignoresSafeArea()
 
                 } else if showLoginAfterLogout {
+
                     authFlow
 
                 } else if purchaseManager.isPremium &&
@@ -93,7 +98,6 @@ struct ContentView:
                             lightOrange: lightOrange
                         )
                         .transition(.opacity)
-
                     } else {
                         mainAppContent
                             .transition(.opacity)
@@ -103,14 +107,11 @@ struct ContentView:
                     }
 
                 } else {
-                    mainAppContent
-                        .onAppear {
-                            if vm.isGuestUser &&
-                                !vm.hasCompletedGuestReset &&
-                                vm.step == .home {
 
-                                vm.goToInput()
-                            }
+                    bgColor
+                        .ignoresSafeArea()
+                        .onAppear {
+                            vm.showPaywall = true
                         }
                 }
             }
@@ -183,7 +184,6 @@ struct ContentView:
                 showLoginAfterLogout = false
                 didCheckPremiumStatus = false
 
-                vm.migrateGuestFirstResetToFirestoreIfNeeded()
                 vm.resetToHome()
 
                 guard let user = Auth.auth().currentUser else {
@@ -294,6 +294,12 @@ struct ContentView:
                 },
                 onClose: {
                     vm.showPaywall = false
+
+                    if !purchaseManager.isPremium {
+                        returnToLastOnboardingPage = true
+                        hasSeenOnboarding = false
+                    }
+
                     paywallFromAlreadySubscribed = false
                 }
             )

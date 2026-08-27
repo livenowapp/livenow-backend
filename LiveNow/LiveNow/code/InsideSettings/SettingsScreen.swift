@@ -13,7 +13,6 @@ import FirebaseAuth
 struct SettingsScreen: View {
     @ObservedObject var authVM: AuthViewModel
     let orange: Color
-    let isGuestUser: Bool
     
     @Environment(\.dismiss) private var dismiss
 
@@ -43,18 +42,15 @@ struct SettingsScreen: View {
 
                         ScrollView(showsIndicators: false) {
                             VStack(alignment: .leading, spacing: 28) {
-                                if !isGuestUser {
-                                    accountSection
-                                    subscriptionSection
-                                    preferencesSection
-                                }
+
+                                accountSection
+                                subscriptionSection
+                                preferencesSection
 
                                 supportSection
                                 legalSection
 
-                                if !isGuestUser {
-                                    logoutButton
-                                }
+                                logoutButton
                             }
                             .padding(.horizontal, horizontalPadding)
                             .padding(.top, 28)

@@ -69,20 +69,7 @@ struct TabItem: View {
 
     var body: some View {
         Button {
-
-            if vm.isGuestUser && vm.hasCompletedGuestReset {
-                switch tab {
-                case .moments, .insights:
-                    vm.requestPremiumAccess()
-                    return
-
-                case .home, .profile:
-                    break
-                }
-            }
-
             vm.currentTab = tab
-
         } label: {
 
             VStack(spacing: 4) {

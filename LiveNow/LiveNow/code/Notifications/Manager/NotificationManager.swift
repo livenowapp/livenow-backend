@@ -5,6 +5,7 @@
 //  Created by Gregor Cigoj on 13. 7. 2026.
 //
 
+import FirebaseAuth
 import Foundation
 import UserNotifications
 
@@ -64,6 +65,11 @@ final class NotificationManager {
         need: String?,
         entries: [ThoughtEntry]
     ) async {
+        
+        guard Auth.auth().currentUser != nil else {
+            return
+        }
+        
         let status = await authorizationStatus()
 
         switch status {
@@ -100,6 +106,11 @@ final class NotificationManager {
         need: String?,
         entries: [ThoughtEntry]
     ) async {
+        
+        guard Auth.auth().currentUser != nil else {
+            return
+        }
+        
         let status = await authorizationStatus()
 
         guard status == .authorized ||
@@ -338,6 +349,11 @@ final class NotificationManager {
         need: String?,
         entries: [ThoughtEntry]
     ) async {
+        
+        guard Auth.auth().currentUser != nil else {
+            return
+        }
+        
         let status = await authorizationStatus()
 
         guard status == .authorized ||

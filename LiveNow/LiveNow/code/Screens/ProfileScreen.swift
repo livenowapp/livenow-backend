@@ -90,13 +90,11 @@ struct ProfilePlaceholderScreen: View {
                 VStack(alignment: .leading, spacing: 6) {
 
                     Text(
-                        vm.isGuestUser
+                        authVM.displayName
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .isEmpty
                         ? "Hey, friend"
-                        : (
-                            authVM.displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                            ? "Hey, friend"
-                            : "Hey, \(authVM.displayName)"
-                        )
+                        : "Hey, \(authVM.displayName)"
                     )
                     .font(.system(size: nameSize, weight: .bold))
                     .foregroundColor(.black)
@@ -111,17 +109,10 @@ struct ProfilePlaceholderScreen: View {
                 .padding(.top, contentTopPadding)
 
                     VStack(spacing: 18) {
-                        if vm.isGuestUser {
-                            guestProgressCard(
-                                cardPadding: cardPadding,
-                                cardSpacing: cardSpacing
-                                )
-                        } else {
-                            progressCard(
-                                cardPadding: cardPadding,
-                                cardSpacing: cardSpacing
-                                )
-                        }
+                        progressCard(
+                            cardPadding: cardPadding,
+                            cardSpacing: cardSpacing
+                        )
                         menuCard
                     }
                     .padding(.horizontal, horizontalPadding)
@@ -132,61 +123,11 @@ struct ProfilePlaceholderScreen: View {
             .sheet(isPresented: $showSettings) {
                 SettingsScreen(
                     authVM: authVM,
-                    orange: orange,
-                    isGuestUser: vm.isGuestUser
+                    orange: orange
                 )
             }
-               
         }
     }
-    
-// MARK: - GUEST CARD
-    private func guestProgressCard(
-        cardPadding: CGFloat,
-        cardSpacing: CGFloat
-    ) -> some View {
-        
-        VStack(alignment: .leading, spacing: cardSpacing) {
-
-            Button {
-                authVM.showSignup = true
-                vm.requestPremiumAccess()
-            } label: {
-                Text("Create account")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(orange)
-                    .cornerRadius(16)
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                authVM.showSignup = false
-                vm.requestPremiumAccess()
-            } label: {
-                Text("I already have an account")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(orange)
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.plain)
-
-            if vm.hasCompletedGuestReset {
-                Text("Your first reset will be saved after you create an account.")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-        .padding(cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.78))
-        .cornerRadius(cardRadius)
-    }
-    
 // MARK: - PROGRESS CARD
     
     private func progressCard(
@@ -330,28 +271,24 @@ struct ProfilePlaceholderScreen: View {
                 menuRow(
                     icon: "gearshape",
                     title: "Settings",
-                    subtitle: vm.isGuestUser
-                        ? "Help, privacy and legal information"
-                        : "Manage your account and app"
+                    subtitle: "Manage your account and app"
                 )
             }
             .buttonStyle(.plain)
 
-            if !vm.isGuestUser {
-                Divider()
-                    .padding(.leading, 74)
+            Divider()
+                .padding(.leading, 74)
 
-                Button {
-                    requestReview()
-                } label: {
-                    menuRow(
-                        icon: "star",
-                        title: "Rate LiveNow",
-                        subtitle: "If LiveNow helps you, leave a review"
-                    )
-                }
-                .buttonStyle(.plain)
+            Button {
+                requestReview()
+            } label: {
+                menuRow(
+                    icon: "star",
+                    title: "Rate LiveNow",
+                    subtitle: "If LiveNow helps you, leave a review"
+                )
             }
+            .buttonStyle(.plain)
 
             Divider()
                 .padding(.leading, 74)

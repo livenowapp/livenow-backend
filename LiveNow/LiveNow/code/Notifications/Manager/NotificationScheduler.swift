@@ -5,6 +5,7 @@
 //  Created by Gregor Cigoj on 19. 7. 2026.
 //
 
+import FirebaseAuth
 import Foundation
 import UserNotifications
 
@@ -24,9 +25,15 @@ final class NotificationScheduler {
     func schedule(
         _ notifications: [ScheduledNotification]
     ) async {
+
+        guard Auth.auth().currentUser != nil else {
+            return
+        }
+
         let now = Date()
 
         for notification in notifications {
+
             guard notification.date > now else {
                 continue
             }
@@ -40,11 +47,17 @@ final class NotificationScheduler {
     func schedule(
         _ notification: ScheduledNotification
     ) async {
+
+        guard Auth.auth().currentUser != nil else {
+            return
+        }
+
         guard notification.date > Date() else {
             return
         }
 
         let content = UNMutableNotificationContent()
+
         content.title = notification.message.title
         content.body = notification.message.body
         content.sound = .default

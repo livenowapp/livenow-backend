@@ -82,7 +82,7 @@ struct InputScreen: View {
                         stepText: "1 of 4",
                         progress: 0.25,
                         orange: orange,
-                        showBackButton: !vm.isGuestUser,
+                        showBackButton: true,
                         onBack: {
                             isThoughtFocused = false
                             onBack()
@@ -470,11 +470,11 @@ struct ThinkingScreen: View {
     let orange: Color
     var onBack: () -> Void
     @ObservedObject var vm: AppViewModel
-
+    
     @State private var activeIndex = 0
     @State private var stepTask: Task<Void, Never>?
     @State private var dots = ""
-
+    
     private let steps = [
         "Analyzing your thought",
         "Finding thinking patterns",
@@ -482,72 +482,76 @@ struct ThinkingScreen: View {
         "Creating realistic reframes",
         "Finding a small next step"
     ]
-
+    
     @ScaledMetric private var titleSize: CGFloat = 29
     @ScaledMetric private var bodySize: CGFloat = 15
     @ScaledMetric private var iconSize: CGFloat = 18
-
+    
     var body: some View {
         GeometryReader { geo in
             let scales = screenScales(geo)
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
-
+            
             let horizontalPadding = min(screenWidth * 0.06, 28)
             let topPadding = min(max(screenHeight * 0.025, 18), 24)
-
+            
             let avatarSize = min(max(screenWidth * 0.36, 125), 155)
-
+            
             let titleFont = titleSize * scales.scale
             let bodyFont = bodySize * scales.scale
             let stepFont = min(max(screenWidth * 0.038, 14), 16)
             let stepPaddingY = min(max(screenHeight * 0.012, 9), 12)
-
+            
             VStack(alignment: .leading, spacing: 0) {
+
                 HStack {
-                    if !vm.isGuestUser {
-                        Button(action: onBack) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: iconSize, weight: .regular))
-                                .foregroundColor(.black.opacity(0.7))
-                                .frame(width: 32, height: 32)
-                        }
-                        .buttonStyle(.plain)
+                    Button(action: onBack) {
+                        Image(systemName: "chevron.left")
+                            .font(
+                                .system(
+                                    size: iconSize,
+                                    weight: .regular
+                                )
+                            )
+                            .foregroundColor(.black.opacity(0.7))
+                            .frame(width: 32, height: 32)
                     }
+                    .buttonStyle(.plain)
 
                     Spacer()
                 }
                 .padding(.top, topPadding)
 
                 Spacer()
-
+                    
                 VStack(spacing: min(max(screenHeight * 0.028, 22), 28)) {
-
+                    
                     // MARK: Computer avatar
-
+                    
                     Image("avatar_computer")
                         .resizable()
                         .scaledToFit()
                         .frame(width: avatarSize, height: avatarSize)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
-
+                    
                     VStack(spacing: 6) {
                         Text("your thought")
                             .font(.system(size: titleFont, weight: .bold))
                             .foregroundColor(.black)
-
+                        
                         Text("is being analyzed\(dots)")
                             .font(.system(size: titleFont, weight: .bold))
                             .foregroundColor(orange)
-
+                        
                         Text("we’re turning it into something clearer")
                             .font(.system(size: bodyFont))
                             .foregroundColor(.gray)
                             .padding(.top, 4)
                     }
                     .multilineTextAlignment(.center)
-
+                    
                     VStack(spacing: min(max(screenHeight * 0.012, 9), 12)) {
                         ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
                             HStack(spacing: 12) {
@@ -555,11 +559,11 @@ struct ThinkingScreen: View {
                                     Circle()
                                         .fill(
                                             index <= activeIndex
-                                                ? orange.opacity(0.14)
-                                                : Color.white.opacity(0.7)
+                                            ? orange.opacity(0.14)
+                                            : Color.white.opacity(0.7)
                                         )
                                         .frame(width: 30, height: 30)
-
+                                    
                                     if index < activeIndex {
                                         Image(systemName: "checkmark")
                                             .font(.system(size: 12, weight: .bold))
@@ -574,22 +578,22 @@ struct ThinkingScreen: View {
                                             .frame(width: 7, height: 7)
                                     }
                                 }
-
+                                
                                 Text(step)
                                     .font(
                                         .system(
                                             size: stepFont,
                                             weight: index == activeIndex
-                                                ? .semibold
-                                                : .regular
+                                            ? .semibold
+                                            : .regular
                                         )
                                     )
                                     .foregroundColor(
                                         index <= activeIndex
-                                            ? .black.opacity(0.82)
-                                            : .gray
+                                        ? .black.opacity(0.82)
+                                        : .gray
                                     )
-
+                                
                                 Spacer()
                             }
                             .padding(.horizontal, 16)
@@ -603,9 +607,9 @@ struct ThinkingScreen: View {
                         }
                     }
                 }
-
+                
                 Spacer()
-
+                
                 Text("AI-generated reflection. Not professional advice.")
                     .font(.system(size: 12))
                     .foregroundColor(.gray)
@@ -626,7 +630,7 @@ struct ThinkingScreen: View {
             }
         }
     }
-
+    
     private func startDots() {
         Timer.scheduledTimer(withTimeInterval: 0.45, repeats: true) { _ in
             if dots.count >= 3 {
@@ -636,29 +640,29 @@ struct ThinkingScreen: View {
             }
         }
     }
-
+    
     private func startRealisticSteps() {
         stepTask?.cancel()
-
+        
         stepTask = Task { @MainActor in
             activeIndex = 0
-
+            
             let delays: [UInt64] = [
                 900_000_000,
                 1_100_000_000,
                 1_400_000_000,
                 1_600_000_000
             ]
-
+            
             for index in 1..<steps.count {
                 let delay = delays[min(index - 1, delays.count - 1)]
-
+                
                 try? await Task.sleep(nanoseconds: delay)
-
+                
                 guard !Task.isCancelled else {
                     return
                 }
-
+                
                 withAnimation(.easeInOut(duration: 0.3)) {
                     activeIndex = index
                 }
@@ -666,136 +670,136 @@ struct ThinkingScreen: View {
         }
     }
 }
-
-// MARK: - SAFETY MESSAGE CARD
-
-struct SafetyMessageCard: View {
-    let level: String
-    let message: String
-    let orange: Color
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(iconBackground)
-                    .frame(width: 42, height: 42)
-
-                Image(systemName: iconName)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(iconColor)
-            }
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.black.opacity(0.84))
+    
+    // MARK: - SAFETY MESSAGE CARD
+    
+    struct SafetyMessageCard: View {
+        let level: String
+        let message: String
+        let orange: Color
+        
+        var body: some View {
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(iconBackground)
+                        .frame(width: 42, height: 42)
+                    
+                    Image(systemName: iconName)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(iconColor)
+                }
                 
-                Text(message)
-                    .font(.system(size: 14))
-                    .foregroundColor(.black.opacity(0.62))
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(title)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.black.opacity(0.84))
+                    
+                    Text(message)
+                        .font(.system(size: 14))
+                        .foregroundColor(.black.opacity(0.62))
+                        .fixedSize(
+                            horizontal: false,
+                            vertical: true
+                        )
+                }
+                
+                Spacer()
+            }
+            .padding(16)
+            .frame(
+                maxWidth: .infinity,
+                alignment: .leading
+            )
+            .background(Color.white.opacity(0.82))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        borderColor,
+                        lineWidth: 1
                     )
             }
-
-            Spacer()
+            .cornerRadius(16)
         }
-        .padding(16)
-        .frame(
-            maxWidth: .infinity,
-            alignment: .leading
-        )
-        .background(Color.white.opacity(0.82))
-        .overlay {
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(
-                    borderColor,
-                    lineWidth: 1
-                )
+        
+        private var title: String {
+            switch level {
+            case "urgent":
+                return "please get support now"
+            case "elevated":
+                return "a little extra support may help"
+            default:
+                return "support"
+            }
         }
-        .cornerRadius(16)
-    }
-
-    private var title: String {
-        switch level {
-        case "urgent":
-            return "please get support now"
-        case "elevated":
-            return "a little extra support may help"
-        default:
-            return "support"
+        
+        private var iconName: String {
+            switch level {
+            case "urgent":
+                return "exclamationmark.triangle.fill"
+            case "elevated":
+                return "heart.fill"
+            default:
+                return "heart"
+            }
         }
-    }
-
-    private var iconName: String {
-        switch level {
-        case "urgent":
-            return "exclamationmark.triangle.fill"
-        case "elevated":
-            return "heart.fill"
-        default:
-            return "heart"
+        
+        private var iconColor: Color {
+            switch level {
+            case "urgent":
+                return .red
+            case "elevated":
+                return orange
+            default:
+                return orange
+            }
         }
-    }
-
-    private var iconColor: Color {
-        switch level {
-        case "urgent":
-            return .red
-        case "elevated":
-            return orange
-        default:
-            return orange
+        
+        private var iconBackground: Color {
+            switch level {
+            case "urgent":
+                return Color.red.opacity(0.10)
+            case "elevated":
+                return orange.opacity(0.10)
+            default:
+                return orange.opacity(0.10)
+            }
         }
-    }
-
-    private var iconBackground: Color {
-        switch level {
-        case "urgent":
-            return Color.red.opacity(0.10)
-        case "elevated":
-            return orange.opacity(0.10)
-        default:
-            return orange.opacity(0.10)
+        
+        private var borderColor: Color {
+            switch level {
+            case "urgent":
+                return Color.red.opacity(0.18)
+            case "elevated":
+                return orange.opacity(0.16)
+            default:
+                return Color.black.opacity(0.05)
+            }
         }
     }
-
-    private var borderColor: Color {
-        switch level {
-        case "urgent":
-            return Color.red.opacity(0.18)
-        case "elevated":
-            return orange.opacity(0.16)
-        default:
-            return Color.black.opacity(0.05)
-        }
-    }
-}
-
+    
 // MARK: - URGENT SAFETY
 
 struct UrgentSafetyScreen: View {
     @ObservedObject var vm: AppViewModel
     let orange: Color
     var onClose: () -> Void
-
+    
     @ScaledMetric private var titleSize: CGFloat = 32
     @ScaledMetric private var bodySize: CGFloat = 16
     @ScaledMetric private var buttonSize: CGFloat = 18
-
+    
     var body: some View {
         GeometryReader { geo in
             let screenWidth = geo.size.width
             let horizontalPadding = min(screenWidth * 0.06, 28)
             let iconSize = min(max(screenWidth * 0.20, 72), 88)
-
+            
             VStack(spacing: 0) {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
                         Spacer()
-
+                        
                         Image("avatar_heart")
                             .resizable()
                             .scaledToFit()
@@ -805,34 +809,34 @@ struct UrgentSafetyScreen: View {
                             )
                             .allowsHitTesting(false)
                             .accessibilityHidden(true)
-
+                        
                         VStack(spacing: 10) {
                             Text("you deserve real support right now")
                                 .font(.system(size: titleSize, weight: .bold))
                                 .foregroundColor(.black)
                                 .multilineTextAlignment(.center)
                                 .fixedSize(horizontal: false, vertical: true)
-
+                            
                             Text("LiveNow isn't designed to handle immediate danger or a crisis.")
                                 .font(.system(size: bodySize))
                                 .foregroundColor(.gray)
                                 .multilineTextAlignment(.center)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-
+                        
                         if let message = vm.aiResponse?.safety.message,
                            !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-
+                            
                             HStack(alignment: .top, spacing: 12) {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .font(.system(size: 18))
                                     .foregroundColor(.red)
-
+                                
                                 Text(message)
                                     .font(.system(size: 15))
                                     .foregroundColor(.black.opacity(0.76))
                                     .fixedSize(horizontal: false, vertical: true)
-
+                                
                                 Spacer()
                             }
                             .padding(18)
@@ -847,24 +851,24 @@ struct UrgentSafetyScreen: View {
                             }
                             .cornerRadius(18)
                         }
-
+                        
                         VStack(alignment: .leading, spacing: 12) {
                             safetyRow(
                                 icon: "person.2.fill",
                                 text: "Tell someone you trust what is happening and stay with someone if you can."
                             )
-
+                            
                             safetyRow(
                                 icon: "cross.case.fill",
                                 text: "If you may act on these thoughts or are in immediate danger, contact local emergency or crisis support now."
                             )
-
+                            
                             safetyRow(
                                 icon: "location.fill",
                                 text: "Move away from anything that could put you or someone else in danger."
                             )
                         }
-
+                        
                         Text("AI-generated information is not a substitute for emergency or professional care.")
                             .font(.system(size: 12))
                             .foregroundColor(.gray)
@@ -873,7 +877,7 @@ struct UrgentSafetyScreen: View {
                     }
                     .padding(.bottom, 30)
                 }
-
+                
                 Button {
                     onClose()
                 } label: {
@@ -886,14 +890,14 @@ struct UrgentSafetyScreen: View {
                         .cornerRadius(16)
                 }
                 .buttonStyle(.plain)
-
+                
                 Spacer()
                     .frame(height: 16)
             }
             .padding(.horizontal, horizontalPadding)
         }
     }
-
+    
     private func safetyRow(
         icon: String,
         text: String
@@ -903,17 +907,17 @@ struct UrgentSafetyScreen: View {
                 Circle()
                     .fill(Color.white.opacity(0.85))
                     .frame(width: 40, height: 40)
-
+                
                 Image(systemName: icon)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(orange)
             }
-
+            
             Text(text)
                 .font(.system(size: 15))
                 .foregroundColor(.black.opacity(0.72))
                 .fixedSize(horizontal: false, vertical: true)
-
+            
             Spacer()
         }
         .padding(15)
@@ -929,21 +933,21 @@ struct AnalyzeScreen: View {
     let orange: Color
     var onBack: () -> Void
     var onContinue: () -> Void
-
+    
     @ScaledMetric private var titleSize: CGFloat = 29
     @ScaledMetric private var bodySize: CGFloat = 15
     @ScaledMetric private var iconCircleSize: CGFloat = 56
     @ScaledMetric private var buttonSize: CGFloat = 18
     @ScaledMetric private var cardRadius: CGFloat = 22
-
+    
     var body: some View {
         GeometryReader { geo in
             let ai = vm.aiResponse
             let scales = screenScales(geo)
-
+            
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
-
+            
             let horizontalPadding = min(screenWidth * 0.06, 28)
             let topPadding = min(max(screenHeight * 0.025, 18), 24)
             let titleTopSpacing = min(max(screenHeight * 0.04, 26), 42)
@@ -954,278 +958,278 @@ struct AnalyzeScreen: View {
             let bottomSpacing = min(max(screenHeight * 0.018, 12), 20)
             let avatarSize = min(max(screenWidth * 0.31, 105), 130)
             let mediumSpacing = min(max(screenHeight * 0.026, 18), 24)
-
+            
             VStack(
                 alignment: .leading,
                 spacing: 0
             ) {
-
+                
                 // MARK: Progress
-
+                
                 TopProgressRow(
                     stepText: "2 of 4",
                     progress: 0.50,
                     orange: orange,
-                    showBackButton: !vm.isGuestUser,
+                    showBackButton: true,
                     onBack: onBack
                 )
                 .padding(.top, topPadding)
-
+                
                 ScrollView(
                     showsIndicators: false
                 ) {
-
-        VStack(
-            alignment: .leading, spacing: 0) {
-
-            Spacer() .frame(height: titleTopSpacing)
-
-            // MARK: Title
-
-            VStack(
-                alignment: .leading, spacing: 8) {
-
-                Text("let’s analyze\nthis thought")
-                .font(
-                    .system(size: titleSize, weight: .bold)
-                )
-                .foregroundColor(.black)
-                .multilineTextAlignment(.leading)
-                .frame(
-                    maxWidth: .infinity,
-                    alignment: .leading
-                )
-
-                Text("this helps you see clearly.")
-                .font(
-                    .system(size: bodySize)
-                )
-                .foregroundColor(.gray)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-                
-            Spacer()
-                .frame(
-                    height: min(
-                        max(screenHeight * 0.035, 24),
-                        34
-                    )
-                )
-
-            
-
-            // MARK: Thought card + analyze avatar
-
-            ZStack(alignment: .topTrailing) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(ai?.shortTitle ?? vm.thought)
-                        .font(
-                            .system(
-                                size: min(
-                                    max(screenWidth * 0.058, 22),
-                                    26
-                                ),
-                                weight: .bold
-                            )
-                        )
-                        .foregroundColor(orange)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    HStack(alignment: .center, spacing: 14) {
-                        Circle()
-                            .fill(Color.white.opacity(0.85))
-                            .frame(
-                                width: iconCircleSize,
-                                height: iconCircleSize
-                            )
-                            .overlay(
-                                Image("cloud")
+                    
+                    VStack(
+                        alignment: .leading, spacing: 0) {
+                            
+                            Spacer() .frame(height: titleTopSpacing)
+                            
+                            // MARK: Title
+                            
+                            VStack(
+                                alignment: .leading, spacing: 8) {
+                                    
+                                    Text("let’s analyze\nthis thought")
+                                        .font(
+                                            .system(size: titleSize, weight: .bold)
+                                        )
+                                        .foregroundColor(.black)
+                                        .multilineTextAlignment(.leading)
+                                        .frame(
+                                            maxWidth: .infinity,
+                                            alignment: .leading
+                                        )
+                                    
+                                    Text("this helps you see clearly.")
+                                        .font(
+                                            .system(size: bodySize)
+                                        )
+                                        .foregroundColor(.gray)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            
+                            Spacer()
+                                .frame(
+                                    height: min(
+                                        max(screenHeight * 0.035, 24),
+                                        34
+                                    )
+                                )
+                            
+                            
+                            
+                            // MARK: Thought card + analyze avatar
+                            
+                            ZStack(alignment: .topTrailing) {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(ai?.shortTitle ?? vm.thought)
+                                        .font(
+                                            .system(
+                                                size: min(
+                                                    max(screenWidth * 0.058, 22),
+                                                    26
+                                                ),
+                                                weight: .bold
+                                            )
+                                        )
+                                        .foregroundColor(orange)
+                                        .lineLimit(2)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    
+                                    HStack(alignment: .center, spacing: 14) {
+                                        Circle()
+                                            .fill(Color.white.opacity(0.85))
+                                            .frame(
+                                                width: iconCircleSize,
+                                                height: iconCircleSize
+                                            )
+                                            .overlay(
+                                                Image("cloud")
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 42, height: 42)
+                                            )
+                                        
+                                        VStack(alignment: .leading, spacing: 7) {
+                                            Text("your thought:")
+                                                .font(
+                                                    .system(
+                                                        size: 15 * scales.scale,
+                                                        weight: .semibold
+                                                    )
+                                                )
+                                                .foregroundColor(.black.opacity(0.78))
+                                            
+                                            Text(vm.thought)
+                                                .font(
+                                                    .system(
+                                                        size: min(
+                                                            max(screenWidth * 0.036, 13),
+                                                            15
+                                                        )
+                                                    )
+                                                )
+                                                .foregroundColor(.black.opacity(0.48))
+                                                .lineLimit(2)
+                                                .minimumScaleFactor(0.85)
+                                        }
+                                    }
+                                }
+                                .padding(cardPadding)
+                                .padding(.top, avatarSize * 0.05)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(
+                                    Color(
+                                        red: 0.95,
+                                        green: 0.89,
+                                        blue: 0.84
+                                    )
+                                )
+                                .cornerRadius(cardRadius)
+                                
+                                // MARK: Analyze avatar
+                                
+                                Image("avatar_analyze")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 42, height: 42)
-                            )
-
-                        VStack(alignment: .leading, spacing: 7) {
-                            Text("your thought:")
-                                .font(
-                                    .system(
-                                        size: 15 * scales.scale,
-                                        weight: .semibold
+                                    .frame(
+                                        width: avatarSize,
+                                        height: avatarSize
                                     )
-                                )
-                                .foregroundColor(.black.opacity(0.78))
-
-                            Text(vm.thought)
-                                .font(
-                                    .system(
-                                        size: min(
-                                            max(screenWidth * 0.036, 13),
-                                            15
-                                        )
+                                    .offset(
+                                        x: -12,
+                                        y: -avatarSize * 0.72
                                     )
-                                )
-                                .foregroundColor(.black.opacity(0.48))
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.85)
-                        }
-                    }
-                }
-                .padding(cardPadding)
-                .padding(.top, avatarSize * 0.05)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    Color(
-                        red: 0.95,
-                        green: 0.89,
-                        blue: 0.84
-                    )
-                )
-                .cornerRadius(cardRadius)
-
-                // MARK: Analyze avatar
-
-                Image("avatar_analyze")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(
-                        width: avatarSize,
-                        height: avatarSize
-                    )
-                    .offset(
-                        x: -12,
-                        y: -avatarSize * 0.72
-                    )
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-                }
-
-                Spacer()
-                    .frame(height: mediumSpacing)
-                
-                // MARK: Safety
-
-                if let safety = ai?.safety,
-                   safety.level != "normal",
-                   let message = safety.message,
-                   !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(
-                            systemName: safety.level == "urgent"
-                                ? "exclamationmark.triangle.fill"
-                                : "heart.fill"
-                        )
-                        .font(.system(size: 18))
-                        .foregroundColor(orange)
-
-                        Text(message)
-                            .font(.system(size: 14))
-                            .foregroundColor(.black.opacity(0.78))
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        Spacer()
-                    }
-                    .padding(16)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.white.opacity(0.82))
-                    .cornerRadius(16)
-                    
-                    Spacer()
-                        .frame(height: mediumSpacing)
-                }
-
-                // MARK: Analysis cards
-
-                VStack(spacing: cardSpacing) {
-                    ForEach(
-                        Array(
-                            (ai?.analysis ?? [])
-                                .prefix(3)
-                                .enumerated()
-                        ),
-                        id: \.offset
-                    ) { index, item in
-                        AnalysisCard(
-                            title: item.label,
-                            subtitle: item.sub,
-                            icon: analysisIcon(for: index),
-                            orange: orange
-                        )
-                    }
-                }
-
-                Spacer()
-                    .frame(height: sectionSpacing)
-
-                // MARK: Evidence
-
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("Ask yourself")
-                        .font(
-                            .system(
-                                size: 15 * scales.scale,
-                                weight: .medium
-                            )
-                        )
-                        .foregroundColor(.black.opacity(0.55))
-
-                    VStack(spacing: 0) {
-                        ForEach(
-                            Array((ai?.evidence ?? []).enumerated()),
-                            id: \.offset
-                        ) { index, item in
-                            VStack(spacing: 0) {
-                                EvidenceRow(
-                                    question: item.q,
-                                    answer: item.a
-                                )
-
-                                if index < (ai?.evidence.count ?? 0) - 1 {
-                                    Divider()
-                                        .opacity(0.12)
-                                        .padding(.horizontal, 18)
+                                    .allowsHitTesting(false)
+                                    .accessibilityHidden(true)
+                            }
+                            
+                            Spacer()
+                                .frame(height: mediumSpacing)
+                            
+                            // MARK: Safety
+                            
+                            if let safety = ai?.safety,
+                               safety.level != "normal",
+                               let message = safety.message,
+                               !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                
+                                HStack(alignment: .top, spacing: 12) {
+                                    Image(
+                                        systemName: safety.level == "urgent"
+                                        ? "exclamationmark.triangle.fill"
+                                        : "heart.fill"
+                                    )
+                                    .font(.system(size: 18))
+                                    .foregroundColor(orange)
+                                    
+                                    Text(message)
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.black.opacity(0.78))
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    
+                                    Spacer()
+                                }
+                                .padding(16)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.white.opacity(0.82))
+                                .cornerRadius(16)
+                                
+                                Spacer()
+                                    .frame(height: mediumSpacing)
+                            }
+                            
+                            // MARK: Analysis cards
+                            
+                            VStack(spacing: cardSpacing) {
+                                ForEach(
+                                    Array(
+                                        (ai?.analysis ?? [])
+                                            .prefix(3)
+                                            .enumerated()
+                                    ),
+                                    id: \.offset
+                                ) { index, item in
+                                    AnalysisCard(
+                                        title: item.label,
+                                        subtitle: item.sub,
+                                        icon: analysisIcon(for: index),
+                                        orange: orange
+                                    )
                                 }
                             }
+                            
+                            Spacer()
+                                .frame(height: sectionSpacing)
+                            
+                            // MARK: Evidence
+                            
+                            VStack(alignment: .leading, spacing: 14) {
+                                Text("Ask yourself")
+                                    .font(
+                                        .system(
+                                            size: 15 * scales.scale,
+                                            weight: .medium
+                                        )
+                                    )
+                                    .foregroundColor(.black.opacity(0.55))
+                                
+                                VStack(spacing: 0) {
+                                    ForEach(
+                                        Array((ai?.evidence ?? []).enumerated()),
+                                        id: \.offset
+                                    ) { index, item in
+                                        VStack(spacing: 0) {
+                                            EvidenceRow(
+                                                question: item.q,
+                                                answer: item.a
+                                            )
+                                            
+                                            if index < (ai?.evidence.count ?? 0) - 1 {
+                                                Divider()
+                                                    .opacity(0.12)
+                                                    .padding(.horizontal, 18)
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.vertical, 6)
+                                .frame(maxWidth: .infinity)
+                                .background(Color.white.opacity(0.9))
+                                .cornerRadius(cardRadius)
+                            }
+                            
+                            Spacer()
+                                .frame(height: 28)
                         }
-                    }
-                    .padding(.vertical, 6)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.white.opacity(0.9))
-                    .cornerRadius(cardRadius)
                 }
-
-                Spacer()
-                    .frame(height: 28)
-                }
-            }
-            .frame(maxHeight: .infinity)
-
-            // MARK: Continue button
-
-            Button(action: onContinue) {
-                Text("continue")
-                    .font(
-                        .system(
-                            size: buttonSize,
-                            weight: .semibold
+                .frame(maxHeight: .infinity)
+                
+                // MARK: Continue button
+                
+                Button(action: onContinue) {
+                    Text("continue")
+                        .font(
+                            .system(
+                                size: buttonSize,
+                                weight: .semibold
+                            )
                         )
-                    )
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, buttonVerticalPadding)
-                    .background(orange)
-                    .cornerRadius(16)
-            }
-            .buttonStyle(.plain)
-
-            Spacer()
-                .frame(height: bottomSpacing)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, buttonVerticalPadding)
+                        .background(orange)
+                        .cornerRadius(16)
+                }
+                .buttonStyle(.plain)
+                
+                Spacer()
+                    .frame(height: bottomSpacing)
             }
             .padding(.horizontal, horizontalPadding)
         }
     }
-
+    
     private func analysisIcon(for index: Int) -> String {
         switch index {
         case 0:
@@ -1247,19 +1251,19 @@ struct ReframeScreen: View {
     let orange: Color
     var onBack: () -> Void
     var onContinue: () -> Void
-
+    
     @ScaledMetric private var titleSize: CGFloat = 29
     @ScaledMetric private var bodySize: CGFloat = 15
     @ScaledMetric private var buttonSize: CGFloat = 18
     @ScaledMetric private var cardRadius: CGFloat = 22
-
+    
     var body: some View {
         GeometryReader { geo in
             let ai = vm.aiResponse
             let scales = screenScales(geo)
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
-
+            
             let horizontalPadding = min(screenWidth * 0.06, 28)
             let topPadding = min(max(screenHeight * 0.025, 18), 24)
             let titleTopSpacing = min(max(screenHeight * 0.04, 26), 42)
@@ -1269,41 +1273,41 @@ struct ReframeScreen: View {
             let bottomSpacing = min(max(screenHeight * 0.018, 12), 20)
             let avatarSize = min(max(screenWidth * 0.27, 92), 115)
             let mediumSpacing = min(max(screenHeight * 0.026, 18), 24)
-
+            
             VStack(alignment: .leading, spacing: 0) {
-
+                
                 // MARK: Progress
-
+                
                 TopProgressRow(
                     stepText: "3 of 4",
                     progress: 0.75,
                     orange: orange,
-                    showBackButton: !vm.isGuestUser,
+                    showBackButton: true,
                     onBack: onBack
                 )
                 .padding(.top, topPadding)
-
+                
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-
+                        
                         Spacer()
                             .frame(height: titleTopSpacing)
-
+                        
                         // MARK: Title
-
+                        
                         VStack(alignment: .leading, spacing: 8) {
                             Text("let’s reframe\nthis")
                                 .font(.system(size: titleSize, weight: .bold))
                                 .foregroundColor(.black)
                                 .multilineTextAlignment(.leading)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-
+                            
                             Text("here’s a more realistic view")
                                 .font(.system(size: bodySize))
                                 .foregroundColor(.gray)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
-
+                        
                         Spacer()
                             .frame(
                                 height: min(
@@ -1311,12 +1315,12 @@ struct ReframeScreen: View {
                                     34
                                 )
                             )
-
+                        
                         // MARK: Calm card + avatar
-
+                        
                         ZStack(alignment: .topTrailing) {
                             VStack(alignment: .leading, spacing: 8) {
-
+                                
                                 Text("a calmer perspective")
                                     .font(
                                         .system(
@@ -1332,7 +1336,7 @@ struct ReframeScreen: View {
                                         horizontal: false,
                                         vertical: true
                                     )
-
+                                
                                 Text("See the thought from a calmer angle.")
                                     .font(
                                         .system(
@@ -1363,7 +1367,7 @@ struct ReframeScreen: View {
                                 )
                             )
                             .cornerRadius(cardRadius)
-
+                            
                             Image("avatar_calm")
                                 .resizable()
                                 .scaledToFit()
@@ -1378,18 +1382,18 @@ struct ReframeScreen: View {
                                 .allowsHitTesting(false)
                                 .accessibilityHidden(true)
                         }
-
+                        
                         Spacer()
                             .frame(height: mediumSpacing)
-
+                        
                         // MARK: Reframe options
-
+                        
                         VStack(spacing: optionSpacing) {
                             ForEach(
                                 Array((ai?.reframes ?? []).enumerated()),
                                 id: \.offset
                             ) { index, line in
-
+                                
                                 Button {
                                     vm.selectedReframeIndex = index
                                 } label: {
@@ -1397,8 +1401,8 @@ struct ReframeScreen: View {
                                         Image(
                                             systemName:
                                                 vm.selectedReframeIndex == index
-                                                ? "checkmark.circle.fill"
-                                                : "circle"
+                                            ? "checkmark.circle.fill"
+                                            : "circle"
                                         )
                                         .font(
                                             .system(
@@ -1414,7 +1418,7 @@ struct ReframeScreen: View {
                                             ? orange
                                             : Color.gray.opacity(0.35)
                                         )
-
+                                        
                                         Text(line)
                                             .font(
                                                 .system(
@@ -1424,8 +1428,8 @@ struct ReframeScreen: View {
                                                     ),
                                                     weight:
                                                         vm.selectedReframeIndex == index
-                                                        ? .semibold
-                                                        : .regular
+                                                    ? .semibold
+                                                    : .regular
                                                 )
                                             )
                                             .foregroundColor(.black.opacity(0.86))
@@ -1434,7 +1438,7 @@ struct ReframeScreen: View {
                                                 horizontal: false,
                                                 vertical: true
                                             )
-
+                                        
                                         Spacer()
                                     }
                                     .padding(cardPadding)
@@ -1461,7 +1465,7 @@ struct ReframeScreen: View {
                                 .buttonStyle(.plain)
                             }
                         }
-
+                        
                         Text(
                             "Choose the response that feels most believable right now."
                         )
@@ -1474,15 +1478,15 @@ struct ReframeScreen: View {
                         .foregroundColor(.gray)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 18)
-
+                        
                         Spacer()
                             .frame(height: 28)
                     }
                 }
                 .frame(maxHeight: .infinity)
-
+                
                 // MARK: Continue button
-
+                
                 Button(action: onContinue) {
                     Text("continue")
                         .font(
@@ -1498,7 +1502,7 @@ struct ReframeScreen: View {
                         .cornerRadius(16)
                 }
                 .buttonStyle(.plain)
-
+                
                 Spacer()
                     .frame(height: bottomSpacing)
             }
@@ -1514,18 +1518,18 @@ struct ActionScreen: View {
     let orange: Color
     var onBack: () -> Void
     var onFinish: () -> Void
-
+    
     @ScaledMetric private var titleSize: CGFloat = 29
     @ScaledMetric private var bodySize: CGFloat = 15
     @ScaledMetric private var buttonSize: CGFloat = 18
     @ScaledMetric private var cardRadius: CGFloat = 22
-
+    
     var body: some View {
         GeometryReader { geo in
             let actions = vm.aiResponse?.actions ?? []
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
-
+            
             let horizontalPadding = min(screenWidth * 0.06, 28)
             let topPadding = min(max(screenHeight * 0.025, 18), 24)
             let titleTopSpacing = min(max(screenHeight * 0.04, 26), 42)
@@ -1536,41 +1540,41 @@ struct ActionScreen: View {
             let bottomSpacing = min(max(screenHeight * 0.018, 12), 20)
             let actionIconSize = min(max(screenWidth * 0.14, 52), 62)
             let avatarSize = min(max(screenWidth * 0.27, 92), 115)
-
+            
             VStack(alignment: .leading, spacing: 0) {
-
+                
                 // MARK: Progress
-
+                
                 TopProgressRow(
                     stepText: "4 of 4",
                     progress: 1.0,
                     orange: orange,
-                    showBackButton: !vm.isGuestUser,
+                    showBackButton: true,
                     onBack: onBack
                 )
                 .padding(.top, topPadding)
-
+                
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-
+                        
                         Spacer()
                             .frame(height: titleTopSpacing)
-
+                        
                         // MARK: Title
-
+                        
                         VStack(alignment: .leading, spacing: 8) {
                             Text("what’s one small step\nyou can take now?")
                                 .font(.system(size: titleSize, weight: .bold))
                                 .foregroundColor(.black)
                                 .multilineTextAlignment(.leading)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-
+                            
                             Text("shift your focus")
                                 .font(.system(size: bodySize))
                                 .foregroundColor(.gray)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
-
+                        
                         Spacer()
                             .frame(
                                 height: min(
@@ -1578,12 +1582,12 @@ struct ActionScreen: View {
                                     34
                                 )
                             )
-
+                        
                         // MARK: Action card + avatar
-
+                        
                         ZStack(alignment: .topTrailing) {
                             VStack(alignment: .leading, spacing: 8) {
-
+                                
                                 Text("one small step")
                                     .font(
                                         .system(
@@ -1599,7 +1603,7 @@ struct ActionScreen: View {
                                         horizontal: false,
                                         vertical: true
                                     )
-
+                                
                                 Text("Choose one small thing you can do now.")
                                     .font(
                                         .system(
@@ -1630,7 +1634,7 @@ struct ActionScreen: View {
                                 )
                             )
                             .cornerRadius(cardRadius)
-
+                            
                             Image("avatar_actionWalk")
                                 .resizable()
                                 .scaledToFit()
@@ -1645,28 +1649,28 @@ struct ActionScreen: View {
                                 .allowsHitTesting(false)
                                 .accessibilityHidden(true)
                         }
-
+                        
                         Spacer()
                             .frame(height: mediumSpacing)
-
+                        
                         // MARK: Actions
-
+                        
                         VStack(spacing: itemSpacing) {
                             ForEach(
                                 Array(actions.enumerated()),
                                 id: \.offset
                             ) { index, item in
-
+                                
                                 Button {
                                     vm.selectedActionIndex = index
                                 } label: {
                                     HStack(spacing: 14) {
-
+                                        
                                         Image(
                                             systemName:
                                                 vm.selectedActionIndex == index
-                                                ? "checkmark.circle.fill"
-                                                : "circle"
+                                            ? "checkmark.circle.fill"
+                                            : "circle"
                                         )
                                         .font(
                                             .system(
@@ -1682,7 +1686,7 @@ struct ActionScreen: View {
                                             ? orange
                                             : Color.gray.opacity(0.35)
                                         )
-
+                                        
                                         Circle()
                                             .fill(
                                                 ActionStyle.color(item.icon)
@@ -1701,7 +1705,7 @@ struct ActionScreen: View {
                                                         actionIconSize * 0.76
                                                 )
                                             )
-
+                                        
                                         Text(item.label)
                                             .font(
                                                 .system(
@@ -1719,7 +1723,7 @@ struct ActionScreen: View {
                                                 horizontal: false,
                                                 vertical: true
                                             )
-
+                                        
                                         Spacer()
                                     }
                                     .padding(.horizontal, 14)
@@ -1749,15 +1753,15 @@ struct ActionScreen: View {
                                 .buttonStyle(.plain)
                             }
                         }
-
+                        
                         Spacer()
                             .frame(height: 24)
                     }
                 }
                 .frame(maxHeight: .infinity)
-
+                
                 // MARK: Finish
-
+                
                 Button(action: onFinish) {
                     Text("finish")
                         .font(
@@ -1773,7 +1777,7 @@ struct ActionScreen: View {
                         .cornerRadius(16)
                 }
                 .buttonStyle(.plain)
-
+                
                 Spacer()
                     .frame(height: bottomSpacing)
             }
@@ -1790,53 +1794,49 @@ struct CompleteScreen: View {
     let lightOrange: Color
     var onClose: () -> Void
     var onNewReset: () -> Void
-
+    
     @FocusState private var isNoteFocused: Bool
-
+    
     @State private var particles: [SparkleParticle] = []
     @State private var burstParticles: [FullScreenBurstParticle] = []
-
+    
     @State private var showBurst = false
     @State private var showAvatar = false
-
+    
     @ScaledMetric private var titleSize: CGFloat = 32
     @ScaledMetric private var buttonSize: CGFloat = 18
-
-    private var isGuestFirstReset: Bool {
-        vm.isGuestUser && vm.hasCompletedGuestReset
-    }
-
+    
     var body: some View {
         GeometryReader { geo in
             let selectedAction =
-                vm.aiResponse?.actions.indices.contains(vm.selectedActionIndex) == true
-                ? vm.aiResponse?.actions[vm.selectedActionIndex]
-                : nil
-
+            vm.aiResponse?.actions.indices.contains(vm.selectedActionIndex) == true
+            ? vm.aiResponse?.actions[vm.selectedActionIndex]
+            : nil
+            
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
-
+            
             let horizontalPadding = min(screenWidth * 0.06, 24)
             let avatarSize = min(max(screenWidth * 0.40, 145), 175)
             let sectionSpacing = min(max(screenHeight * 0.020, 14), 18)
             let buttonVerticalPadding = min(screenHeight * 0.022, 17)
-
+            
             let bottomSpacing =
-                screenHeight < 760
-                ? 8
-                : min(max(screenHeight * 0.018, 12), 22)
-
+            screenHeight < 760
+            ? 8
+            : min(max(screenHeight * 0.018, 12), 22)
+            
             ZStack {
-
+                
                 // MARK: Main content
-
+                
                 VStack(spacing: 0) {
                     header(horizontalPadding: horizontalPadding)
-
+                    
                     ScrollView(showsIndicators: false) {
-
+                        
                         VStack(spacing: sectionSpacing) {
-
+                            
                             completeAnimation(
                                 avatarSize: avatarSize
                             )
@@ -1847,82 +1847,68 @@ struct CompleteScreen: View {
                                 .top,
                                 min(screenHeight * 0.04, 32)
                             )
-
+                            
                             titleSection
                                 .onTapGesture {
                                     isNoteFocused = false
                                 }
-
+                            
                             nextStepCard(
                                 selectedAction: selectedAction
                             )
                             .onTapGesture {
                                 isNoteFocused = false
                             }
-
+                            
                             learningNoteCard
                         }
-
+                        
                         .padding(.horizontal, horizontalPadding)
-
-                        .padding(
-                            .bottom,
-                            isGuestFirstReset ? 30 : 150
-                        )
+                        
+                        .padding(.bottom, 150)
                     }
                     .scrollDismissesKeyboard(.interactively)
                     .frame(maxHeight: .infinity)
-
+                    
                     Button {
                         isNoteFocused = false
-
-                        if isGuestFirstReset {
-                            onClose()
-                        } else {
-                            onNewReset()
-                        }
+                        onNewReset()
                     } label: {
-                        Text(
-                            isGuestFirstReset
-                            ? "Continue"
-                            : "New Reset"
-                        )
-                        .font(.system(size: buttonSize, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, buttonVerticalPadding)
-                        .background(orange)
-                        .cornerRadius(16)
+                        Text("New Reset")
+                            .font(.system(size: buttonSize, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, buttonVerticalPadding)
+                            .background(orange)
+                            .cornerRadius(16)
                     }
                     .buttonStyle(.plain)
                     .padding(.horizontal, horizontalPadding)
-
+                    
                     Spacer()
                         .frame(height: 12)
-
-                    if !isGuestFirstReset {
-                        Button {
-                            isNoteFocused = false
-                            vm.step = .home
-                            vm.currentTab = .moments
-                        } label: {
-                            Text("view moments")
-                                .font(.system(size: 16))
-                                .foregroundColor(orange)
-                        }
-                        .buttonStyle(.plain)
-
-                        Spacer()
-                            .frame(height: bottomSpacing)
+                    
+                    Button {
+                        isNoteFocused = false
+                        vm.step = .home
+                        vm.currentTab = .moments
+                    } label: {
+                        Text("view moments")
+                            .font(.system(size: 16))
+                            .foregroundColor(orange)
                     }
+                    .buttonStyle(.plain)
+                    
+                    Spacer()
+                        .frame(height: bottomSpacing)
                 }
                 .frame(
                     maxWidth: .infinity,
                     maxHeight: .infinity
                 )
-
+                
                 // MARK: Full screen BOOM
-
+                
                 if showBurst {
                     ZStack {
                         ForEach(burstParticles) { particle in
@@ -1932,7 +1918,7 @@ struct CompleteScreen: View {
                                 screenSize: geo.size
                             )
                         }
-
+                        
                         ForEach(0..<4, id: \.self) { index in
                             Circle()
                                 .stroke(
@@ -1977,30 +1963,30 @@ struct CompleteScreen: View {
             }
         }
     }
-
+    
     // MARK: - START COMPLETE ANIMATION
-
+    
     private func startCompleteAnimation(
         screenSize: CGSize,
         avatarSize: CGFloat
     ) {
         particles =
-            SparkleParticle.makeParticles(
-                iconSize: avatarSize
-            )
-
+        SparkleParticle.makeParticles(
+            iconSize: avatarSize
+        )
+        
         burstParticles =
-            FullScreenBurstParticle.makeParticles(
-                screenSize: screenSize
-            )
-
+        FullScreenBurstParticle.makeParticles(
+            screenSize: screenSize
+        )
+        
         showAvatar = false
         showBurst = false
-
+        
         // BOOM takoj
         DispatchQueue.main.async {
             showBurst = true
-
+            
             withAnimation(
                 .spring(
                     response: 0.40,
@@ -2011,40 +1997,38 @@ struct CompleteScreen: View {
             }
         }
     }
-
+    
     // MARK: - HEADER
-
+    
     private func header(
         horizontalPadding: CGFloat
     ) -> some View {
         LiveNowTopHeader(
             horizontalPadding: horizontalPadding
         ) {
-            if !isGuestFirstReset {
-                Button("Done") {
-                    isNoteFocused = false
-                    onClose()
-                }
-                .font(
-                    .system(
-                        size: 17,
-                        weight: .medium
-                    )
-                )
-                .foregroundColor(orange)
+            Button("Done") {
+                isNoteFocused = false
+                onClose()
             }
+            .font(
+                .system(
+                    size: 17,
+                    weight: .medium
+                )
+            )
+            .foregroundColor(orange)
         }
     }
-
+    
     // MARK: - AVATAR + CONTINUOUS SPARKLES
-
+    
     private func completeAnimation(
         avatarSize: CGFloat
     ) -> some View {
         ZStack {
-
+            
             // Sparkles ostanejo tudi po BOOM-u
-
+            
             if showAvatar {
                 ForEach(particles) { particle in
                     CompleteSparkle(
@@ -2054,9 +2038,9 @@ struct CompleteScreen: View {
                     )
                 }
             }
-
+            
             // Super happy avatar
-
+            
             Image("avatar_happy")
                 .resizable()
                 .scaledToFit()
@@ -2079,39 +2063,31 @@ struct CompleteScreen: View {
         )
         .frame(maxWidth: .infinity)
     }
-
+    
     // MARK: - TITLE
-
+    
     private var titleSection: some View {
         VStack(spacing: 10) {
-            Text(
-                isGuestFirstReset
-                ? "your first reset is complete"
-                : "saved to your journey"
-            )
-            .font(
-                .system(
-                    size: titleSize,
-                    weight: .bold
+            Text("saved to your journey")
+                .font(
+                    .system(
+                        size: titleSize,
+                        weight: .bold
+                    )
                 )
-            )
-            .foregroundColor(.black)
-            .multilineTextAlignment(.center)
-
-            Text(
-                isGuestFirstReset
-                ? "one small reset can change your day"
-                : "keep going"
-            )
-            .font(.system(size: 16))
-            .foregroundColor(.gray)
-            .multilineTextAlignment(.center)
+                .foregroundColor(.black)
+                .multilineTextAlignment(.center)
+            
+            Text("keep going")
+                .font(.system(size: 16))
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
     }
-
+    
     // MARK: - NEXT STEP CARD
-
+    
     private func nextStepCard(
         selectedAction: AIActionItem?
     ) -> some View {
@@ -2140,7 +2116,7 @@ struct CompleteScreen: View {
                         )
                     )
             }
-
+            
             VStack(
                 alignment: .leading,
                 spacing: 6
@@ -2150,7 +2126,7 @@ struct CompleteScreen: View {
                     .foregroundColor(
                         .black.opacity(0.48)
                     )
-
+                
                 if let selectedAction {
                     Text(selectedAction.label)
                         .font(
@@ -2166,7 +2142,7 @@ struct CompleteScreen: View {
                             horizontal: false,
                             vertical: true
                         )
-
+                    
                     Text(
                         "do this now, before your mind pulls you back in"
                     )
@@ -2191,7 +2167,7 @@ struct CompleteScreen: View {
                     )
                 }
             }
-
+            
             Spacer()
         }
         .padding(16)
@@ -2204,9 +2180,9 @@ struct CompleteScreen: View {
         )
         .cornerRadius(18)
     }
-
+    
     // MARK: - NOTE CARD
-
+    
     private var learningNoteCard: some View {
         VStack(
             alignment: .leading,
@@ -2225,7 +2201,7 @@ struct CompleteScreen: View {
                             width: 42,
                             height: 42
                         )
-
+                    
                     Image(
                         systemName: "pencil"
                     )
@@ -2237,7 +2213,7 @@ struct CompleteScreen: View {
                     )
                     .foregroundColor(orange)
                 }
-
+                
                 VStack(
                     alignment: .leading,
                     spacing: 3
@@ -2250,7 +2226,7 @@ struct CompleteScreen: View {
                             )
                         )
                         .foregroundColor(.gray)
-
+                    
                     Text(
                         "What did you learn?"
                     )
@@ -2262,10 +2238,10 @@ struct CompleteScreen: View {
                     )
                     .foregroundColor(.black)
                 }
-
+                
                 Spacer()
             }
-
+            
             ZStack(
                 alignment: .topLeading
             ) {
@@ -2279,7 +2255,7 @@ struct CompleteScreen: View {
                     .padding(.leading, 16)
                     .allowsHitTesting(false)
                 }
-
+                
                 TextEditor(
                     text: Binding(
                         get: {
@@ -2338,23 +2314,23 @@ struct CompleteScreen: View {
 
 struct FullScreenBurstParticle: Identifiable {
     let id = UUID()
-
+    
     let angle: Double
     let distance: CGFloat
     let size: CGFloat
     let rotation: Double
     let delay: Double
-
+    
     static func makeParticles(
         screenSize: CGSize
     ) -> [FullScreenBurstParticle] {
-
+        
         let maxDistance =
-            max(
-                screenSize.width,
-                screenSize.height
-            )
-
+        max(
+            screenSize.width,
+            screenSize.height
+        )
+        
         return (0..<46).map { _ in
             FullScreenBurstParticle(
                 angle: Double.random(
@@ -2381,9 +2357,9 @@ struct FullScreenBurstSparkle: View {
     let particle: FullScreenBurstParticle
     let orange: Color
     let screenSize: CGSize
-
+    
     @State private var explode = false
-
+    
     var body: some View {
         Image(systemName: "sparkles")
             .font(
@@ -2409,15 +2385,15 @@ struct FullScreenBurstSparkle: View {
             .offset(
                 x:
                     explode
-                    ? cos(particle.angle)
-                        * particle.distance
-                    : 0,
-
+                ? cos(particle.angle)
+                * particle.distance
+                : 0,
+                
                 y:
                     explode
-                    ? sin(particle.angle)
-                        * particle.distance
-                    : 0
+                ? sin(particle.angle)
+                * particle.distance
+                : 0
             )
             .scaleEffect(
                 explode ? 1.55 : 0.15
@@ -2435,8 +2411,8 @@ struct FullScreenBurstSparkle: View {
             .onAppear {
                 DispatchQueue.main.asyncAfter(
                     deadline:
-                        .now()
-                        + particle.delay
+                            .now()
+                    + particle.delay
                 ) {
                     withAnimation(
                         .easeOut(
@@ -2456,7 +2432,7 @@ struct SparkleParticle: Identifiable {
     let id = UUID()
     let size: CGFloat
     let startDelay: Double
-
+    
     static func makeParticles(iconSize: CGFloat) -> [SparkleParticle] {
         (0..<14).map { index in
             SparkleParticle(
@@ -2540,22 +2516,22 @@ struct CompleteSparkle: View {
 struct FlowTitleHeader: View {
     let title: String
     let subtitle: String
-
+    
     @ScaledMetric private var titleSize: CGFloat = 35
     @ScaledMetric private var subtitleSize: CGFloat = 15
-
+    
     var body: some View {
         GeometryReader { geo in
-
+            
             let screenWidth = geo.size.width
             let screenHeight = geo.size.height
-
+            
             let widthScale = min(max(screenWidth / 393, 0.88), 1.16)
             let heightScale = min(max(screenHeight / 852, 0.88), 1.12)
             let scale = min(widthScale, heightScale)
-
+            
             VStack(spacing: 8) {
-
+                
                 Text(title)
                     .font(.system(size: titleSize * scale, weight: .bold))
                     .foregroundColor(.black)
@@ -2563,7 +2539,7 @@ struct FlowTitleHeader: View {
                     .lineLimit(nil)
                     .minimumScaleFactor(0.75)
                     .frame(maxWidth: .infinity, alignment: .top)
-
+                
                 Text(subtitle)
                     .font(.system(size: subtitleSize * scale))
                     .foregroundColor(.gray)
@@ -2582,7 +2558,7 @@ struct BurstParticle: Identifiable {
     let size: CGFloat
     let delay: Double
     let rotation: Double
-
+    
     static func makeParticles(iconSize: CGFloat) -> [BurstParticle] {
         (0..<24).map { _ in
             BurstParticle(
@@ -2600,9 +2576,9 @@ struct CompleteBurstSparkle: View {
     let particle: BurstParticle
     let orange: Color
     let trigger: Bool
-
+    
     @State private var explode = false
-
+    
     var body: some View {
         Image(systemName: "sparkles")
             .font(.system(size: particle.size, weight: .semibold))
@@ -2616,9 +2592,9 @@ struct CompleteBurstSparkle: View {
             .opacity(explode ? 0 : 1)
             .onChange(of: trigger) { _, newValue in
                 guard newValue else { return }
-
+                
                 explode = false
-
+                
                 DispatchQueue.main.asyncAfter(deadline: .now() + particle.delay) {
                     withAnimation(.easeOut(duration: 0.75)) {
                         explode = true

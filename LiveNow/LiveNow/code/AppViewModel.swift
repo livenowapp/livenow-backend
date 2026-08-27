@@ -47,26 +47,15 @@ final class AppViewModel: ObservableObject {
     private var lastAIResponse: AIResponse? = nil
 
     private let db = Firestore.firestore()
-    var isGuestUser: Bool {
-        Auth.auth().currentUser == nil
-    }
-    private let guestFirstResetKey = 
-        "livenow_guest_first_reset_v1"
     
     private let lastCheckInPromptDateKey =
         "livenow_last_check_in_prompt_date_v1"
 
-    @Published var guestFirstReset: ThoughtEntry? = nil
-    @Published var hasCompletedGuestReset = false
     @Published var showPaywall = false
     
     @Published var completionNote = ""
 
     private var currentCompletedEntryID: UUID?
-    
-    init() {
-        loadGuestFirstReset()
-    }
 
     func refreshHomeMessage() {
         homeMessage = HomeMessages.random()
@@ -75,21 +64,12 @@ final class AppViewModel: ObservableObject {
     // MARK: - Navigation
 
     func goToInput() {
-        
-        if isGuestUser && hasCompletedGuestReset {
-            showPaywall = true
-            return
-        }
-
         currentTab = .home
         step = .input
-
         thought = ""
         aiResponse = nil
-        
         lastAnalyzedThought = ""
         lastAIResponse = nil
-        
         selectedReframeIndex = 0
         selectedActionIndex = 0
         completionNote = ""
@@ -107,11 +87,7 @@ final class AppViewModel: ObservableObject {
         case .reframe: step = .action
         case .urgentSafety: step = .home
         case .action:
-            if isGuestUser {
-                completeGuestReset()
-            } else {
-                completeReset()
-            }
+            completeReset()
         case .complete: step = .home
         }
     }
@@ -147,15 +123,6 @@ final class AppViewModel: ObservableObject {
     
     func requestPremiumAccess() {
         showPaywall = true
-    }
-    
-    func migrateGuestFirstResetToFirestoreIfNeeded() {
-        guard Auth.auth().currentUser != nil else { return }
-        guard let guestEntry = guestFirstReset else { return }
-
-        entries.insert(guestEntry, at: 0)
-        saveEntry(guestEntry)
-        clearGuestFirstReset()
     }
 
     // MARK: - Analyze
@@ -563,32 +530,10 @@ final class AppViewModel: ObservableObject {
             return
         }
 
-        if isGuestUser {
-            updateGuestCompletionNote(
-                entryID: entryID,
-                note: note
-            )
-        } else {
-            updateNote(
-                for: entryID,
-                note: note
-            )
-        }
-    }
-    
-    private func updateGuestCompletionNote(
-        entryID: UUID,
-        note: String
-    ) {
-        guard var entry = guestFirstReset,
-              entry.id == entryID else {
-            return
-        }
-
-        entry.note = note
-
-        guestFirstReset = entry
-        saveGuestFirstReset(entry)
+        updateNote(
+            for: entryID,
+            note: note
+        )
     }
 
     func deleteEntry(_ entryID: UUID) {
@@ -622,42 +567,6 @@ final class AppViewModel: ObservableObject {
 
     func symbolName(for icon: String?) -> String {
         icon ?? "sparkles"
-    }
-    
-    func completeGuestReset() {
-        guard let ai = aiResponse else { return }
-
-        let action = ai.actions.indices.contains(selectedActionIndex)
-            ? ai.actions[selectedActionIndex]
-            : nil
-
-        let reframe = ai.reframes.indices.contains(selectedReframeIndex)
-            ? ai.reframes[selectedReframeIndex]
-            : nil
-
-        let entryID = UUID()
-
-        let entry = ThoughtEntry(
-            id: entryID,
-            date: Date(),
-            thought: thought,
-            ai: ai,
-            selectedActionLabel: action?.label,
-            selectedActionIcon: action?.icon,
-            selectedReframe: reframe,
-            worthIt: nil,
-            note: nil
-        )
-
-        guestFirstReset = entry
-        hasCompletedGuestReset = true
-
-        currentCompletedEntryID = entryID
-        completionNote = ""
-
-        saveGuestFirstReset(entry)
-
-        step = .complete
     }
     
     private func refreshDynamicNotifications() {
@@ -713,11 +622,6 @@ final class AppViewModel: ObservableObject {
     // MARK: - Reset check-in
 
     func preparePendingCheckIns() {
-        guard !isGuestUser else {
-            pendingCheckInEntries = []
-            showResetCheckIn = false
-            return
-        }
 
         // Če je check-in že odprt, ga ne pripravljaj ponovno.
         guard !showResetCheckIn,
@@ -1369,66 +1273,5 @@ final class AppViewModel: ObservableObject {
     private func percent(part: Int, total: Int) -> Int {
         guard total > 0 else { return 0 }
         return Int((Double(part) / Double(total) * 100).rounded())
-    }
-    
-    private func saveGuestFirstReset(_ entry: ThoughtEntry) {
-        do {
-            let data = try JSONEncoder().encode(entry)
-
-            UserDefaults.standard.set(
-                data,
-                forKey: guestFirstResetKey
-            )
-
-        } catch {
-            #if DEBUG
-            print(
-                "Guest reset save error:",
-                error.localizedDescription
-            )
-            #endif
-        }
-    }
-
-    private func loadGuestFirstReset() {
-        guard let data = UserDefaults.standard.data(
-            forKey: guestFirstResetKey
-        ) else {
-            guestFirstReset = nil
-            hasCompletedGuestReset = false
-            return
-        }
-
-        do {
-            let entry = try JSONDecoder().decode(
-                ThoughtEntry.self,
-                from: data
-            )
-
-            guestFirstReset = entry
-            hasCompletedGuestReset = true
-
-        } catch {
-            #if DEBUG
-            print(
-                "Guest reset load error:",
-                error.localizedDescription
-            )
-            #endif
-
-            guestFirstReset = nil
-            hasCompletedGuestReset = false
-        }
-    }
-
-    func clearGuestFirstReset() {
-        guestFirstReset = nil
-        hasCompletedGuestReset = false
-        completionNote = ""
-        currentCompletedEntryID = nil
-
-        UserDefaults.standard.removeObject(
-            forKey: guestFirstResetKey
-        )
     }
 }

@@ -15,7 +15,6 @@ struct HomeScreen: View {
 
     let orange: Color
     let lightOrange: Color
-
     var onStart: () -> Void
 
     @ScaledMetric private var heroSize: CGFloat = 43
@@ -93,13 +92,9 @@ struct HomeScreen: View {
                 24
             )
 
-            let isGuestAfterFirstReset =
-                vm.isGuestUser &&
-                vm.hasCompletedGuestReset
-
             ZStack {
 
-                // MARK: Base background
+                // MARK: - Base background
 
                 Color(
                     red: 0.97,
@@ -108,7 +103,7 @@ struct HomeScreen: View {
                 )
                 .ignoresSafeArea()
 
-                // MARK: Landscape asset
+                // MARK: - Landscape asset
 
                 VStack(spacing: 0) {
 
@@ -129,7 +124,7 @@ struct HomeScreen: View {
                     edges: [.horizontal, .bottom]
                 )
 
-                // MARK: Main layout
+                // MARK: - Main layout
 
                 VStack(spacing: 0) {
 
@@ -148,35 +143,27 @@ struct HomeScreen: View {
 
                     VStack(spacing: 0) {
 
-                        Text(
-                            isGuestAfterFirstReset
-                                ? "your first reset"
-                                : "get out of"
-                        )
-                        .font(
-                            .system(
-                                size: adjustedHeroSize,
-                                weight: .bold
+                        Text("get out of")
+                            .font(
+                                .system(
+                                    size: adjustedHeroSize,
+                                    weight: .bold
+                                )
                             )
-                        )
-                        .foregroundColor(.black)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.72)
+                            .foregroundColor(.black)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
 
-                        Text(
-                            isGuestAfterFirstReset
-                                ? "is complete"
-                                : "your head"
-                        )
-                        .font(
-                            .system(
-                                size: adjustedHeroSize,
-                                weight: .bold
+                        Text("your head")
+                            .font(
+                                .system(
+                                    size: adjustedHeroSize,
+                                    weight: .bold
+                                )
                             )
-                        )
-                        .foregroundColor(orange)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.72)
+                            .foregroundColor(orange)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
                     }
                     .multilineTextAlignment(.center)
                     .padding(
@@ -191,140 +178,111 @@ struct HomeScreen: View {
 
                     Spacer()
 
-                    // MARK: Character area on landscape
+                    // MARK: - Character area
 
                     VStack(spacing: 0) {
 
-                        if isGuestAfterFirstReset {
+                        Button {
+                            onStart()
+                        } label: {
 
-                            VStack(spacing: avatarToMessageSpacing) {
+                            VStack(
+                                spacing: bubbleToAvatarSpacing
+                            ) {
 
-                                Image("avatar_happy")
+                                // MARK: Speech bubble
+
+                                Text("need a reset? tap me")
+                                    .font(
+                                        .system(
+                                            size: 15 * scale,
+                                            weight: .semibold
+                                        )
+                                    )
+                                    .foregroundColor(
+                                        .black.opacity(0.72)
+                                    )
+                                    .padding(
+                                        .horizontal,
+                                        18
+                                    )
+                                    .padding(
+                                        .vertical,
+                                        10
+                                    )
+                                    .background(
+                                        Color.white.opacity(0.94)
+                                    )
+                                    .overlay {
+
+                                        RoundedRectangle(
+                                            cornerRadius: 16
+                                        )
+                                        .stroke(
+                                            lightOrange.opacity(0.55),
+                                            lineWidth: 1
+                                        )
+                                    }
+                                    .clipShape(
+                                        RoundedRectangle(
+                                            cornerRadius: 16
+                                        )
+                                    )
+                                    .shadow(
+                                        color: .black.opacity(0.05),
+                                        radius: 8,
+                                        x: 0,
+                                        y: 4
+                                    )
+
+                                // MARK: Reset avatar
+
+                                Image("resetButton")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(
                                         width: avatarSize,
                                         height: avatarSize
                                     )
-                                    .allowsHitTesting(false)
-                                    .accessibilityHidden(true)
-
-                                Text(
-                                    "save your reset and\nkeep your progress going"
-                                )
-                                .font(
-                                    .system(
-                                        size: adjustedSubtitleSize
-                                    )
-                                )
-                                .foregroundColor(
-                                    .black.opacity(0.58)
-                                )
-                                .multilineTextAlignment(.center)
-                                .fixedSize(
-                                    horizontal: false,
-                                    vertical: true
-                                )
-                            }
-
-                        } else {
-
-                            VStack(spacing: 0) {
-
-                                Button {
-                                    onStart()
-                                } label: {
-
-                                    VStack(
-                                        spacing: bubbleToAvatarSpacing
-                                    ) {
-
-                                        Text("need a reset? tap me")
-                                            .font(
-                                                .system(
-                                                    size: 15 * scale,
-                                                    weight: .semibold
-                                                )
-                                            )
-                                            .foregroundColor(
-                                                .black.opacity(0.72)
-                                            )
-                                            .padding(
-                                                .horizontal,
-                                                18
-                                            )
-                                            .padding(
-                                                .vertical,
-                                                10
-                                            )
-                                            .background(
-                                                Color.white.opacity(0.94)
-                                            )
-                                            .overlay {
-                                                RoundedRectangle(
-                                                    cornerRadius: 16
-                                                )
-                                                .stroke(
-                                                    lightOrange.opacity(0.55),
-                                                    lineWidth: 1
-                                                )
-                                            }
-                                            .clipShape(
-                                                RoundedRectangle(
-                                                    cornerRadius: 16
-                                                )
-                                            )
-                                            .shadow(
-                                                color: .black.opacity(0.05),
-                                                radius: 8,
-                                                x: 0,
-                                                y: 4
-                                            )
-
-                                        Image("resetButton")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(
-                                                width: avatarSize,
-                                                height: avatarSize
-                                            )
-                                    }
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel("Start reset")
-                                .accessibilityHint(
-                                    "Tap to start a new reset"
-                                )
-
-                                Spacer()
-                                    .frame(
-                                        height: avatarToMessageSpacing
-                                    )
-
-                                Text(vm.homeMessage)
-                                    .font(
-                                        .system(
-                                            size: adjustedSubtitleSize
-                                        )
-                                    )
-                                    .foregroundColor(
-                                        .black.opacity(0.58)
-                                    )
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(3)
-                                    .minimumScaleFactor(0.75)
-                                    .fixedSize(
-                                        horizontal: false,
-                                        vertical: true
-                                    )
-                                    .frame(maxWidth: 330)
-                                    .padding(
-                                        .horizontal,
-                                        horizontalPadding
-                                    )
-                                    .offset(y: 25)
                             }
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(
+                            "Start reset"
+                        )
+                        .accessibilityHint(
+                            "Tap to start a new reset"
+                        )
+
+                        Spacer()
+                            .frame(
+                                height: avatarToMessageSpacing
+                            )
+
+                        // MARK: Home message
+
+                        Text(vm.homeMessage)
+                            .font(
+                                .system(
+                                    size: adjustedSubtitleSize
+                                )
+                            )
+                            .foregroundColor(
+                                .black.opacity(0.58)
+                            )
+                            .multilineTextAlignment(.center)
+                            .lineLimit(3)
+                            .minimumScaleFactor(0.75)
+                            .fixedSize(
+                                horizontal: false,
+                                vertical: true
+                            )
+                            .frame(maxWidth: 330)
+                            .padding(
+                                .horizontal,
+                                horizontalPadding
+                            )
+                            .offset(y: 25)
                     }
                     .offset(
                         y: isCompactHeight
@@ -347,6 +305,7 @@ struct HomeScreen: View {
                 isPresented:
                     $vm.showSelectedDateEntries
             ) {
+
                 SelectedDateEntriesSheet(
                     vm: vm,
                     orange: orange

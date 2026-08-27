@@ -88,138 +88,136 @@ struct PaywallScreen: View {
                     .padding(.horizontal, horizontalPadding)
                     .padding(.top, topPadding)
 
-                    ScrollView(showsIndicators: false) {
-                        VStack(spacing: 0) {
+                    VStack(spacing: 0) {
 
-                            Spacer()
-                                .frame(height: isVeryCompact ? 4 : 10)
+                        Spacer()
+                            .frame(height: isVeryCompact ? 4 : 10)
 
-                            Image("LogoCircle")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(
-                                    width: logoSize,
-                                    height: logoSize
-                                )
+                        Image("LogoCircle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(
+                                width: logoSize,
+                                height: logoSize
+                            )
 
-                            Spacer()
-                                .frame(height: headerSpacing)
+                        Spacer()
+                            .frame(height: headerSpacing)
 
-                            VStack(
-                                spacing: min(
-                                    screenHeight * 0.007,
-                                    8
-                                )
-                            ) {
-                                Text("unlock LiveNow")
-                                    .font(
-                                        .system(
-                                            size: titleSize,
-                                            weight: .bold
-                                        )
+                        VStack(
+                            spacing: min(
+                                screenHeight * 0.007,
+                                8
+                            )
+                        ) {
+                            Text("unlock LiveNow")
+                                .font(
+                                    .system(
+                                        size: titleSize,
+                                        weight: .bold
                                     )
-                                    .foregroundColor(.black)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.82)
-
-                                Text(
-                                    "reset your mind anytime & save your progress."
                                 )
-                                .font(.system(size: subtitleSize))
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
+                                .foregroundColor(.black)
+                                .lineLimit(1)
                                 .minimumScaleFactor(0.82)
-                            }
-                            .padding(
-                                .horizontal,
-                                horizontalPadding
+
+                            Text(
+                                "reset your mind anytime & save your progress."
                             )
-
-                            Spacer()
-                                .frame(height: 24)
-
-                            VStack(spacing: featureSpacing) {
-                                PaywallFeatureRow(
-                                    icon: "brain.head.profile",
-                                    title: "Reset whenever you need",
-                                    subtitle: "Analyze thoughts whenever your mind feels stuck.",
-                                    orange: orange,
-                                    screenWidth: screenWidth,
-                                    screenHeight: screenHeight,
-                                    scale: scale,
-                                    isCompact: isCompact
-                                )
-
-                                PaywallFeatureRow(
-                                    icon: "sparkles",
-                                    title: "Personal reframes",
-                                    subtitle: "Get calmer, more realistic thoughts back.",
-                                    orange: orange,
-                                    screenWidth: screenWidth,
-                                    screenHeight: screenHeight,
-                                    scale: scale,
-                                    isCompact: isCompact
-                                )
-
-                                PaywallFeatureRow(
-                                    icon: "chart.bar",
-                                    title: "Personal insights",
-                                    subtitle: "Discover patterns behind your overthinking.",
-                                    orange: orange,
-                                    screenWidth: screenWidth,
-                                    screenHeight: screenHeight,
-                                    scale: scale,
-                                    isCompact: isCompact
-                                )
-                            }
-                            .padding(
-                                .horizontal,
-                                horizontalPadding
-                            )
-
-                            Spacer()
-                                .frame(height: 24)
-
-                            VStack(spacing: planSpacing) {
-                                PaywallPlanCard(
-                                    title: "LiveNow Yearly",
-                                    price: "€49.99 / year",
-                                    subtitle: "Save 68%",
-                                    badge: "MOST POPULAR",
-                                    isSelected: selectedPlan == .yearly,
-                                    orange: orange,
-                                    screenWidth: screenWidth,
-                                    screenHeight: screenHeight,
-                                    scale: scale,
-                                    isCompact: isCompact
-                                ) {
-                                    selectedPlan = .yearly
-                                }
-
-                                PaywallPlanCard(
-                                    title: "LiveNow Weekly",
-                                    price: "€2.99 / week",
-                                    subtitle: "Cancel anytime",
-                                    badge: nil,
-                                    isSelected: selectedPlan == .weekly,
-                                    orange: orange,
-                                    screenWidth: screenWidth,
-                                    screenHeight: screenHeight,
-                                    scale: scale,
-                                    isCompact: isCompact
-                                ) {
-                                    selectedPlan = .weekly
-                                }
-                            }
-                            .padding(
-                                .horizontal,
-                                horizontalPadding
-                            )
-
-                            Spacer()
-                                .frame(height: 20)
+                            .font(.system(size: subtitleSize))
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.82)
                         }
+                        .padding(
+                            .horizontal,
+                            horizontalPadding
+                        )
+
+                        Spacer()
+                            .frame(height: isVeryCompact ? 10 : isCompact ? 16 : 24)
+
+                        VStack(spacing: featureSpacing) {
+                            PaywallFeatureRow(
+                                icon: "brain",
+                                title: "Reset whenever you need",
+                                subtitle: "Analyze thoughts whenever your mind feels stuck.",
+                                orange: orange,
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                scale: scale,
+                                isCompact: isCompact
+                            )
+
+                            PaywallFeatureRow(
+                                icon: "sparkles",
+                                title: "Personal reframes",
+                                subtitle: "Get calmer, more realistic thoughts back.",
+                                orange: orange,
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                scale: scale,
+                                isCompact: isCompact
+                            )
+
+                            PaywallFeatureRow(
+                                icon: "chart.bar",
+                                title: "Personal insights",
+                                subtitle: "Discover patterns behind your overthinking.",
+                                orange: orange,
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                scale: scale,
+                                isCompact: isCompact
+                            )
+                        }
+                        .padding(
+                            .horizontal,
+                            horizontalPadding
+                        )
+
+                        Spacer()
+                            .frame(height: isVeryCompact ? 10 : isCompact ? 16 : 24)
+
+                        VStack(spacing: planSpacing) {
+                            PaywallPlanCard(
+                                title: "LiveNow Yearly",
+                                price: "€49.99 / year",
+                                subtitle: "Save 68%",
+                                badge: "MOST POPULAR",
+                                isSelected: selectedPlan == .yearly,
+                                orange: orange,
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                scale: scale,
+                                isCompact: isCompact
+                            ) {
+                                selectedPlan = .yearly
+                            }
+
+                            PaywallPlanCard(
+                                title: "LiveNow Weekly",
+                                price: "€2.99 / week",
+                                subtitle: "Cancel anytime",
+                                badge: nil,
+                                isSelected: selectedPlan == .weekly,
+                                orange: orange,
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                scale: scale,
+                                isCompact: isCompact
+                            ) {
+                                selectedPlan = .weekly
+                            }
+                        }
+                        .padding(
+                            .horizontal,
+                            horizontalPadding
+                        )
+
+                        Spacer()
+                            .frame(height: isVeryCompact ? 6 : isCompact ? 12 : 20)
                     }
 
                     VStack(spacing: 8) {
