@@ -256,10 +256,12 @@ struct ContentView: View {
             }
         }
         
-        .sheet(isPresented: $vm.showPaywall) {
+        .fullScreenCover(isPresented: $vm.showPaywall) {
+
             PaywallScreen(
                 orange: orange,
                 lightOrange: lightOrange,
+
                 onSubscribe: { plan in
                     Task {
                         await purchaseManager.purchase(plan: plan)
@@ -276,6 +278,7 @@ struct ContentView: View {
                         }
                     }
                 },
+
                 onRestore: {
                     Task {
                         await purchaseManager.restore()
@@ -292,6 +295,7 @@ struct ContentView: View {
                         }
                     }
                 },
+
                 onClose: {
                     vm.showPaywall = false
 
@@ -303,6 +307,7 @@ struct ContentView: View {
                     paywallFromAlreadySubscribed = false
                 }
             )
+            .interactiveDismissDisabled(true)
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
