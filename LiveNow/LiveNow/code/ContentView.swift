@@ -183,17 +183,27 @@ struct ContentView: View {
         }
         
         .onChange(of: authVM.isLoggedIn) { _, isLoggedIn in
+
             if isLoggedIn {
+
+                // Če onboarding še ni zaključen, ne dovolimo
+                // obnovljene stare Firebase seje.
+                guard hasSeenOnboarding else {
+                    authVM.logout()
+                    vm.resetToHome()
+                    showLoginAfterLogout = false
+                    didCheckPremiumStatus = true
+                    return
+                }
+
                 showLoginAfterLogout = false
                 didCheckPremiumStatus = false
-
                 vm.resetToHome()
 
                 guard let user = Auth.auth().currentUser else {
                     #if DEBUG
                     print("LOGIN LOAD: Firebase user is missing")
                     #endif
-
                     return
                 }
 
