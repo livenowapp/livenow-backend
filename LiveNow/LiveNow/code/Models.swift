@@ -139,10 +139,10 @@ struct AIResponse: Codable, Hashable {
             keyedBy: CodingKeys.self
         )
 
-        inputAssessment = try container.decode(
+        inputAssessment = try container.decodeIfPresent(
             AIInputAssessment.self,
             forKey: .inputAssessment
-        )
+        ) ?? .analyzable
 
         safety = try container.decodeIfPresent(
             AISafety.self,

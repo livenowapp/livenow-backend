@@ -166,7 +166,10 @@ struct ContentView: View {
         }
         
         .task {
-            await setupNotificationsIfNeeded()
+
+            if authVM.isLoggedIn {
+                await setupNotificationsIfNeeded()
+            }
 
             if !hasSeenOnboarding && authVM.isLoggedIn {
                 authVM.logout()
@@ -212,6 +215,7 @@ struct ContentView: View {
                     #endif
 
                     Task {
+
                         if vm.hasOnboardingAnswers {
                             await vm.saveCurrentOnboardingAnswersForLoggedInUser()
                         }
@@ -219,6 +223,8 @@ struct ContentView: View {
                         await vm.loadOnboardingAnswersAsync()
 
                         vm.reloadEntriesForCurrentUser()
+
+                        await setupNotificationsIfNeeded()
 
                         await refreshPremiumStatus(
                             showWelcome: false
