@@ -29,6 +29,18 @@ final class AuthViewModel: ObservableObject {
     @AppStorage("hasAuthenticatedBefore")
     var hasAuthenticatedBefore = false
     
+    var usesEmailPassword: Bool {
+        Auth.auth().currentUser?.providerData.contains {
+            $0.providerID == "password"
+        } ?? false
+    }
+
+    var usesAppleSignIn: Bool {
+        Auth.auth().currentUser?.providerData.contains {
+            $0.providerID == "apple.com"
+        } ?? false
+    }
+    
     init() {
         checkAuthenticationState()
     }
@@ -131,12 +143,18 @@ final class AuthViewModel: ObservableObject {
 
     func handleAppleSignIn(result: Result<ASAuthorization, Error>) {
         switch result {
+
         case .success(let authorization):
+
             guard
-                let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                let appleIDCredential =
+                    authorization.credential as? ASAuthorizationAppleIDCredential,
                 let nonce = currentNonce,
                 let appleIDToken = appleIDCredential.identityToken,
-                let idTokenString = String(data: appleIDToken, encoding: .utf8)
+                let idTokenString = String(
+                    data: appleIDToken,
+                    encoding: .utf8
+                )
             else {
                 errorMessage = "Apple Sign In failed."
                 return
@@ -148,18 +166,33 @@ final class AuthViewModel: ObservableObject {
                 fullName: appleIDCredential.fullName
             )
 
+            isLoading = true
+            errorMessage = nil
+
             Auth.auth().signIn(with: credential) { result, error in
                 DispatchQueue.main.async {
+                    self.isLoading = false
+
                     if let error {
                         self.errorMessage = error.localizedDescription
                         return
                     }
 
+                    self.hasAuthenticatedBefore = true
+                    self.needsEmailVerification = false
+                    self.errorMessage = nil
                     self.isLoggedIn = true
                 }
             }
 
         case .failure(let error):
+            isLoading = false
+
+            if let authorizationError = error as? ASAuthorizationError,
+               authorizationError.code == .canceled {
+                return
+            }
+
             errorMessage = error.localizedDescription
         }
     }
@@ -511,19 +544,94 @@ final class AuthViewModel: ObservableObject {
         }
     }
     
-    func deleteAccount(completion: @escaping (String?) -> Void) {
+    func deleteAccount(
+        completion: @escaping (String?) -> Void
+    ) {
         guard let user = Auth.auth().currentUser else {
             completion("No user found.")
             return
         }
 
+        deleteUserDataAndAccount(
+            user: user,
+            completion: completion
+        )
+    }
+
+    func deleteAppleAccount(
+        authorization: ASAuthorization,
+        nonce: String,
+        completion: @escaping (String?) -> Void
+    ) {
+        guard
+            let user = Auth.auth().currentUser,
+            let appleCredential =
+                authorization.credential as? ASAuthorizationAppleIDCredential,
+            let identityToken = appleCredential.identityToken,
+            let idTokenString = String(
+                data: identityToken,
+                encoding: .utf8
+            ),
+            let authorizationCode = appleCredential.authorizationCode,
+            let authCodeString = String(
+                data: authorizationCode,
+                encoding: .utf8
+            )
+        else {
+            completion("Unable to verify your Apple account.")
+            return
+        }
+
+        let credential = OAuthProvider.appleCredential(
+            withIDToken: idTokenString,
+            rawNonce: nonce,
+            fullName: appleCredential.fullName
+        )
+
+        user.reauthenticate(with: credential) { _, error in
+            if let error {
+                DispatchQueue.main.async {
+                    completion(error.localizedDescription)
+                }
+                return
+            }
+
+            Task {
+                do {
+                    try await Auth.auth().revokeToken(
+                        withAuthorizationCode: authCodeString
+                    )
+
+                    await MainActor.run {
+                        self.deleteUserDataAndAccount(
+                            user: user,
+                            completion: completion
+                        )
+                    }
+                } catch {
+                    await MainActor.run {
+                        completion(error.localizedDescription)
+                    }
+                }
+            }
+        }
+    }
+
+    private func deleteUserDataAndAccount(
+        user: User,
+        completion: @escaping (String?) -> Void
+    ) {
         let uid = user.uid
         let db = Firestore.firestore()
-        let userRef = db.collection("users").document(uid)
+
+        let userRef = db
+            .collection("users")
+            .document(uid)
+
         let entriesRef = userRef.collection("entries")
 
         entriesRef.getDocuments { snapshot, error in
-            if let error = error {
+            if let error {
                 DispatchQueue.main.async {
                     completion(error.localizedDescription)
                 }
@@ -539,7 +647,7 @@ final class AuthViewModel: ObservableObject {
             batch.deleteDocument(userRef)
 
             batch.commit { error in
-                if let error = error {
+                if let error {
                     DispatchQueue.main.async {
                         completion(error.localizedDescription)
                     }
@@ -548,24 +656,36 @@ final class AuthViewModel: ObservableObject {
 
                 user.delete { error in
                     DispatchQueue.main.async {
-                        if let error = error {
+                        if let error {
                             completion(error.localizedDescription)
-                        } else {
-                            self.isLoggedIn = false
-                            self.name = ""
-                            self.email = ""
-                            self.password = ""
-                            
-                            Task {
-                                await NotificationScheduler()
-                                    .removeAllLiveNowNotifications()
-                            }
-                            
-                            completion(nil)
+                            return
                         }
+
+                        self.finishAccountDeletion()
+                        completion(nil)
                     }
                 }
             }
+        }
+    }
+
+    private func finishAccountDeletion() {
+        isLoggedIn = false
+        needsEmailVerification = false
+        verificationMessage = nil
+        showSignup = false
+
+        name = ""
+        email = ""
+        password = ""
+        confirmPassword = ""
+        acceptedAgeAndTerms = false
+        errorMessage = nil
+        currentNonce = nil
+
+        Task {
+            await NotificationScheduler()
+                .removeAllLiveNowNotifications()
         }
     }
 }

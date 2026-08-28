@@ -170,13 +170,15 @@ struct LoginScreen: View {
 
                         request.requestedScopes = [.fullName, .email]
                         request.nonce = authVM.sha256(nonce)
-
+                        
                     } onCompletion: { result in
                         authVM.handleAppleSignIn(result: result)
                     }
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 52)
                     .cornerRadius(14)
+                    .disabled(authVM.isLoading)
+                    .opacity(authVM.isLoading ? 0.55 : 1)
                     
                     Spacer().frame(height: 40)
                 }

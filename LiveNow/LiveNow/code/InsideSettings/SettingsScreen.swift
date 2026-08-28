@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseAuth
+import AuthenticationServices
 
 // MARK: - SETTINGS
 
@@ -18,6 +19,8 @@ struct SettingsScreen: View {
 
     @State private var showDeleteAlert = false
     @State private var deleteError: String?
+    @State private var appleDeleteCoordinator:
+        AppleDeleteAuthorizationCoordinator?
     
     @ScaledMetric private var cardRadius: CGFloat = 24
 
@@ -62,12 +65,17 @@ struct SettingsScreen: View {
         }
         .alert("Delete account?", isPresented: $showDeleteAlert) {
             Button("Delete", role: .destructive) {
-                authVM.deleteAccount { error in
-                    deleteError = error
+                if authVM.usesAppleSignIn {
+                    startAppleAccountDeletion()
+                } else {
+                    authVM.deleteAccount { error in
+                        deleteError = error
+                    }
                 }
             }
 
             Button("Cancel", role: .cancel) { }
+
         } message: {
             Text("This action cannot be undone.")
         }
@@ -122,18 +130,23 @@ struct SettingsScreen: View {
             }
             .buttonStyle(.plain)
 
-            sectionDivider
+            if authVM.usesEmailPassword {
+                sectionDivider
 
-            NavigationLink {
-                ChangePasswordScreen(authVM: authVM, orange: orange)
-            } label: {
-                settingsRow(
-                    icon: "lock",
-                    title: "Change password",
-                    subtitle: "Update your password"
-                )
+                NavigationLink {
+                    ChangePasswordScreen(
+                        authVM: authVM,
+                        orange: orange
+                    )
+                } label: {
+                    settingsRow(
+                        icon: "lock",
+                        title: "Change password",
+                        subtitle: "Update your password"
+                    )
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             sectionDivider
 
@@ -302,5 +315,103 @@ struct SettingsScreen: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 20)
         .contentShape(Rectangle())
+    }
+    
+    private func startAppleAccountDeletion() {
+        let coordinator = AppleDeleteAuthorizationCoordinator(
+            authVM: authVM
+        ) { error in
+            DispatchQueue.main.async {
+                if let error {
+                    deleteError = error
+                }
+
+                appleDeleteCoordinator = nil
+            }
+        }
+
+        appleDeleteCoordinator = coordinator
+        coordinator.start()
+    }
+}
+
+final class AppleDeleteAuthorizationCoordinator:
+    NSObject,
+    ASAuthorizationControllerDelegate,
+    ASAuthorizationControllerPresentationContextProviding {
+
+    private let authVM: AuthViewModel
+    private let completion: (String?) -> Void
+
+    private var nonce: String?
+
+    init(
+        authVM: AuthViewModel,
+        completion: @escaping (String?) -> Void
+    ) {
+        self.authVM = authVM
+        self.completion = completion
+    }
+
+    func start() {
+        let nonce = authVM.randomNonceString()
+        self.nonce = nonce
+
+        let provider = ASAuthorizationAppleIDProvider()
+        let request = provider.createRequest()
+
+        request.nonce = authVM.sha256(nonce)
+
+        let controller = ASAuthorizationController(
+            authorizationRequests: [request]
+        )
+
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
+    }
+
+    func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithAuthorization authorization: ASAuthorization
+    ) {
+        guard let nonce else {
+            completion("Unable to verify your Apple account.")
+            return
+        }
+
+        authVM.deleteAppleAccount(
+            authorization: authorization,
+            nonce: nonce
+        ) { [weak self] error in
+            self?.completion(error)
+        }
+    }
+
+    func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithError error: Error
+    ) {
+        if let authorizationError = error as? ASAuthorizationError,
+           authorizationError.code == .canceled {
+            completion(nil)
+            return
+        }
+
+        completion(error.localizedDescription)
+    }
+
+    func presentationAnchor(
+        for controller: ASAuthorizationController
+    ) -> ASPresentationAnchor {
+        if let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first,
+           let window = windowScene.windows
+            .first(where: { $0.isKeyWindow }) {
+            return window
+        }
+
+        return ASPresentationAnchor()
     }
 }
