@@ -82,6 +82,7 @@ struct CalendarMiniCard: View {
     @ScaledMetric private var monthTitleSize: CGFloat = 20
     @ScaledMetric private var dayTextSize: CGFloat = 15
     @ScaledMetric private var dotSize: CGFloat = 5
+    @ScaledMetric private var cardRadius: CGFloat = 22
 
     var body: some View {
         let cellSize: CGFloat = 40
@@ -277,7 +278,7 @@ struct CalendarMiniCard: View {
         .padding(18)
         .frame(maxWidth: .infinity)
         .background(Color.white.opacity(0.78))
-        .cornerRadius(22)
+        .cornerRadius(cardRadius)
         
         .sheet(item: $selectedPreviewEntry) { entry in
             MomentDetailScreen(
