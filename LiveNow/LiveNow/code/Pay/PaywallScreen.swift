@@ -13,8 +13,13 @@ enum PaywallPlan {
 }
 
 struct PaywallScreen: View {
+
+    @ObservedObject private var purchaseManager =
+        PurchaseManager.shared
+
     let orange: Color
     let lightOrange: Color
+
     var onSubscribe: (PaywallPlan) -> Void
     var onRestore: () -> Void
     var onClose: () -> Void
@@ -183,8 +188,8 @@ struct PaywallScreen: View {
                         VStack(spacing: planSpacing) {
                             PaywallPlanCard(
                                 title: "LiveNow Yearly",
-                                price: "€49.99 / year",
-                                subtitle: "Save 68%",
+                                price: "\(purchaseManager.yearlyDisplayPrice) / year",
+                                subtitle: purchaseManager.yearlySavingsText,
                                 badge: "MOST POPULAR",
                                 isSelected: selectedPlan == .yearly,
                                 orange: orange,
@@ -198,8 +203,8 @@ struct PaywallScreen: View {
 
                             PaywallPlanCard(
                                 title: "LiveNow Weekly",
-                                price: "€2.99 / week",
-                                subtitle: "Cancel anytime",
+                                price: "\(purchaseManager.weeklyDisplayPrice) / week",
+                                subtitle: "Flexible weekly plan",
                                 badge: nil,
                                 isSelected: selectedPlan == .weekly,
                                 orange: orange,
@@ -323,6 +328,14 @@ struct PaywallScreen: View {
                         )
                     )
                 }
+            }
+        }
+        .task {
+
+            if purchaseManager.weeklyProduct == nil ||
+                purchaseManager.yearlyProduct == nil {
+
+                await purchaseManager.loadProducts()
             }
         }
     }
