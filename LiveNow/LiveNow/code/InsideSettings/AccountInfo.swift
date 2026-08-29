@@ -17,6 +17,18 @@ struct AccountInfoScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var name: String = ""
     @State private var savedMessage: String? = nil
+    
+    private var displayEmail: String {
+        let email = Auth.auth().currentUser?.email ?? ""
+
+        if authVM.usesAppleSignIn &&
+            email.contains("privaterelay.appleid.com") {
+
+            return "Hidden by Apple"
+        }
+
+        return email
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -88,7 +100,7 @@ struct AccountInfoScreen: View {
                                 .font(.system(size: 13))
                                 .foregroundColor(.gray)
 
-                            Text(Auth.auth().currentUser?.email ?? "")
+                            Text(displayEmail)
                                 .font(.system(size: 16))
                                 .foregroundColor(.black.opacity(0.8))
                                 .autocorrectionDisabled()

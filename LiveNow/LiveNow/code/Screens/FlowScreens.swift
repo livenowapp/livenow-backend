@@ -43,9 +43,9 @@ struct InputScreen: View {
     @State private var stableScreenHeight: CGFloat?
 
     private let examples = [
-        "they think I’m weird",
-        "I said something stupid",
-        "I’m not good enough"
+        "why haven’t they replied to my message?",
+        "what if I embarrassed myself in front of everyone?",
+        "what if I made the wrong decision?"
     ]
 
     var body: some View {
@@ -545,7 +545,7 @@ struct ThinkingScreen: View {
                             .font(.system(size: titleFont, weight: .bold))
                             .foregroundColor(orange)
                         
-                        Text("we’re turning it into something clearer")
+                        Text("this may take a few seconds")
                             .font(.system(size: bodyFont))
                             .foregroundColor(.gray)
                             .padding(.top, 4)

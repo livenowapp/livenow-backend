@@ -7,6 +7,65 @@
 
 import SwiftUI
 
+// MARK: - PERSONALIZATION QUESTIONS
+
+enum LiveNowPersonalizationQuestions {
+
+    static let all: [OnboardingQuestion] = [
+        OnboardingQuestion(
+            id: "onboardingReason",
+            title: "What brings you\nto LiveNow?",
+            subtitle: "choose what feels closest",
+            options: [
+                "I overthink a lot",
+                "I feel anxious often",
+                "I want more clarity",
+                "I want healthier habits",
+                "I want more peace of mind"
+            ]
+        ),
+
+        OnboardingQuestion(
+            id: "onboardingTime",
+            title: "When do you\noverthink most?",
+            subtitle: "choose the one that fits best",
+            options: [
+                "Morning",
+                "During work or school",
+                "Evening",
+                "Before bed",
+                "It happens all day"
+            ]
+        ),
+
+        OnboardingQuestion(
+            id: "onboardingThinkerType",
+            title: "What kind of\nthinker are you?",
+            subtitle: "no wrong answer",
+            options: [
+                "I replay past conversations",
+                "I worry about the future",
+                "I overanalyze decisions",
+                "I assume the worst",
+                "A bit of everything"
+            ]
+        ),
+
+        OnboardingQuestion(
+            id: "onboardingNeed",
+            title: "What do you need\nmost right now?",
+            subtitle: "LiveNow will feel more personal",
+            options: [
+                "Calm",
+                "Confidence",
+                "Clarity",
+                "Less overthinking",
+                "Better habits"
+            ]
+        )
+    ]
+}
+
 // MARK: - ONBOARDING
 
 struct OnboardingScreen: View {
@@ -15,7 +74,6 @@ struct OnboardingScreen: View {
     let lightOrange: Color
     let startOnLastPage: Bool
     var onGetStarted: ([String: String]) -> Void
-    var onAlreadySubscribed: () -> Void
 
     @State private var page: Int
     @State private var onboardingAnswers: [String: String] = [:]
@@ -24,14 +82,12 @@ struct OnboardingScreen: View {
         orange: Color,
         lightOrange: Color,
         startOnLastPage: Bool = false,
-        onGetStarted: @escaping ([String: String]) -> Void,
-        onAlreadySubscribed: @escaping () -> Void
+        onGetStarted: @escaping ([String: String]) -> Void
     ) {
         self.orange = orange
         self.lightOrange = lightOrange
         self.startOnLastPage = startOnLastPage
         self.onGetStarted = onGetStarted
-        self.onAlreadySubscribed = onAlreadySubscribed
 
         _page = State(initialValue: startOnLastPage ? 9 : 0)
     }
@@ -58,54 +114,10 @@ struct OnboardingScreen: View {
             visual: .leaf
         )),
 
-        .question(.init(
-            id: "onboardingReason",
-            title: "What brings you\nto LiveNow?",
-            subtitle: "choose what feels closest",
-            options: [
-                "I overthink a lot",
-                "I feel anxious often",
-                "I want more clarity",
-                "I want healthier habits",
-                "I want more peace of mind"
-            ]
-        )),
-        .question(.init(
-            id: "onboardingTime",
-            title: "When do you\noverthink most?",
-            subtitle: "choose the one that fits best",
-            options: [
-                "Morning",
-                "During work or school",
-                "Evening",
-                "Before bed",
-                "It happens all day"
-            ]
-        )),
-        .question(.init(
-            id: "onboardingThinkerType",
-            title: "What kind of\nthinker are you?",
-            subtitle: "no wrong answer",
-            options: [
-                "I replay past conversations",
-                "I worry about the future",
-                "I overanalyze decisions",
-                "I assume the worst",
-                "A bit of everything"
-            ]
-        )),
-        .question(.init(
-            id: "onboardingNeed",
-            title: "What do you need\nmost right now?",
-            subtitle: "LiveNow will feel more personal",
-            options: [
-                "Calm",
-                "Confidence",
-                "Clarity",
-                "Less overthinking",
-                "Better habits"
-            ]
-        )),
+            .question(LiveNowPersonalizationQuestions.all[0]),
+            .question(LiveNowPersonalizationQuestions.all[1]),
+            .question(LiveNowPersonalizationQuestions.all[2]),
+            .question(LiveNowPersonalizationQuestions.all[3]),
 
         .info(.init(
             title: "track\nyour progress",
@@ -216,24 +228,6 @@ struct OnboardingScreen: View {
                 .buttonStyle(.plain)
                 .disabled(!canContinue)
                 .padding(.horizontal, horizontalPadding)
-                
-                if page == 0 {
-                    Button {
-                        onAlreadySubscribed()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text("Already subscribed?")
-                                .foregroundColor(.gray)
-
-                            Text("Log in")
-                                .foregroundColor(orange)
-                                .fontWeight(.semibold)
-                        }
-                        .font(.system(size: 15))
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, 18)
-                }
 
                 Spacer().frame(height: bottomSpacing)
             }
@@ -656,5 +650,178 @@ struct OnboardingQuestionPageView: View {
             }
             .frame(width: screenWidth, height: screenHeight)
         }
+    }
+}
+
+// MARK: - PERSONALIZATION SCREEN
+
+struct PersonalizationScreen: View {
+
+    let orange: Color
+    let onComplete: ([String: String]) -> Void
+
+    @State private var page = 0
+    @State private var answers: [String: String] = [:]
+
+    private let questions =
+        LiveNowPersonalizationQuestions.all
+
+    private var currentQuestion: OnboardingQuestion {
+        questions[page]
+    }
+
+    private var canContinue: Bool {
+        answers[currentQuestion.id] != nil
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+
+            let screenWidth = geo.size.width
+            let screenHeight = geo.size.height
+
+            let horizontalPadding =
+                min(screenWidth * 0.06, 28)
+
+            let topPadding =
+                min(max(screenHeight * 0.025, 18), 24)
+
+            let buttonVerticalPadding =
+                min(max(screenHeight * 0.02, 14), 17)
+
+            let bottomSpacing =
+                min(max(screenHeight * 0.018, 12), 20)
+
+            VStack(spacing: 0) {
+
+                HStack {
+
+                    if page > 0 {
+                        Button {
+                            withAnimation(
+                                .easeInOut(duration: 0.25)
+                            ) {
+                                page -= 1
+                            }
+                        } label: {
+                            Image(
+                                systemName: "chevron.left"
+                            )
+                            .font(
+                                .system(
+                                    size: 18,
+                                    weight: .regular
+                                )
+                            )
+                            .foregroundColor(
+                                .black.opacity(0.7)
+                            )
+                            .frame(
+                                width: 32,
+                                height: 32
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                    } else {
+                        Color.clear
+                            .frame(
+                                width: 32,
+                                height: 32
+                            )
+                    }
+
+                    Spacer()
+                }
+                .padding(
+                    .horizontal,
+                    horizontalPadding
+                )
+                .padding(.top, topPadding)
+
+                OnboardingQuestionPageView(
+                    question: currentQuestion,
+                    selectedAnswer:
+                        answers[currentQuestion.id],
+                    orange: orange
+                ) { selected in
+
+                    answers[currentQuestion.id] =
+                        selected
+                }
+                .padding(
+                    .horizontal,
+                    horizontalPadding
+                )
+                .id(page)
+                .transition(.opacity)
+
+                LiveNowOnboardingDots(
+                    count: questions.count,
+                    current: page,
+                    orange: orange
+                )
+                .padding(.bottom, 24)
+
+                Button {
+
+                    if page < questions.count - 1 {
+
+                        withAnimation(
+                            .easeInOut(duration: 0.25)
+                        ) {
+                            page += 1
+                        }
+
+                    } else {
+
+                        onComplete(answers)
+                    }
+
+                } label: {
+
+                    Text(
+                        page == questions.count - 1
+                            ? "Continue"
+                            : "Next"
+                    )
+                    .font(
+                        .system(
+                            size: 17,
+                            weight: .semibold
+                        )
+                    )
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(
+                        .vertical,
+                        buttonVerticalPadding
+                    )
+                    .background(
+                        canContinue
+                            ? orange
+                            : Color.gray.opacity(0.35)
+                    )
+                    .cornerRadius(13)
+                }
+                .buttonStyle(.plain)
+                .disabled(!canContinue)
+                .padding(
+                    .horizontal,
+                    horizontalPadding
+                )
+
+                Spacer()
+                    .frame(height: bottomSpacing)
+            }
+        }
+        .background(
+            Color(
+                red: 0.97,
+                green: 0.96,
+                blue: 0.94
+            )
+            .ignoresSafeArea()
+        )
     }
 }

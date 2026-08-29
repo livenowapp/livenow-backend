@@ -467,7 +467,7 @@ struct InsightsScreen: View {
         case "action_nophone":
             return "Putting your phone away creates space for your mind to breathe."
         default:
-            return "This reset helps you choose presence over overthinking."
+            return "Complete a reset to discover which actions help you most."
         }
     }
 }

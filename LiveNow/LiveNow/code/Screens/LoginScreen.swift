@@ -164,13 +164,13 @@ struct LoginScreen: View {
                     }
                     .buttonStyle(.plain)
 
-                    SignInWithAppleButton(.signIn) { request in
+                    SignInWithAppleButton(.continue) { request in
                         let nonce = authVM.randomNonceString()
                         authVM.currentNonce = nonce
 
                         request.requestedScopes = [.fullName, .email]
                         request.nonce = authVM.sha256(nonce)
-                        
+
                     } onCompletion: { result in
                         authVM.handleAppleSignIn(result: result)
                     }
@@ -209,6 +209,16 @@ struct LoginScreen: View {
                 authVM: authVM,
                 orange: orange
             )
+        }
+
+        .sheet(
+            isPresented: $authVM.needsAppleTermsAcceptance
+        ) {
+            AppleTermsConfirmationView(
+                authVM: authVM,
+                orange: orange
+            )
+            .interactiveDismissDisabled(true)
         }
     }
 }
@@ -437,28 +447,6 @@ struct SignupScreen: View {
                             .foregroundColor(orange)
                     }
                     .buttonStyle(.plain)
-                    
-                    SignInWithAppleButton(.signUp) { request in
-                        let nonce = authVM.randomNonceString()
-                        authVM.currentNonce = nonce
-
-                        request.requestedScopes = [.fullName, .email]
-                        request.nonce = authVM.sha256(nonce)
-
-                    } onCompletion: { result in
-                        guard authVM.acceptedAgeAndTerms else {
-                            authVM.errorMessage =
-                                "Please confirm that you are at least 16 years old and agree to the Terms of Use and Privacy Policy."
-                            return
-                        }
-
-                        authVM.handleAppleSignIn(result: result)
-                    }
-                    .signInWithAppleButtonStyle(.black)
-                    .frame(height: 52)
-                    .cornerRadius(14)
-                    .disabled(!authVM.acceptedAgeAndTerms || authVM.isLoading)
-                    .opacity(authVM.acceptedAgeAndTerms ? 1 : 0.55)
 
                     Spacer().frame(height: 40)
                 }
@@ -469,5 +457,153 @@ struct SignupScreen: View {
             .scrollDismissesKeyboard(.immediately)
         }
         .background(Color(red: 0.97, green: 0.96, blue: 0.94).ignoresSafeArea())
+    }
+}
+
+// MARK: - APPLE TERMS CONFIRMATION
+
+struct AppleTermsConfirmationView: View {
+
+    @ObservedObject var authVM: AuthViewModel
+
+    let orange: Color
+
+    private let privacyURL = URL(
+        string: "https://www.livenowapp.net/privacy"
+    )!
+
+    private let termsURL = URL(
+        string: "https://www.livenowapp.net/terms"
+    )!
+
+    private var termsAndPrivacyText: AttributedString {
+        let markdown = """
+        I confirm that I am at least 16 years old and agree to the [Terms of Use](\(termsURL.absoluteString)) and [Privacy Policy](\(privacyURL.absoluteString)).
+        """
+
+        return (try? AttributedString(markdown: markdown))
+            ?? AttributedString(
+                "I confirm that I am at least 16 years old and agree to the Terms of Use and Privacy Policy."
+            )
+    }
+
+    var body: some View {
+
+        VStack(spacing: 24) {
+
+            Spacer()
+
+            VStack(spacing: 10) {
+
+                Text("One last thing")
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundColor(.black)
+
+                Text("Please confirm before creating your LiveNow account.")
+                    .font(.system(size: 15))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+            }
+
+            HStack(alignment: .top, spacing: 12) {
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.16)) {
+                        authVM.acceptedAgeAndTerms.toggle()
+                    }
+                } label: {
+
+                    ZStack {
+
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                authVM.acceptedAgeAndTerms
+                                    ? orange
+                                    : Color.white.opacity(0.82)
+                            )
+                            .frame(width: 24, height: 24)
+
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(
+                                authVM.acceptedAgeAndTerms
+                                    ? orange
+                                    : Color.black.opacity(0.14),
+                                lineWidth: 1
+                            )
+                            .frame(width: 24, height: 24)
+
+                        if authVM.acceptedAgeAndTerms {
+                            Image(systemName: "checkmark")
+                                .font(
+                                    .system(
+                                        size: 12,
+                                        weight: .bold
+                                    )
+                                )
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+
+                Text(termsAndPrivacyText)
+                    .font(.system(size: 13))
+                    .foregroundColor(.black.opacity(0.68))
+                    .tint(orange)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
+
+                Spacer(minLength: 0)
+            }
+
+            if let error = authVM.errorMessage {
+
+                Text(error)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.red.opacity(0.9))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.red.opacity(0.08))
+                    .cornerRadius(12)
+            }
+
+            Button {
+                authVM.completeAppleSignUp()
+            } label: {
+
+                Text("continue")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(orange)
+                    .cornerRadius(16)
+            }
+            .buttonStyle(.plain)
+            .disabled(!authVM.acceptedAgeAndTerms)
+            .opacity(
+                authVM.acceptedAgeAndTerms ? 1 : 0.55
+            )
+
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .background(
+            Color(
+                red: 0.97,
+                green: 0.96,
+                blue: 0.94
+            )
+            .ignoresSafeArea()
+        )
     }
 }

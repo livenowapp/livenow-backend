@@ -21,6 +21,7 @@ final class AuthViewModel: ObservableObject {
     @Published var confirmPassword = ""
     @Published var acceptedAgeAndTerms = false
     @Published var currentNonce: String?
+    @Published var needsAppleTermsAcceptance = false
 
     @Published var needsEmailVerification: Bool = false
     @Published var verificationMessage: String? = nil
@@ -41,11 +42,32 @@ final class AuthViewModel: ObservableObject {
         } ?? false
     }
     
+    private func appleTermsPendingKey(for uid: String) -> String {
+        "appleTermsPending_\(uid)"
+    }
+
+    private func setAppleTermsPending(
+        _ pending: Bool,
+        for uid: String
+    ) {
+        UserDefaults.standard.set(
+            pending,
+            forKey: appleTermsPendingKey(for: uid)
+        )
+    }
+
+    private func isAppleTermsPending(for uid: String) -> Bool {
+        UserDefaults.standard.bool(
+            forKey: appleTermsPendingKey(for: uid)
+        )
+    }
+    
     init() {
         checkAuthenticationState()
     }
     
     func checkAuthenticationState() {
+
         guard let user = Auth.auth().currentUser else {
             isLoggedIn = false
             needsEmailVerification = false
@@ -55,6 +77,7 @@ final class AuthViewModel: ObservableObject {
 
         user.reload { [weak self] error in
             DispatchQueue.main.async {
+
                 guard let self = self else { return }
 
                 defer {
@@ -89,16 +112,34 @@ final class AuthViewModel: ObservableObject {
                 }
 
                 if usesEmailPassword && !refreshedUser.isEmailVerified {
+
                     try? Auth.auth().signOut()
 
                     self.isLoggedIn = false
                     self.needsEmailVerification = false
                     self.verificationMessage = nil
                     self.errorMessage = nil
-                } else {
-                    self.isLoggedIn = true
-                    self.needsEmailVerification = false
+                    return
                 }
+
+                let usesApple = refreshedUser.providerData.contains {
+                    $0.providerID == "apple.com"
+                }
+
+                if usesApple &&
+                    self.isAppleTermsPending(for: refreshedUser.uid) {
+
+                    self.acceptedAgeAndTerms = false
+                    self.needsAppleTermsAcceptance = true
+                    self.needsEmailVerification = false
+                    self.isLoggedIn = false
+
+                    return
+                }
+
+                self.needsAppleTermsAcceptance = false
+                self.isLoggedIn = true
+                self.needsEmailVerification = false
             }
         }
     }
@@ -141,7 +182,9 @@ final class AuthViewModel: ObservableObject {
         }.joined()
     }
 
-    func handleAppleSignIn(result: Result<ASAuthorization, Error>) {
+    func handleAppleSignIn(
+        result: Result<ASAuthorization, Error>
+    ) {
         switch result {
 
         case .success(let authorization):
@@ -170,31 +213,110 @@ final class AuthViewModel: ObservableObject {
             errorMessage = nil
 
             Auth.auth().signIn(with: credential) { result, error in
+
                 DispatchQueue.main.async {
+
                     self.isLoading = false
+                    self.currentNonce = nil
 
                     if let error {
                         self.errorMessage = error.localizedDescription
                         return
                     }
 
-                    self.hasAuthenticatedBefore = true
+                    guard let result else {
+                        self.errorMessage =
+                            "Apple Sign In failed. Please try again."
+                        return
+                    }
+
                     self.needsEmailVerification = false
                     self.errorMessage = nil
-                    self.isLoggedIn = true
+
+                    let isNewUser =
+                        result.additionalUserInfo?.isNewUser ?? false
+
+                    if isNewUser {
+
+                        self.setAppleTermsPending(
+                            true,
+                            for: result.user.uid
+                        )
+
+                        self.acceptedAgeAndTerms = false
+                        self.needsAppleTermsAcceptance = true
+                        self.needsEmailVerification = false
+                        self.errorMessage = nil
+                        self.isLoggedIn = false
+
+                    } else {
+
+                        let hasPendingTerms =
+                            self.isAppleTermsPending(
+                                for: result.user.uid
+                            )
+
+                        if hasPendingTerms {
+
+                            self.acceptedAgeAndTerms = false
+                            self.needsAppleTermsAcceptance = true
+                            self.needsEmailVerification = false
+                            self.errorMessage = nil
+                            self.isLoggedIn = false
+
+                        } else {
+
+                            self.hasAuthenticatedBefore = true
+                            self.needsAppleTermsAcceptance = false
+                            self.needsEmailVerification = false
+                            self.errorMessage = nil
+                            self.isLoggedIn = true
+                        }
+                    }
                 }
             }
 
         case .failure(let error):
-            isLoading = false
 
-            if let authorizationError = error as? ASAuthorizationError,
+            isLoading = false
+            currentNonce = nil
+
+            if let authorizationError =
+                error as? ASAuthorizationError,
                authorizationError.code == .canceled {
                 return
             }
 
             errorMessage = error.localizedDescription
         }
+    }
+    
+    func completeAppleSignUp() {
+
+        guard let user = Auth.auth().currentUser else {
+            needsAppleTermsAcceptance = false
+            acceptedAgeAndTerms = false
+            errorMessage =
+                "Apple Sign In failed. Please try again."
+            return
+        }
+
+        guard acceptedAgeAndTerms else {
+            errorMessage =
+                "Please confirm that you are at least 16 years old and agree to the Terms of Use and Privacy Policy."
+            return
+        }
+
+        setAppleTermsPending(
+            false,
+            for: user.uid
+        )
+
+        hasAuthenticatedBefore = true
+        needsAppleTermsAcceptance = false
+        needsEmailVerification = false
+        errorMessage = nil
+        isLoggedIn = true
     }
     
     var displayName: String {
@@ -628,42 +750,97 @@ final class AuthViewModel: ObservableObject {
             .collection("users")
             .document(uid)
 
-        let entriesRef = userRef.collection("entries")
+        let entriesRef = userRef
+            .collection("entries")
 
-        entriesRef.getDocuments { snapshot, error in
-            if let error {
-                DispatchQueue.main.async {
-                    completion(error.localizedDescription)
+        let rateLimitsRef = db
+            .collection("rateLimits")
+
+        Task {
+            do {
+                // 1. Poiščemo vse resete uporabnika.
+                let entriesSnapshot =
+                    try await entriesRef.getDocuments()
+
+                // 2. Poiščemo vse rateLimits dokumente uporabnika.
+                // Ne zanašamo se na document ID, ampak na uid field.
+                let rateLimitsSnapshot =
+                    try await rateLimitsRef
+                        .whereField("uid", isEqualTo: uid)
+                        .getDocuments()
+
+                let batch = db.batch()
+
+                // 3. Izbrišemo vse entries.
+                for document in entriesSnapshot.documents {
+                    batch.deleteDocument(document.reference)
                 }
-                return
-            }
 
-            let batch = db.batch()
-
-            snapshot?.documents.forEach { document in
-                batch.deleteDocument(document.reference)
-            }
-
-            batch.deleteDocument(userRef)
-
-            batch.commit { error in
-                if let error {
-                    DispatchQueue.main.async {
-                        completion(error.localizedDescription)
-                    }
-                    return
+                // 4. Izbrišemo vse rateLimits zapise tega uporabnika.
+                for document in rateLimitsSnapshot.documents {
+                    batch.deleteDocument(document.reference)
                 }
 
+                // 5. Izbrišemo users/{uid}.
+                // S tem izgine tudi personalization,
+                // ker je field znotraj tega dokumenta.
+                batch.deleteDocument(userRef)
+
+                // 6. Firestore cleanup.
+                try await batch.commit()
+
+                #if DEBUG
+                print("ACCOUNT DELETE: Firestore data deleted")
+                print(
+                    "ACCOUNT DELETE: rateLimits deleted:",
+                    rateLimitsSnapshot.documents.count
+                )
+                #endif
+
+                // 7. Nato izbrišemo Firebase Authentication account.
                 user.delete { error in
                     DispatchQueue.main.async {
+
                         if let error {
+                            #if DEBUG
+                            print(
+                                "ACCOUNT DELETE AUTH ERROR:",
+                                error.localizedDescription
+                            )
+                            #endif
+
                             completion(error.localizedDescription)
                             return
                         }
 
+                        // Odstranimo še lokalni Apple terms podatek,
+                        // če je šlo za Apple account.
+                        UserDefaults.standard.removeObject(
+                            forKey: self.appleTermsPendingKey(
+                                for: uid
+                            )
+                        )
+
+                        #if DEBUG
+                        print("ACCOUNT DELETE: Auth user deleted")
+                        print("ACCOUNT DELETE COMPLETE:", uid)
+                        #endif
+
                         self.finishAccountDeletion()
                         completion(nil)
                     }
+                }
+
+            } catch {
+                await MainActor.run {
+                    #if DEBUG
+                    print(
+                        "ACCOUNT DELETE FIRESTORE ERROR:",
+                        error.localizedDescription
+                    )
+                    #endif
+
+                    completion(error.localizedDescription)
                 }
             }
         }

@@ -21,7 +21,6 @@ struct ContentView: View {
     @AppStorage("lastNotificationScheduleRefresh")
     private var lastNotificationScheduleRefresh: Double = 0
     
-    @State private var paywallFromAlreadySubscribed = false
     @Environment(\.scenePhase) private var scenePhase
     @State private var showLoginAfterLogout = false
     @State private var didCheckPremiumStatus = false
@@ -53,29 +52,18 @@ struct ContentView: View {
                         lightOrange: lightOrange,
                         startOnLastPage: returnToLastOnboardingPage,
                         onGetStarted: { answers in
+
                             vm.saveOnboardingAnswers(answers)
                             vm.resetToHome()
 
                             returnToLastOnboardingPage = true
                             hasSeenOnboarding = true
                             vm.showPaywall = true
-                        },
-                        onAlreadySubscribed: {
-                            Task {
-                                await refreshPremiumStatus(showWelcome: false)
-
-                                if purchaseManager.isPremium {
-                                    hasSeenOnboarding = true
-                                    authVM.showSignup = false
-                                } else {
-                                    paywallFromAlreadySubscribed = true
-                                    vm.showPaywall = true
-                                }
-                            }
                         }
                     )
 
-                } else if authVM.isLoggedIn && !didCheckPremiumStatus {
+                } else if !didCheckPremiumStatus {
+
                     bgColor
                         .ignoresSafeArea()
 
@@ -91,28 +79,58 @@ struct ContentView: View {
                 } else if purchaseManager.isPremium &&
                           authVM.isLoggedIn {
 
-                    if vm.showWelcomeBack {
-                        WelcomeBackScreen(
-                            name: authVM.displayName,
-                            orange: orange,
-                            lightOrange: lightOrange
-                        )
-                        .transition(.opacity)
-                    } else {
-                        mainAppContent
-                            .transition(.opacity)
-                            .onAppear {
-                                vm.reloadEntriesForCurrentUser()
-                            }
-                    }
-
-                } else {
+                if !vm.hasResolvedPersonalization {
 
                     bgColor
                         .ignoresSafeArea()
-                        .onAppear {
-                            vm.showPaywall = true
+
+                } else if vm.needsPersonalization {
+
+                    PersonalizationScreen(
+                        orange: orange
+                    ) { answers in
+
+                        vm.savePersonalizationAnswers(answers)
+
+                        Task {
+
+                            let saved =
+                                await vm.saveCurrentOnboardingAnswersForLoggedInUser()
+
+                            guard saved else {
+                                return
+                            }
+
+                            await setupNotificationsIfNeeded()
+
+                            vm.reloadEntriesForCurrentUser()
                         }
+                    }
+
+                } else if vm.showWelcomeBack {
+
+                    WelcomeBackScreen(
+                        name: authVM.displayName,
+                        orange: orange,
+                        lightOrange: lightOrange
+                    )
+                    .transition(.opacity)
+
+                } else {
+
+                    mainAppContent
+                        .transition(.opacity)
+                        .onAppear {
+                            vm.reloadEntriesForCurrentUser()
+                        }
+                    }
+                } else {
+
+                bgColor
+                    .ignoresSafeArea()
+                    .onAppear {
+                        vm.showPaywall = true
+                    }
                 }
             }
 
@@ -165,22 +183,33 @@ struct ContentView: View {
             }
         }
         
-        .task {
+            .task {
 
-            if authVM.isLoggedIn {
-                await setupNotificationsIfNeeded()
+                if !hasSeenOnboarding && authVM.isLoggedIn {
+
+                    authVM.logout()
+                    showLoginAfterLogout = false
+                    didCheckPremiumStatus = true
+                    vm.resetToHome()
+
+                    return
+                }
+
+                if authVM.isLoggedIn {
+
+                    await vm.preparePersonalizationForCurrentUser()
+
+                    vm.reloadEntriesForCurrentUser()
+
+                    if !vm.needsPersonalization {
+                        await setupNotificationsIfNeeded()
+                    }
+                }
+
+                await refreshPremiumStatus(
+                    showWelcome: true
+                )
             }
-
-            if !hasSeenOnboarding && authVM.isLoggedIn {
-                authVM.logout()
-                showLoginAfterLogout = false
-                didCheckPremiumStatus = true
-                vm.resetToHome()
-                return
-            }
-
-            await refreshPremiumStatus(showWelcome: true)
-        }
         
         .onChange(of: authVM.isLoggedIn) { _, isLoggedIn in
 
@@ -226,15 +255,13 @@ struct ContentView: View {
 
                     Task {
 
-                        if vm.hasOnboardingAnswers {
-                            await vm.saveCurrentOnboardingAnswersForLoggedInUser()
-                        }
-
-                        await vm.loadOnboardingAnswersAsync()
+                        await vm.preparePersonalizationForCurrentUser()
 
                         vm.reloadEntriesForCurrentUser()
 
-                        await setupNotificationsIfNeeded()
+                        if !vm.needsPersonalization {
+                            await setupNotificationsIfNeeded()
+                        }
 
                         await refreshPremiumStatus(
                             showWelcome: false
@@ -247,6 +274,8 @@ struct ContentView: View {
 
                 showLoginAfterLogout = true
                 authVM.showSignup = false
+
+                vm.hasResolvedPersonalization = false
                 vm.resetToHome()
             }
         }
@@ -285,12 +314,6 @@ struct ContentView: View {
 
                         if purchaseManager.isPremium {
                             vm.showPaywall = false
-
-                            if paywallFromAlreadySubscribed {
-                                hasSeenOnboarding = true
-                                authVM.showSignup = false
-                                paywallFromAlreadySubscribed = false
-                            }
                         }
                     }
                 },
@@ -302,12 +325,6 @@ struct ContentView: View {
 
                         if purchaseManager.isPremium {
                             vm.showPaywall = false
-
-                            if paywallFromAlreadySubscribed {
-                                hasSeenOnboarding = true
-                                authVM.showSignup = false
-                                paywallFromAlreadySubscribed = false
-                            }
                         }
                     }
                 },
@@ -319,8 +336,6 @@ struct ContentView: View {
                         returnToLastOnboardingPage = true
                         hasSeenOnboarding = false
                     }
-
-                    paywallFromAlreadySubscribed = false
                 }
             )
             .interactiveDismissDisabled(true)

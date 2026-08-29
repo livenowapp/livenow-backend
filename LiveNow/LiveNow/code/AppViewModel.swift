@@ -42,6 +42,11 @@ final class AppViewModel: ObservableObject {
     @Published var onboardingTime = ""
     @Published var onboardingThinkerType = ""
     @Published var onboardingNeed = ""
+
+    @Published var needsPersonalization = false
+    @Published var hasResolvedPersonalization = false
+
+    private var hasFreshOnboardingAnswers = false
     
     private var lastAnalyzedThought: String = ""
     private var lastAIResponse: AIResponse? = nil
@@ -1014,11 +1019,23 @@ final class AppViewModel: ObservableObject {
         loadEntries()
     }
 
-    func loadOnboardingAnswersAsync() async {
+    func preparePersonalizationForCurrentUser() async {
+
+        await MainActor.run {
+            self.hasResolvedPersonalization = false
+        }
+
         guard let user = Auth.auth().currentUser else {
             #if DEBUG
             print("PERSONALIZATION: no Firebase user")
             #endif
+
+            await MainActor.run {
+                self.clearOnboardingAnswers()
+                self.hasFreshOnboardingAnswers = false
+                self.needsPersonalization = false
+                self.hasResolvedPersonalization = true
+            }
 
             return
         }
@@ -1033,38 +1050,99 @@ final class AppViewModel: ObservableObject {
                 .document(user.uid)
                 .getDocument()
 
-            guard
-                let data = snapshot.data()?["personalization"] as? [String: Any]
-            else {
+            // Account že ima svojo personalizacijo.
+            if let data =
+                snapshot.data()?["personalization"]
+                    as? [String: Any] {
+
+                await MainActor.run {
+                    self.onboardingReason =
+                        data["onboardingReason"] as? String ?? ""
+
+                    self.onboardingTime =
+                        data["onboardingTime"] as? String ?? ""
+
+                    self.onboardingThinkerType =
+                        data["onboardingThinkerType"] as? String ?? ""
+
+                    self.onboardingNeed =
+                        data["onboardingNeed"] as? String ?? ""
+
+                    self.hasFreshOnboardingAnswers = false
+                    self.needsPersonalization = false
+                    self.hasResolvedPersonalization = true
+                }
+
                 #if DEBUG
-                print("PERSONALIZATION: document has no personalization field")
+                print("PERSONALIZATION: existing personalization loaded")
                 #endif
 
                 return
             }
 
+            // Account nima personalizacije,
+            // imamo pa sveže odgovore iz začetnega onboardinga.
+            let shouldUseFreshAnswers = await MainActor.run {
+                self.hasFreshOnboardingAnswers &&
+                self.hasOnboardingAnswers
+            }
+
+            if shouldUseFreshAnswers {
+
+                #if DEBUG
+                print(
+                    "PERSONALIZATION: new account, using fresh onboarding answers"
+                )
+                #endif
+
+                let saved =
+                    await saveCurrentOnboardingAnswersForLoggedInUser()
+
+                if saved {
+
+                    await MainActor.run {
+                        self.hasFreshOnboardingAnswers = false
+                        self.needsPersonalization = false
+                        self.hasResolvedPersonalization = true
+                    }
+
+                } else {
+
+                    await MainActor.run {
+                        self.needsPersonalization = true
+                        self.hasResolvedPersonalization = true
+                    }
+                }
+
+                return
+            }
+
+            // Account nima personalizacije in trenutni lokalni
+            // odgovori niso iz svežega onboardinga.
+            //
+            // Zato jih NE SMEMO pripisati temu accountu.
             await MainActor.run {
-                self.onboardingReason =
-                    data["onboardingReason"] as? String ?? ""
-
-                self.onboardingTime =
-                    data["onboardingTime"] as? String ?? ""
-
-                self.onboardingThinkerType =
-                    data["onboardingThinkerType"] as? String ?? ""
-
-                self.onboardingNeed =
-                    data["onboardingNeed"] as? String ?? ""
+                self.clearOnboardingAnswers()
+                self.hasFreshOnboardingAnswers = false
+                self.needsPersonalization = true
+                self.hasResolvedPersonalization = true
             }
 
             #if DEBUG
-            print("PERSONALIZATION LOADED")
+            print(
+                "PERSONALIZATION: account needs personalization questions"
+            )
             #endif
 
         } catch {
+
+            await MainActor.run {
+                self.hasResolvedPersonalization = true
+            }
+
             #if DEBUG
             print(
-                "LOAD ONBOARDING ERROR:",
+                "PERSONALIZATION PREPARE ERROR:",
                 error.localizedDescription
             )
             #endif
@@ -1086,18 +1164,53 @@ final class AppViewModel: ObservableObject {
         onboardingNeed =
             answers["onboardingNeed"] ?? ""
 
+        hasFreshOnboardingAnswers = true
+        needsPersonalization = false
+
         #if DEBUG
         print("ONBOARDING ANSWERS SAVED LOCALLY")
+        print("PERSONALIZATION: fresh onboarding answers available")
+        #endif
+    }
+    
+    private func clearOnboardingAnswers() {
+        onboardingReason = ""
+        onboardingTime = ""
+        onboardingThinkerType = ""
+        onboardingNeed = ""
+    }
+    
+    func savePersonalizationAnswers(
+        _ answers: [String: String]
+    ) {
+        onboardingReason =
+            answers["onboardingReason"] ?? ""
+
+        onboardingTime =
+            answers["onboardingTime"] ?? ""
+
+        onboardingThinkerType =
+            answers["onboardingThinkerType"] ?? ""
+
+        onboardingNeed =
+            answers["onboardingNeed"] ?? ""
+
+        hasFreshOnboardingAnswers = false
+        needsPersonalization = true
+
+        #if DEBUG
+        print("PERSONALIZATION ANSWERS COMPLETED")
         #endif
     }
 
-    func saveCurrentOnboardingAnswersForLoggedInUser() async {
+    func saveCurrentOnboardingAnswersForLoggedInUser() async -> Bool {
+
         guard let uid = Auth.auth().currentUser?.uid else {
             #if DEBUG
             print("PERSONALIZATION SAVE: no logged-in user")
             #endif
 
-            return
+            return false
         }
 
         let hasAnswers =
@@ -1111,7 +1224,7 @@ final class AppViewModel: ObservableObject {
             print("PERSONALIZATION SAVE: no answers available")
             #endif
 
-            return
+            return false
         }
 
         let personalizationData: [String: Any] = [
@@ -1131,17 +1244,28 @@ final class AppViewModel: ObservableObject {
                     merge: true
                 )
 
+            await MainActor.run {
+                self.hasFreshOnboardingAnswers = false
+                self.needsPersonalization = false
+                self.hasResolvedPersonalization = true
+            }
+
             #if DEBUG
             print("PERSONALIZATION SAVED TO FIRESTORE")
             #endif
 
+            return true
+
         } catch {
+
             #if DEBUG
             print(
                 "PERSONALIZATION SAVE ERROR:",
                 error.localizedDescription
             )
             #endif
+
+            return false
         }
     }
     
