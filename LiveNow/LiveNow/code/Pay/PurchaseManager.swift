@@ -1,3 +1,10 @@
+//
+//  PurchaseManager.swift
+//  LiveNow
+//
+//  Created by Gregor Cigoj on 31. 5. 2026.
+//
+
 import Foundation
 import StoreKit
 import Combine
@@ -14,6 +21,9 @@ final class PurchaseManager: ObservableObject {
     @Published private(set) var weeklyProduct: Product?
     @Published private(set) var yearlyProduct: Product?
 
+    @Published private(set) var weeklyIntroEligible: Bool = false
+    @Published private(set) var yearlyIntroEligible: Bool = false
+
     private let weeklyProductID = "livenow_premium_weekly"
     private let yearlyProductID = "livenow_premium_yearly"
 
@@ -29,6 +39,7 @@ final class PurchaseManager: ObservableObject {
 
                     await transaction.finish()
                     await checkPremiumStatus()
+                    await refreshIntroOfferEligibility()
                 }
             }
         }
@@ -55,6 +66,8 @@ final class PurchaseManager: ObservableObject {
                 $0.id == yearlyProductID
             }
 
+            await refreshIntroOfferEligibility()
+
         } catch {
 
             errorMessage = error.localizedDescription
@@ -65,6 +78,50 @@ final class PurchaseManager: ObservableObject {
                 error.localizedDescription
             )
             #endif
+        }
+    }
+
+    // MARK: - INTRO OFFER
+
+    private func isEligibleForIntroOffer(
+        product: Product?
+    ) async -> Bool {
+
+        guard
+            let product,
+            let subscription = product.subscription,
+            subscription.introductoryOffer != nil
+        else {
+            return false
+        }
+
+        return await subscription.isEligibleForIntroOffer
+    }
+
+    func refreshIntroOfferEligibility() async {
+
+        weeklyIntroEligible =
+            await isEligibleForIntroOffer(
+                product: weeklyProduct
+            )
+
+        yearlyIntroEligible =
+            await isEligibleForIntroOffer(
+                product: yearlyProduct
+            )
+    }
+
+    func isIntroEligible(
+        for plan: PaywallPlan
+    ) -> Bool {
+
+        switch plan {
+
+        case .weekly:
+            return weeklyIntroEligible
+
+        case .yearly:
+            return yearlyIntroEligible
         }
     }
 
@@ -82,8 +139,10 @@ final class PurchaseManager: ObservableObject {
 
     var yearlySavingsPercent: Int? {
 
-        guard let weeklyProduct,
-              let yearlyProduct else {
+        guard
+            let weeklyProduct,
+            let yearlyProduct
+        else {
             return nil
         }
 
@@ -105,10 +164,14 @@ final class PurchaseManager: ObservableObject {
         }
 
         let difference =
-            weeklyYearEquivalent.subtracting(yearlyPrice)
+            weeklyYearEquivalent.subtracting(
+                yearlyPrice
+            )
 
         let savingRatio =
-            difference.dividing(by: weeklyYearEquivalent)
+            difference.dividing(
+                by: weeklyYearEquivalent
+            )
 
         let percentage =
             savingRatio.multiplying(
@@ -117,13 +180,17 @@ final class PurchaseManager: ObservableObject {
 
         return max(
             0,
-            Int(percentage.doubleValue.rounded())
+            Int(
+                percentage.doubleValue.rounded()
+            )
         )
     }
 
     var yearlySavingsText: String {
 
-        guard let percentage = yearlySavingsPercent else {
+        guard
+            let percentage = yearlySavingsPercent
+        else {
             return ""
         }
 
@@ -143,8 +210,10 @@ final class PurchaseManager: ObservableObject {
 
             if case .verified(let transaction) = result {
 
-                if [weeklyProductID, yearlyProductID]
-                    .contains(transaction.productID),
+                if [
+                    weeklyProductID,
+                    yearlyProductID
+                ].contains(transaction.productID),
                    transaction.revocationDate == nil {
 
                     hasPremium = true
@@ -158,7 +227,9 @@ final class PurchaseManager: ObservableObject {
 
     // MARK: - PURCHASE
 
-    func purchase(plan: PaywallPlan) async {
+    func purchase(
+        plan: PaywallPlan
+    ) async {
 
         isLoading = true
         errorMessage = nil
@@ -195,13 +266,18 @@ final class PurchaseManager: ObservableObject {
                     productID = yearlyProductID
                 }
 
-                let products = try await Product.products(
-                    for: [productID]
-                )
+                let products =
+                    try await Product.products(
+                        for: [productID]
+                    )
 
-                guard let loadedProduct = products.first else {
+                guard
+                    let loadedProduct = products.first
+                else {
 
-                    errorMessage = "Subscription not found."
+                    errorMessage =
+                        "Subscription not found."
+
                     isLoading = false
                     return
                 }
@@ -209,19 +285,22 @@ final class PurchaseManager: ObservableObject {
                 finalProduct = loadedProduct
             }
 
-            let result = try await finalProduct.purchase()
+            let result =
+                try await finalProduct.purchase()
 
             switch result {
 
             case .success(let verification):
 
-                if case .verified(let transaction) = verification {
+                if case .verified(
+                    let transaction
+                ) = verification {
 
                     await transaction.finish()
 
-                    isPremium = true
-
                     await checkPremiumStatus()
+
+                    await refreshIntroOfferEligibility()
 
                 } else {
 
@@ -230,7 +309,6 @@ final class PurchaseManager: ObservableObject {
                 }
 
             case .userCancelled:
-
                 break
 
             case .pending:
@@ -246,7 +324,8 @@ final class PurchaseManager: ObservableObject {
 
         } catch {
 
-            errorMessage = error.localizedDescription
+            errorMessage =
+                error.localizedDescription
         }
 
         isLoading = false
@@ -269,6 +348,8 @@ final class PurchaseManager: ObservableObject {
             try await AppStore.sync()
 
             await checkPremiumStatus()
+
+            await refreshIntroOfferEligibility()
 
         } catch {
 

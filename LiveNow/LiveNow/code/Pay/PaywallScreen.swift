@@ -227,31 +227,38 @@ struct PaywallScreen: View {
 
                     VStack(spacing: 8) {
                         Button {
+
                             onSubscribe(selectedPlan)
+
                         } label: {
-                            Text("Start 3-day free trial")
-                                .font(
-                                    .system(
-                                        size: buttonTextSize,
-                                        weight: .semibold
-                                    )
+
+                            Text(
+                                purchaseManager.isIntroEligible(for: selectedPlan)
+                                    ? "Start 3-day free trial"
+                                    : "Subscribe"
+                            )
+                            .font(
+                                .system(
+                                    size: buttonTextSize,
+                                    weight: .semibold
                                 )
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(
-                                    .vertical,
-                                    buttonVerticalPadding
+                            )
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(
+                                .vertical,
+                                buttonVerticalPadding
+                            )
+                            .background(orange)
+                            .cornerRadius(
+                                min(
+                                    max(
+                                        screenWidth * 0.04,
+                                        15
+                                    ),
+                                    18
                                 )
-                                .background(orange)
-                                .cornerRadius(
-                                    min(
-                                        max(
-                                            screenWidth * 0.04,
-                                            15
-                                        ),
-                                        18
-                                    )
-                                )
+                            )
                         }
                         .buttonStyle(.plain)
                         .padding(
