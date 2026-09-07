@@ -302,11 +302,9 @@ struct ContentView: View {
         }
         
         .fullScreenCover(isPresented: $vm.showPaywall) {
-
             PaywallScreen(
                 orange: orange,
                 lightOrange: lightOrange,
-
                 onSubscribe: { plan in
                     Task {
                         await purchaseManager.purchase(plan: plan)
@@ -317,7 +315,6 @@ struct ContentView: View {
                         }
                     }
                 },
-
                 onRestore: {
                     Task {
                         await purchaseManager.restore()
@@ -328,7 +325,6 @@ struct ContentView: View {
                         }
                     }
                 },
-
                 onClose: {
                     vm.showPaywall = false
 
@@ -337,6 +333,10 @@ struct ContentView: View {
                         hasSeenOnboarding = false
                     }
                 }
+            )
+            .background(
+                Color(red: 0.97, green: 0.96, blue: 0.94)
+                    .ignoresSafeArea()
             )
             .interactiveDismissDisabled(true)
         }

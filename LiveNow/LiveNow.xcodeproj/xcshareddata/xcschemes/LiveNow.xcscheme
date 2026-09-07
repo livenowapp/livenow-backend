@@ -51,9 +51,6 @@
             ReferencedContainer = "container:LiveNow.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <StoreKitConfigurationFileReference
-         identifier = "../../LiveNow/LiveNowStoreKit.storekit">
-      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
