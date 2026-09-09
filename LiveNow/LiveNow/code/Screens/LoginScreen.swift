@@ -107,7 +107,11 @@ struct LoginScreen: View {
                         .submitLabel(.done)
                         .onSubmit {
                             if canSubmit {
-                                authVM.login()
+                                focusedField = nil
+
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    authVM.login()
+                                }
                             }
                         }
                         
@@ -139,7 +143,11 @@ struct LoginScreen: View {
                     }
 
                     Button(action: {
-                        authVM.login()
+                        focusedField = nil
+
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            authVM.login()
+                        }
                     }) {
                         Text(authVM.isLoading ? "loading..." : "log in")
                             .font(.system(size: buttonTextSize, weight: .semibold))

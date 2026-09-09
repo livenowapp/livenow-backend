@@ -52,13 +52,14 @@ struct ContentView: View {
                         lightOrange: lightOrange,
                         startOnLastPage: returnToLastOnboardingPage,
                         onGetStarted: { answers in
-
                             vm.saveOnboardingAnswers(answers)
                             vm.resetToHome()
-
                             returnToLastOnboardingPage = true
                             hasSeenOnboarding = true
-                            vm.showPaywall = true
+
+                            if !purchaseManager.isPremium {
+                                vm.showPaywall = true
+                            }
                         }
                     )
 
@@ -226,7 +227,6 @@ struct ContentView: View {
                 }
 
                 showLoginAfterLogout = false
-                didCheckPremiumStatus = false
                 vm.resetToHome()
 
                 guard let user = Auth.auth().currentUser else {

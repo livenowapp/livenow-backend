@@ -713,7 +713,7 @@ struct MomentSwipeRow<Content: View>: View {
             .contentShape(Rectangle())
             .simultaneousGesture(
                 swipeGesture,
-                including: .all
+                including: .gesture
             )
             .onTapGesture {
                 handleCardTap()
@@ -803,7 +803,7 @@ struct MomentSwipeRow<Content: View>: View {
 
     private var swipeGesture: some Gesture {
         DragGesture(
-            minimumDistance: 10,
+            minimumDistance: 24,
             coordinateSpace: .local
         )
         .onChanged { value in
@@ -813,12 +813,13 @@ struct MomentSwipeRow<Content: View>: View {
             let vertical = value.translation.height
 
             if !dragDirectionLocked {
+
                 let horizontalDistance = abs(horizontal)
                 let verticalDistance = abs(vertical)
 
                 guard
-                    horizontalDistance >= 10 ||
-                    verticalDistance >= 10
+                    horizontalDistance >= 18 ||
+                    verticalDistance >= 18
                 else {
                     return
                 }
@@ -827,7 +828,7 @@ struct MomentSwipeRow<Content: View>: View {
 
                 isHorizontalDrag =
                     horizontalDistance >
-                    verticalDistance * horizontalDirectionRatio
+                    verticalDistance * 1.35
             }
 
             guard isHorizontalDrag else {
@@ -846,6 +847,7 @@ struct MomentSwipeRow<Content: View>: View {
             )
         }
         .onEnded { value in
+
             defer {
                 dragDirectionLocked = false
                 isHorizontalDrag = false
