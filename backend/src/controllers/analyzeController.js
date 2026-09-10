@@ -95,8 +95,16 @@ export async function analyzeController(req, res) {
   // the reservation is refunded.
   // ----------------------------------------------------------
 
+  const rateLimitStartedAt = Date.now();
+
   const limitCheck =
     await checkRateLimit(firebaseUid);
+
+  console.info("Rate limit timing", {
+    requestId,
+    durationMs:
+      Date.now() - rateLimitStartedAt,
+  });
 
   if (!limitCheck.allowed) {
     if (limitCheck.retryAfterSeconds) {
@@ -125,8 +133,16 @@ export async function analyzeController(req, res) {
   // ----------------------------------------------------------
 
   try {
+    const claudeStartedAt = Date.now();
+
     const message =
       await generateReflection(thought);
+
+    console.info("Claude timing", {
+      requestId,
+      durationMs:
+        Date.now() - claudeStartedAt,
+    });
 
     if (message.stop_reason === "refusal") {
       console.warn("Claude request refused", {
