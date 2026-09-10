@@ -45,12 +45,7 @@ export async function generateReflection(thought) {
       },
     ],
 
-    output_config: {
-      format: {
-        type: "json_schema",
-        schema: reflectionJsonSchema,
-      },
-    },
+    
   });
 
   console.info("Claude usage", {
