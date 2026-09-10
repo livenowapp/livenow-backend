@@ -23,7 +23,15 @@ export async function generateReflection(thought) {
     max_tokens: 1_200,
     temperature: 0.35,
 
-    system: SYSTEM_PROMPT,
+    system: [
+  {
+    type: "text",
+    text: SYSTEM_PROMPT,
+    cache_control: {
+      type: "ephemeral",
+    },
+  },
+],
 
     messages: [
       {
@@ -48,6 +56,10 @@ export async function generateReflection(thought) {
   console.info("Claude usage", {
   inputTokens: message.usage?.input_tokens ?? 0,
   outputTokens: message.usage?.output_tokens ?? 0,
+  cacheCreationInputTokens:
+    message.usage?.cache_creation_input_tokens ?? 0,
+  cacheReadInputTokens:
+    message.usage?.cache_read_input_tokens ?? 0,
 });
 
   return message;
