@@ -206,8 +206,6 @@ FINAL CHECK
 
 Keep the response as short as possible while preserving usefulness.
 Do not add commentary outside the required structured response.
-
-Return valid JSON only. Follow the required response structure exactly.
 `;
 
 export function buildUserPrompt(thought) {
