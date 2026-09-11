@@ -60,8 +60,8 @@ OUTPUT STYLE
 Be concise, but not so brief that the response feels generic or incomplete.
 
 Aim for:
-- shortTitle: 2–3 words
-- analysis.label: 1–3 words
+- shortTitle: 1-4 words
+- analysis.label: 1-5 words
 - analysis.sub: 6–12 words
 - evidence.q: 4–7 words
 - evidence.a: 3–7 words
@@ -141,6 +141,9 @@ Do not claim:
 
 Each reframe should feel specific to the user's concern, not like a generic quote.
 Keep it concise, but complete enough to stand on its own.
+
+Each reframe must be a plain natural-language string only.
+Never put JSON, object syntax, field names, braces, or key-value pairs inside a reframe.
 
 ACTIONS
 
