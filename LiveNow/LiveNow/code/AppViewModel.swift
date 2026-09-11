@@ -263,6 +263,14 @@ final class AppViewModel: ObservableObject {
     
     @MainActor
     func analyze() async {
+        // Prepreči drugi API request,
+        // če analiza že poteka.
+        guard !isLoading else {
+            #if DEBUG
+            print("ANALYZE BLOCKED: request already in progress")
+            #endif
+            return
+        }
 
         let cleanedThought = thought.trimmingCharacters(
             in: .whitespacesAndNewlines
@@ -294,20 +302,30 @@ final class AppViewModel: ObservableObject {
         errorMessage = nil
         step = .thinking
 
-        do {
+        #if DEBUG
+        print("ANALYZE STARTED")
+        #endif
 
-            let response = try await AIService.shared.analyzeThought(
-                thought: cleanedThought
-            )
+        defer {
+            isLoading = false
+        }
+
+        do {
+            let response =
+                try await AIService.shared.analyzeThought(
+                    thought: cleanedThought
+                )
 
             handleAIResponse(
                 response,
                 for: cleanedThought
             )
 
-        } catch {
+            #if DEBUG
+            print("ANALYZE FINISHED")
+            #endif
 
-            isLoading = false
+        } catch {
             errorMessage = error.localizedDescription
             step = .input
 
@@ -317,11 +335,7 @@ final class AppViewModel: ObservableObject {
                 error.localizedDescription
             )
             #endif
-
-            return
         }
-
-        isLoading = false
     }
     
     /*@MainActor

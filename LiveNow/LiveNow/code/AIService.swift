@@ -8,6 +8,16 @@
 import Foundation
 import FirebaseAuth
 
+private struct BackendErrorResponse: Decodable {
+    let error: BackendErrorBody
+}
+
+private struct BackendErrorBody: Decodable {
+    let code: String?
+    let message: String
+    let requestId: String?
+}
+
 // MARK: - API
 
 final class AIService {
@@ -59,13 +69,19 @@ final class AIService {
             }
 
             guard 200..<300 ~= httpResponse.statusCode else {
-                let serverMessage =
-                    String(data: data, encoding: .utf8)
-                    ?? "Unknown server error"
+                let backendError =
+                    try? JSONDecoder().decode(
+                        BackendErrorResponse.self,
+                        from: data
+                    )
+
+                let message =
+                    backendError?.error.message
+                    ?? "Something went wrong. Please try again."
 
                 #if DEBUG
                 print("AI BACKEND STATUS:", httpResponse.statusCode)
-                print("AI BACKEND RESPONSE:", serverMessage)
+                print("AI BACKEND MESSAGE:", message)
                 #endif
 
                 switch httpResponse.statusCode {
@@ -77,8 +93,7 @@ final class AIService {
 
                 default:
                     throw AIServiceError.serverError(
-                        statusCode: httpResponse.statusCode,
-                        message: serverMessage
+                        message: message
                     )
                 }
             }
@@ -100,7 +115,7 @@ enum AIServiceError: LocalizedError {
     case userNotSignedIn
     case unauthorized
     case rateLimited
-    case serverError(statusCode: Int, message: String)
+    case serverError(message: String)
 
     var errorDescription: String? {
         switch self {
@@ -113,8 +128,8 @@ enum AIServiceError: LocalizedError {
         case .rateLimited:
             return "You’ve made too many requests. Please try again shortly."
 
-        case let .serverError(statusCode, message):
-            return "Server error \(statusCode): \(message)"
+        case let .serverError(message):
+            return message
         }
     }
 }
