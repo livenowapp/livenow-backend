@@ -14,5 +14,5 @@ export const MODEL =
 export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
   timeout: 20_000,
-  maxRetries: 2,
+  maxRetries: 0,
 });

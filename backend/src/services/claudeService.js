@@ -13,15 +13,10 @@ import {
 } from "../schemas/reflectionJsonSchema.js";
 
 export async function generateReflection(thought) {
-  console.log(
-    "SYSTEM PROMPT CHARACTERS:",
-    SYSTEM_PROMPT.length
-  );
-
-  const message = await anthropic.messages.create({
+  const request = anthropic.messages.create({
     model: MODEL,
     max_tokens: 1_200,
-    temperature: 0.35,
+    temperature: 0.45,
 
     system: SYSTEM_PROMPT,
 
@@ -45,10 +40,21 @@ export async function generateReflection(thought) {
     },
   });
 
-  console.info("Claude usage", {
-  inputTokens: message.usage?.input_tokens ?? 0,
-  outputTokens: message.usage?.output_tokens ?? 0,
-});
+  const {
+    data: message,
+    request_id: anthropicRequestId,
+  } = await request.withResponse();
 
-  return message;
+  console.info("Claude usage", {
+    anthropicRequestId,
+    inputTokens:
+      message.usage?.input_tokens ?? 0,
+    outputTokens:
+      message.usage?.output_tokens ?? 0,
+  });
+
+  return {
+    message,
+    anthropicRequestId,
+  };
 }

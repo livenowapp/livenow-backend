@@ -289,50 +289,6 @@ export const ReflectionSchema = z
           "Elevated and urgent responses must include a safety message.",
       });
     }
-
-    // MARK: - ACTION ICON VARIETY
-
-    if (
-      data.inputAssessment === "analyzable" &&
-      data.actions.length === 4
-    ) {
-      const actionIcons =
-        data.actions.map(
-          (item) => item.icon
-        );
-
-      if (
-        new Set(actionIcons).size < 3
-      ) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["actions"],
-          message:
-            "Actions must use at least three different icons.",
-        });
-      }
-
-      const calmingIcons = new Set([
-        "action_breath",
-        "action_leaf",
-        "action_meditation",
-      ]);
-
-      const calmingActionCount =
-        data.actions.filter(
-          (action) =>
-            calmingIcons.has(action.icon)
-        ).length;
-
-      if (calmingActionCount > 1) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["actions"],
-          message:
-            "Only one calming action icon may be used.",
-        });
-      }
-    }
   });
 
 export const AnalyzeRequestSchema = z

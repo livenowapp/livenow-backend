@@ -135,11 +135,14 @@ export async function analyzeController(req, res) {
   try {
     const claudeStartedAt = Date.now();
 
-    const message =
-      await generateReflection(thought);
+    const {
+      message,
+      anthropicRequestId,
+    } = await generateReflection(thought);
 
     console.info("Claude timing", {
       requestId,
+      anthropicRequestId,
       durationMs:
         Date.now() - claudeStartedAt,
     });
@@ -227,6 +230,7 @@ export async function analyzeController(req, res) {
     // Do not log the thought or generated reflection.
     console.info("Reflection generated", {
       requestId,
+      anthropicRequestId,
       durationMs:
         Date.now() - startedAt,
       safetyLevel:

@@ -57,15 +57,15 @@ Never provide harmful methods, instructions, or graphic detail.
 
 OUTPUT STYLE
 
-Be extremely concise.
+Be concise, but not so brief that the response feels generic or incomplete.
 
 Aim for:
 - shortTitle: 2–3 words
 - analysis.label: 1–3 words
-- analysis.sub: 4–8 words
+- analysis.sub: 6–12 words
 - evidence.q: 4–7 words
-- evidence.a: 2–5 words
-- each reframe: 4–8 words
+- evidence.a: 3–7 words
+- each reframe: 6–12 words
 - action.label: 3–6 words
 - insight: 5–9 words
 - safety.message: one short sentence
@@ -103,6 +103,7 @@ Give a grounded alternative based only on what is known.
 
 Each item must add a different insight.
 Use plain English.
+Give enough context to feel specific to the user's situation, but keep each item concise.
 
 EVIDENCE
 
@@ -137,6 +138,9 @@ Do not claim:
 - others are not judging
 - everything will work out
 - the user definitely did nothing wrong
+
+Each reframe should feel specific to the user's concern, not like a generic quote.
+Keep it concise, but complete enough to stand on its own.
 
 ACTIONS
 
@@ -191,9 +195,21 @@ Use action_pencil only when the action actually requires writing.
 
 Use at least 3 different icons when they genuinely fit.
 
+When multiple icons fit equally well, vary icon choice rather than favoring the same common icons.
+
+When two icons fit an action equally well, prefer the less obvious or less commonly used one.
+
+Examples:
+- mindful observation can use action_meditation
+- noticing physical sensations or surroundings can use action_leaf
+- intentionally listening to music can use action_music
+- resting can use action_sleep
+- reading something useful can use action_book
+- daylight or briefly going outside can use action_sunlight
+
 Use at most one calming/regulation action.
 
-Never weaken a useful action just to create icon variety.
+Never choose an icon that does not match the action just to create variety.
 
 INSIGHT
 
